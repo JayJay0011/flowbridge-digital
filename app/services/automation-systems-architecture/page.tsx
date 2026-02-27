@@ -148,7 +148,18 @@ export default function AutomationPage() {
   )
 }
 
-function FeatureCard({ title, desc }) {
+type FeatureCardProps = {
+  title: string;
+  desc: string;
+};
+
+type ProcessStepProps = {
+  number: string;
+  title: string;
+  desc: string;
+};
+
+function FeatureCard({ title, desc }: FeatureCardProps) {
   return (
     <div className="p-8 border border-slate-200 rounded-2xl hover:shadow-md transition">
       <h3 className="text-xl font-semibold mb-4">{title}</h3>
@@ -157,7 +168,7 @@ function FeatureCard({ title, desc }) {
   )
 }
 
-function ProcessStep({ number, title, desc }) {
+function ProcessStep({ number, title, desc }: ProcessStepProps) {
   return (
     <div>
       <div className="text-sm font-medium text-slate-400 mb-2">{number}</div>

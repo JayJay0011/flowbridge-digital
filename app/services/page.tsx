@@ -124,7 +124,13 @@ export default function ServicesPage() {
   )
 }
 
-function ServiceCard({ title, desc, href }) {
+type ServiceCardProps = {
+  title: string;
+  desc: string;
+  href: string;
+};
+
+function ServiceCard({ title, desc, href }: ServiceCardProps) {
   return (
     <Link
       href={href}
