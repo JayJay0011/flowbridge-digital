@@ -8,11 +8,23 @@ export const metadata = {
 
 export const revalidate = 0;
 
+type Related<T> = T | T[] | null;
+
+type Review = {
+  id: string;
+  rating: number | null;
+  summary: string | null;
+  body: string | null;
+  created_at: string;
+  profiles: Related<{ username: string | null }>;
+};
+
 export default async function ReviewsPage() {
-  const { data: reviews } = await supabasePublic
+  const { data } = await supabasePublic
     .from("reviews")
     .select("id,rating,summary,body,created_at,profiles(username)")
     .order("created_at", { ascending: false });
+  const reviews = (data ?? []) as Review[];
 
   return (
     <main className="bg-white text-slate-900">
@@ -40,7 +52,9 @@ export default async function ReviewsPage() {
               >
                 <div className="flex items-center justify-between">
                   <div className="text-sm text-slate-500">
-                    {review.profiles?.username || "Client"}
+                    {(Array.isArray(review.profiles)
+                      ? review.profiles[0]?.username
+                      : review.profiles?.username) || "Client"}
                   </div>
                   <div className="text-sm font-semibold text-slate-900">
                     {"★".repeat(review.rating || 0)}
