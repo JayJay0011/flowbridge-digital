@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+type Related<T> = T | T[] | null;
+
 type Order = {
   id: string;
   status: string;
   created_at: string;
-  gigs: { title: string } | null;
-  profiles: { email: string | null } | null;
+  gigs: Related<{ title: string | null }>;
+  profiles: Related<{ email: string | null }>;
 };
 
 export default function AdminOrdersPage() {
@@ -75,17 +77,23 @@ export default function AdminOrdersPage() {
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => (
-                    <tr key={order.id} className="border-t border-slate-200">
-                      <td className="px-6 py-4 font-medium">
-                        {order.id.slice(0, 8)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {order.profiles?.email || "—"}
-                      </td>
-                      <td className="px-6 py-4">
-                        {order.gigs?.title || "—"}
-                      </td>
+                  orders.map((order) => {
+                    const profile = Array.isArray(order.profiles)
+                      ? order.profiles[0]
+                      : order.profiles;
+                    const gig = Array.isArray(order.gigs) ? order.gigs[0] : order.gigs;
+
+                    return (
+                      <tr key={order.id} className="border-t border-slate-200">
+                        <td className="px-6 py-4 font-medium">
+                          {order.id.slice(0, 8)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {profile?.email || "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          {gig?.title || "—"}
+                        </td>
                       <td className="px-6 py-4">
                         <span className="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
                           {order.status}
@@ -94,8 +102,9 @@ export default function AdminOrdersPage() {
                       <td className="px-6 py-4">
                         {new Date(order.created_at).toLocaleDateString()}
                       </td>
-                    </tr>
-                  ))
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
