@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 
+type Related<T> = T | T[] | null;
+
 type Order = {
   id: string;
   status: string;
   created_at: string;
-  gigs: { title: string } | null;
+  gigs: Related<{ title: string | null }>;
 };
 
 const statusLabel = (status: string) => {
@@ -53,6 +55,13 @@ export default function DashboardOrdersPage() {
     [orders, selectedId]
   );
 
+  const selectedGig = useMemo(() => {
+    if (!selectedOrder) return null;
+    return Array.isArray(selectedOrder.gigs)
+      ? selectedOrder.gigs[0]
+      : selectedOrder.gigs;
+  }, [selectedOrder]);
+
   return (
     <section>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -85,7 +94,9 @@ export default function DashboardOrdersPage() {
             >
               {orders.map((order) => (
                 <option key={order.id} value={order.id}>
-                  {order.gigs?.title || "Order"} · {order.id.slice(0, 6)}
+                  {(Array.isArray(order.gigs) ? order.gigs[0]?.title : order.gigs?.title) ||
+                    "Order"}{" "}
+                  · {order.id.slice(0, 6)}
                 </option>
               ))}
             </select>
@@ -174,7 +185,7 @@ export default function DashboardOrdersPage() {
                   <div className="flex items-center justify-between">
                     <span>Gig</span>
                     <span className="font-medium text-[var(--dash-strong)]">
-                      {selectedOrder.gigs?.title || "Custom project"}
+                      {selectedGig?.title || "Custom project"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
