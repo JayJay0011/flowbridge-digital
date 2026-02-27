@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/dashboard";
@@ -308,5 +308,21 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-slate-900 text-white flex items-center justify-center px-6 py-16">
+          <div className="w-full max-w-md bg-white text-slate-900 rounded-3xl shadow-xl p-10 text-center">
+            Loading...
+          </div>
+        </main>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
   );
 }
