@@ -102,10 +102,6 @@ export default function PrivacyPolicyPage() {
             </p>
           </div>
 
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
-            Please review and customize this policy to match your legal
-            requirements and business practices.
-          </div>
         </div>
       </section>
     </main>
