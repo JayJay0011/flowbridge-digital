@@ -29,6 +29,18 @@ const cards = [
     disabled: false,
   },
   {
+    title: "Blog",
+    desc: "Create and publish Flowbridge articles.",
+    href: "/admin/blog",
+    disabled: false,
+  },
+  {
+    title: "Settings",
+    desc: "Assign admin access and manage permissions.",
+    href: "/admin/settings",
+    disabled: false,
+  },
+  {
     title: "Clients",
     desc: "View client profiles and messages (coming next).",
     href: "#",

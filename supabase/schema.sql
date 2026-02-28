@@ -76,6 +76,34 @@ create table if not exists public.portfolio (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.blog_posts (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  slug text not null unique,
+  excerpt text,
+  body text,
+  cover_url text,
+  status text not null default 'draft' check (status in ('draft', 'published')),
+  published_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create or replace function public.set_blog_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists on_blog_post_updated on public.blog_posts;
+create trigger on_blog_post_updated
+before update on public.blog_posts
+for each row execute function public.set_blog_updated_at();
+
 create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   client_id uuid references public.profiles(id) on delete set null,
@@ -111,6 +139,7 @@ alter table public.profiles enable row level security;
 alter table public.services enable row level security;
 alter table public.gigs enable row level security;
 alter table public.portfolio enable row level security;
+alter table public.blog_posts enable row level security;
 alter table public.orders enable row level security;
 alter table public.messages enable row level security;
 alter table public.reviews enable row level security;
@@ -122,6 +151,11 @@ using (auth.uid() = id or public.is_admin());
 create policy "Profiles: update own"
 on public.profiles for update
 using (auth.uid() = id);
+
+create policy "Profiles: admin update"
+on public.profiles for update
+using (public.is_admin())
+with check (public.is_admin());
 
 create policy "Services: public read published"
 on public.services for select
@@ -147,6 +181,15 @@ using (status = 'published');
 
 create policy "Portfolio: admin manage"
 on public.portfolio for all
+using (public.is_admin())
+with check (public.is_admin());
+
+create policy "Blog: public read published"
+on public.blog_posts for select
+using (status = 'published');
+
+create policy "Blog: admin manage"
+on public.blog_posts for all
 using (public.is_admin())
 with check (public.is_admin());
 

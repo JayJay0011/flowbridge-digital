@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { playNotification } from "../lib/notifications";
 
@@ -20,6 +21,7 @@ type UploadEntry = {
 const offerPrefix = "__offer__:";
 
 export default function ChatWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -335,6 +337,10 @@ export default function ChatWidget() {
       );
     });
   };
+
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

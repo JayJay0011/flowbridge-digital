@@ -43,7 +43,7 @@ export default function Header() {
     };
   }, []);
 
-  if (pathname?.startsWith("/dashboard")) {
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
     return null;
   }
 
@@ -63,6 +63,9 @@ export default function Header() {
           </Link>
           <Link href="/portfolio" className="transition">
             Portfolio
+          </Link>
+          <Link href="/blog" className="transition">
+            Blog
           </Link>
           <Link href="/about" className="transition">
             About
@@ -118,6 +121,9 @@ export default function Header() {
             </Link>
             <Link href="/portfolio" onClick={() => setMobileOpen(false)}>
               Portfolio
+            </Link>
+            <Link href="/blog" onClick={() => setMobileOpen(false)}>
+              Blog
             </Link>
             <Link href="/about" onClick={() => setMobileOpen(false)}>
               About

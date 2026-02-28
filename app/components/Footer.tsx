@@ -1,4 +1,13 @@
+"use client";
+
+import { usePathname } from "next/navigation";
+
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 grid md:grid-cols-4 gap-10">
@@ -59,6 +68,11 @@ export default function Footer() {
             <li>
               <a href="/portfolio" className="hover:text-white transition-colors duration-300">
                 Portfolio
+              </a>
+            </li>
+            <li>
+              <a href="/blog" className="hover:text-white transition-colors duration-300">
+                Blog
               </a>
             </li>
             <li>
