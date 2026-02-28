@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function MedspaCaseStudy() {
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">

@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
-        className={`${manrope.variable} ${fraunces.variable} bg-[var(--background)] text-[var(--foreground)] transition-colors duration-300`}
+        className={`${manrope.variable} ${fraunces.variable} bg-white text-slate-900`}
       >
 
         <Header />

@@ -7,72 +7,6 @@
   --font-display: var(--font-fraunces);
 }
 
-.site-theme-light {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-.site-theme-dark {
-  --background: #0b1120;
-  --foreground: #f8fafc;
-}
-
-.site-theme-dark .bg-white {
-  background-color: #0f172a;
-}
-
-.site-theme-dark .bg-slate-50 {
-  background-color: #0b1220;
-}
-
-.site-theme-dark .bg-slate-100 {
-  background-color: #111827;
-}
-
-.site-theme-dark .text-slate-900 {
-  color: #f8fafc;
-}
-
-.site-theme-dark .text-slate-800 {
-  color: #e2e8f0;
-}
-
-.site-theme-dark .text-slate-700 {
-  color: #cbd5f5;
-}
-
-.site-theme-dark .text-slate-600 {
-  color: #cbd5e1;
-}
-
-.site-theme-dark .text-slate-500 {
-  color: #94a3b8;
-}
-
-.site-theme-dark .text-slate-400 {
-  color: #94a3b8;
-}
-
-.site-theme-dark .text-slate-300 {
-  color: #cbd5e1;
-}
-
-.site-theme-dark .border-slate-100 {
-  border-color: #1f2937;
-}
-
-.site-theme-dark .border-slate-200 {
-  border-color: #1f2937;
-}
-
-.site-theme-dark .border-slate-300 {
-  border-color: #334155;
-}
-
-.site-theme-dark .border-slate-800 {
-  border-color: #334155;
-}
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -80,16 +14,9 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: #ffffff;
+  color: #171717;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 

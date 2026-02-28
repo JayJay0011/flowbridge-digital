@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export default function CaseStudiesPage() {
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">

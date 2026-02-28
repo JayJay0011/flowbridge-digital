@@ -172,7 +172,7 @@ function LoginPageInner() {
 
   return (
     <main className="min-h-screen bg-slate-900 text-white flex items-center justify-center px-6 py-16">
-      <div className="w-full max-w-4xl bg-[var(--background)] text-[var(--foreground)] rounded-3xl overflow-hidden shadow-xl">
+      <div className="w-full max-w-4xl bg-white text-slate-900 rounded-3xl overflow-hidden shadow-xl">
         <div className="grid md:grid-cols-[1.1fr_1fr]">
           <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 text-white p-10">
             <div>
@@ -334,7 +334,7 @@ export default function LoginPage() {
     <Suspense
       fallback={
         <main className="min-h-screen bg-slate-900 text-white flex items-center justify-center px-6 py-16">
-          <div className="w-full max-w-md bg-[var(--background)] text-[var(--foreground)] rounded-3xl shadow-xl p-10 text-center">
+          <div className="w-full max-w-md bg-white text-slate-900 rounded-3xl shadow-xl p-10 text-center">
             Loading...
           </div>
         </main>

@@ -29,7 +29,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
   const { data: gigs } = await request;
 
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
       <section className="py-20 bg-slate-950 text-white">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">

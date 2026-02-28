@@ -40,7 +40,7 @@ export default function AdminOrdersPage() {
   }, []);
 
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Orders</h1>

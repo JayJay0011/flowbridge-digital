@@ -1,6 +1,6 @@
 export default function ThankYouPage() {
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)] min-h-screen flex items-center justify-center px-6">
+    <main className="bg-white text-slate-900 min-h-screen flex items-center justify-center px-6">
       <div className="max-w-xl text-center bg-white p-10 rounded-2xl shadow-md">
 
         <div className="text-5xl mb-6">✅</div>

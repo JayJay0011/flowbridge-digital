@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">
@@ -35,7 +35,7 @@ export default function AboutPage() {
                 href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block bg-[var(--background)] text-[var(--foreground)] px-8 py-4 rounded-xl hover:bg-slate-100 transition"
+                className="inline-block bg-white text-slate-900 px-8 py-4 rounded-xl hover:bg-slate-100 transition"
               >
                 Book a Strategy Call
               </a>
@@ -167,7 +167,7 @@ export default function AboutPage() {
 
           <Link
             href="/contact"
-            className="inline-block bg-[var(--background)] text-[var(--foreground)] px-10 py-4 rounded-xl hover:bg-slate-200 transition"
+            className="inline-block bg-white text-slate-900 px-10 py-4 rounded-xl hover:bg-slate-200 transition"
           >
             Schedule a Consultation
           </Link>

@@ -8,7 +8,7 @@ export const metadata = {
 
 export default function ServicesPage() {
   return (
-    <main className="bg-[var(--background)] text-[var(--foreground)]">
+    <main className="bg-white text-slate-900">
 
       {/* HERO */}
       <section className="py-20 bg-slate-950 text-white">
@@ -113,7 +113,7 @@ export default function ServicesPage() {
             href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
             target="_blank"
             rel="noreferrer"
-            className="inline-block bg-[var(--background)] text-[var(--foreground)] px-10 py-4 rounded-xl font-medium hover:bg-slate-200 transition"
+            className="inline-block bg-white text-slate-900 px-10 py-4 rounded-xl font-medium hover:bg-slate-200 transition"
           >
             Book a Strategy Call
           </a>
