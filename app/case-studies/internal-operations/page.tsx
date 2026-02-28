@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function InternalOperationsCaseStudy() {
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">

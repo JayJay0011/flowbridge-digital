@@ -1,6 +1,6 @@
 export default function AutomationPage() {
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
 
       {/* HERO */}
       <section className="py-28">

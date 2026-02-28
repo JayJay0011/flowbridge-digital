@@ -71,11 +71,11 @@ export default function Home() {
                 type="text"
                 name="q"
                 placeholder="Search for a service..."
-                className="flex-1 rounded-xl px-5 py-4 bg-white text-slate-900 placeholder-slate-500 focus:outline-none"
+                className="flex-1 rounded-xl px-5 py-4 bg-[var(--background)] text-[var(--foreground)] placeholder-slate-500 focus:outline-none"
               />
               <button
                 type="submit"
-                className="inline-flex items-center justify-center px-6 py-4 rounded-xl bg-white text-slate-900 font-semibold hover:bg-slate-100 transition"
+                className="inline-flex items-center justify-center px-6 py-4 rounded-xl bg-[var(--background)] text-[var(--foreground)] font-semibold hover:bg-slate-100 transition"
               >
                 Search
               </button>
@@ -463,7 +463,7 @@ export default function Home() {
                 href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-block bg-white text-slate-900 px-8 py-4 rounded-lg font-medium hover:bg-slate-200 transition"
+                className="inline-block bg-[var(--background)] text-[var(--foreground)] px-8 py-4 rounded-lg font-medium hover:bg-slate-200 transition"
               >
                 Book a Strategy Call
               </a>

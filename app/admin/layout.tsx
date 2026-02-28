@@ -46,7 +46,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   if (checking) {
     return (
-      <main className="min-h-screen bg-white text-slate-900 flex items-center justify-center">
+      <main className="min-h-screen bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center">
         <p className="text-slate-500">Checking admin access...</p>
       </main>
     );

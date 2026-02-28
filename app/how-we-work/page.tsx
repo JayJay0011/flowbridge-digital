@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function HowWeWorkPage() {
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">

@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function EcommerceAutomationCaseStudy() {
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">
@@ -120,7 +120,7 @@ export default function EcommerceAutomationCaseStudy() {
 
           <Link
             href="/contact"
-            className="inline-block bg-white text-slate-900 px-10 py-4 rounded-xl font-medium hover:bg-slate-100 transition"
+            className="inline-block bg-[var(--background)] text-[var(--foreground)] px-10 py-4 rounded-xl font-medium hover:bg-slate-100 transition"
           >
             Book a Systems Consultation
           </Link>

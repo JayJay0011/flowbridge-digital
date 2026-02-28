@@ -69,7 +69,7 @@ export default function Header() {
   const isDark = theme === "dark";
   const headerClass = isDark
     ? "bg-slate-950 text-slate-100 border-slate-800"
-    : "bg-white text-slate-900 border-slate-200";
+    : "bg-[var(--background)] text-[var(--foreground)] border-slate-200";
   const navTextClass = isDark
     ? "text-slate-200 hover:text-white"
     : "text-slate-600 hover:text-slate-900";
@@ -77,7 +77,7 @@ export default function Header() {
     ? "border-slate-700 text-slate-200 hover:bg-slate-800"
     : "border-slate-200 text-slate-700 hover:bg-slate-100";
   const ctaClass = isDark
-    ? "bg-white text-slate-900 hover:bg-slate-100"
+    ? "bg-[var(--background)] text-[var(--foreground)] hover:bg-slate-100"
     : "bg-slate-900 text-white hover:bg-slate-800";
   const callClass = isDark
     ? "bg-slate-800 text-slate-100 hover:bg-slate-700"

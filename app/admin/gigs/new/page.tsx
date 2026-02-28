@@ -56,7 +56,7 @@ export default function NewGigPage() {
   };
 
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
       <section className="py-16 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Create New Gig</h1>

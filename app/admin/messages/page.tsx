@@ -827,7 +827,7 @@ export default function AdminMessagesPage() {
                               className={`max-w-[70%] rounded-2xl px-4 py-3 ${
                                 isAgent
                                   ? "bg-slate-900 text-white"
-                                  : "bg-white text-slate-900 border border-slate-200"
+                                  : "bg-[var(--background)] text-[var(--foreground)] border border-slate-200"
                               }`}
                             >
                               {renderMessageBody(message.body)}

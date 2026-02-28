@@ -154,7 +154,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium transition ${
                     pathname === item.href
                       ? isDark
-                        ? "bg-white text-slate-900"
+                        ? "bg-[var(--background)] text-[var(--foreground)]"
                         : "bg-slate-900 text-white"
                       : isDark
                       ? "text-slate-200 hover:bg-slate-800/60"

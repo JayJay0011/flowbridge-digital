@@ -59,7 +59,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
     : caseStudies;
 
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
       <section className="py-16 bg-slate-50">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl md:text-4xl font-semibold">Search</h1>

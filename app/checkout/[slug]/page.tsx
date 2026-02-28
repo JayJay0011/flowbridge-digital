@@ -34,7 +34,7 @@ export default async function CheckoutPage({ params }: Params) {
 
   if (!gig) {
     return (
-      <main className="bg-white text-slate-900 py-24">
+      <main className="bg-[var(--background)] text-[var(--foreground)] py-24">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-3xl font-semibold">Gig not found</h1>
           <p className="mt-4 text-slate-600">
@@ -52,7 +52,7 @@ export default async function CheckoutPage({ params }: Params) {
   }
 
   return (
-    <main className="bg-white text-slate-900">
+    <main className="bg-[var(--background)] text-[var(--foreground)]">
       <section className="py-20 bg-slate-950 text-white">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
