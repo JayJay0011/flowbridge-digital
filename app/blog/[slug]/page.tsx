@@ -79,7 +79,7 @@ export default async function BlogPostPage({ params }: Params) {
           ) : null}
           <p className="text-lg text-slate-600 mt-8">{post.excerpt}</p>
           <div className="mt-8 space-y-6 text-slate-700 leading-relaxed">
-            {(post.body || "").split("\n").map((line, index) => (
+            {(post.body || "").split("\n").map((line: string, index: number) => (
               <p key={`${line}-${index}`}>{line}</p>
             ))}
           </div>
