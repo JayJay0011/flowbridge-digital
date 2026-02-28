@@ -1,9 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
+
+const navItems = [
+  { href: "/admin", label: "Overview" },
+  { href: "/admin/gigs", label: "Gigs" },
+  { href: "/admin/portfolio", label: "Portfolio" },
+  { href: "/admin/services", label: "Services" },
+  { href: "/admin/blog", label: "Blog" },
+  { href: "/admin/orders", label: "Orders" },
+  { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/settings", label: "Settings" },
+];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -52,20 +63,6 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       </main>
     );
   }
-
-  const navItems = useMemo(
-    () => [
-      { href: "/admin", label: "Overview" },
-      { href: "/admin/gigs", label: "Gigs" },
-      { href: "/admin/portfolio", label: "Portfolio" },
-      { href: "/admin/services", label: "Services" },
-      { href: "/admin/blog", label: "Blog" },
-      { href: "/admin/orders", label: "Orders" },
-      { href: "/admin/messages", label: "Messages" },
-      { href: "/admin/settings", label: "Settings" },
-    ],
-    []
-  );
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
