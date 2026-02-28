@@ -13,7 +13,7 @@ export default function AboutPage() {
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-12 items-center">
 
           <div>
             <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
@@ -57,7 +57,7 @@ export default function AboutPage() {
 
       {/* WHY FLOWBRIDGE EXISTS */}
       <section className="py-20 border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-8">
             Why Flowbridge Digital Exists
           </h2>
@@ -88,7 +88,7 @@ export default function AboutPage() {
 
       {/* FOUNDER BACKGROUND */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-8">
             Founder & Systems Architect
           </h2>
@@ -117,7 +117,7 @@ export default function AboutPage() {
 
       {/* PHILOSOPHY */}
       <section className="py-24">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-12 text-center">
             Our Philosophy
           </h2>
@@ -160,7 +160,7 @@ export default function AboutPage() {
 
       {/* CLOSING CTA */}
       <section className="py-28 bg-slate-900 text-white text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Bring Structure to Your Business?
           </h2>

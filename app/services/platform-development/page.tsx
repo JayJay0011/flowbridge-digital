@@ -4,7 +4,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-4xl md:text-5xl font-semibold mb-6">
             Platform Development
           </h1>
@@ -30,7 +30,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* PROBLEM */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             When Your Tools Don’t Match Your Growth
           </h2>
@@ -48,7 +48,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* WHAT WE BUILD */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             What We Build
           </h2>
@@ -103,7 +103,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* DEVELOPMENT PROCESS */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Our Development Approach
           </h2>
@@ -148,7 +148,7 @@ export default function PlatformDevelopmentPage() {
 
            {/* TECHNOLOGY STACK */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Technology Stack
           </h2>
@@ -197,7 +197,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* WHO THIS IS FOR */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Ideal For
           </h2>
@@ -214,7 +214,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* OUTCOMES */}
       <section className="py-24 bg-slate-900 text-white">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Expected Outcomes
           </h2>
@@ -231,7 +231,7 @@ export default function PlatformDevelopmentPage() {
 
       {/* FINAL CTA */}
       <section className="py-28 text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Build a Structured Digital Platform?
           </h2>

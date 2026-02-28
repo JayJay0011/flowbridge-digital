@@ -35,7 +35,7 @@ export default async function CheckoutPage({ params }: Params) {
   if (!gig) {
     return (
       <main className="bg-white text-slate-900 py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-3xl font-semibold">Gig not found</h1>
           <p className="mt-4 text-slate-600">
             The gig you are trying to order does not exist.
@@ -54,7 +54,7 @@ export default async function CheckoutPage({ params }: Params) {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-20 bg-slate-950 text-white">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Checkout
           </p>
@@ -66,7 +66,7 @@ export default async function CheckoutPage({ params }: Params) {
       </section>
 
       <section className="py-16">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-[1.2fr_0.8fr] gap-10">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-[1.2fr_0.8fr] gap-10">
           <div className="border border-slate-200 rounded-2xl p-8 bg-white">
             <h2 className="text-2xl font-semibold">What you get</h2>
             {gig.highlights?.length ? (

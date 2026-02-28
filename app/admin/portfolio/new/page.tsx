@@ -54,7 +54,7 @@ export default function NewPortfolioPage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Create Portfolio Item</h1>
           <p className="text-slate-600 mt-2">
             Add a case highlight with outcomes and a cover image.
@@ -63,7 +63,7 @@ export default function NewPortfolioPage() {
       </section>
 
       <section className="py-12">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <form className="grid gap-8" onSubmit={onSubmit}>
             <div className="grid gap-4">
               <label className="text-sm font-medium">Title</label>

@@ -7,7 +7,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-16 items-center">
 
           <div>
             <p className="text-sm uppercase tracking-wide text-slate-500 mb-4">
@@ -46,7 +46,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* BUSINESS CONTEXT */}
       <section className="py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-6">
             Business Context
           </h2>
@@ -61,7 +61,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* CORE PROBLEMS */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
 
           <h2 className="text-3xl font-semibold mb-12 text-center">
             Core Operational Gaps
@@ -105,7 +105,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* SYSTEM ARCHITECTURE */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
 
           <h2 className="text-3xl font-semibold mb-12 text-center">
             System Architecture Built
@@ -155,7 +155,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* AUTOMATION LAYER */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-16 items-center">
 
           <div className="space-y-6 text-slate-600 text-lg">
             <h2 className="text-3xl font-semibold text-slate-900">
@@ -191,7 +191,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* OUTCOMES */}
       <section className="py-28 bg-slate-900 text-white">
-        <div className="max-w-6xl mx-auto px-6 text-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
 
           <h2 className="text-3xl font-semibold mb-12">
             Operational Outcomes
@@ -222,7 +222,7 @@ export default function InternalOperationsCaseStudy() {
 
       {/* FINAL CTA */}
       <section className="py-28 text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Centralize Your Operations?
           </h2>

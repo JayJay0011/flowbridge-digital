@@ -61,7 +61,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl md:text-4xl font-semibold">Search</h1>
           <p className="text-slate-600 mt-3">
             Find gigs, services, portfolio work, and case studies.
@@ -86,7 +86,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
       </section>
 
       <section className="py-12">
-        <div className="max-w-6xl mx-auto px-6 space-y-12">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 space-y-12">
           <ResultSection title="Gigs">
             {gigs?.length ? (
               gigs.map((gig) => (

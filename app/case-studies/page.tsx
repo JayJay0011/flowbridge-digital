@@ -6,7 +6,7 @@ export default function CaseStudiesPage() {
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Case Studies
           </p>
@@ -23,7 +23,7 @@ export default function CaseStudiesPage() {
 
       {/* INTRO */}
       <section className="py-20 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-2xl font-semibold mb-6">
             How We Approach Transformation
           </h2>
@@ -38,7 +38,7 @@ export default function CaseStudiesPage() {
 
       {/* CASE GRID */}
       <section className="py-20 bg-slate-50">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-3 gap-8">
 
             {/* CASE 1 */}
@@ -98,7 +98,7 @@ export default function CaseStudiesPage() {
 
       {/* CTA */}
       <section className="py-28 text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Transform Your Operational Systems?
           </h2>

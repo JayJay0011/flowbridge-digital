@@ -12,7 +12,7 @@ export default function ServicesPage() {
 
       {/* HERO */}
       <section className="py-20 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Services
           </p>
@@ -30,7 +30,7 @@ export default function ServicesPage() {
 
       {/* POSITIONING COPY */}
       <section className="py-16 border-b border-slate-100">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <p className="text-base text-slate-600 leading-relaxed">
             Most businesses don’t struggle because of lack of ambition.
             They struggle because their backend systems are fragmented.
@@ -44,7 +44,7 @@ export default function ServicesPage() {
 
       {/* SERVICES GRID */}
       <section className="py-20 bg-slate-50 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-3 gap-10">
 
             <ServiceCard
@@ -83,7 +83,7 @@ export default function ServicesPage() {
 
       {/* CONNECTIVE STRATEGY SECTION */}
       <section className="py-28">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-8">
             Designed as One Unified System
           </h2>
@@ -104,7 +104,7 @@ export default function ServicesPage() {
 
       {/* FINAL CTA */}
       <section className="py-28 bg-slate-900 text-white text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Build Structured Infrastructure?
           </h2>

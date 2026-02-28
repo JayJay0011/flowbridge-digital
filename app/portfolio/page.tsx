@@ -18,7 +18,7 @@ export default async function PortfolioPage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Portfolio
           </p>
@@ -33,7 +33,7 @@ export default async function PortfolioPage() {
       </section>
 
       <section className="py-20">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-8">
           {items?.length ? (
             items.map((item) => (
               <Link

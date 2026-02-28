@@ -40,7 +40,7 @@ export default function AdminHomePage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-20 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
             <div>
               <h1 className="text-3xl md:text-4xl font-semibold">
@@ -58,7 +58,7 @@ export default function AdminHomePage() {
       </section>
 
       <section className="py-16">
-        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-8">
           {cards.map((card) => (
             <div
               key={card.title}

@@ -4,7 +4,7 @@ export default function CRMPipelinePage() {
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-4xl md:text-5xl font-semibold mb-6">
             CRM & Pipeline Engineering
           </h1>
@@ -28,7 +28,7 @@ export default function CRMPipelinePage() {
 
       {/* PROBLEM */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             When Revenue Feels Unpredictable
           </h2>
@@ -46,7 +46,7 @@ export default function CRMPipelinePage() {
 
       {/* WHAT WE DO */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             What CRM Engineering Looks Like
           </h2>
@@ -97,7 +97,7 @@ export default function CRMPipelinePage() {
 
       {/* IMPLEMENTATION */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Our Implementation Process
           </h2>
@@ -129,7 +129,7 @@ export default function CRMPipelinePage() {
 
       {/* TOOLS */}
       <section className="py-24 bg-slate-50">
-  <div className="max-w-6xl mx-auto px-6">
+  <div className="max-w-6xl mx-auto px-4 md:px-6">
     <h2 className="text-3xl font-semibold mb-10">
       Platforms We Engineer On
     </h2>
@@ -149,7 +149,7 @@ export default function CRMPipelinePage() {
 
       {/* WHO THIS IS FOR */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             This Is Designed For
           </h2>
@@ -166,7 +166,7 @@ export default function CRMPipelinePage() {
 
       {/* OUTCOMES */}
       <section className="py-24 bg-slate-900 text-white">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-10">
             Expected Outcomes
           </h2>
@@ -183,7 +183,7 @@ export default function CRMPipelinePage() {
 
       {/* FINAL CTA */}
       <section className="py-28 text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Engineer Your Revenue Pipeline?
           </h2>

@@ -29,7 +29,7 @@ export default async function ReviewsPage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Reviews
           </p>
@@ -43,7 +43,7 @@ export default async function ReviewsPage() {
       </section>
 
       <section className="py-16">
-        <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-2 gap-8">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 grid md:grid-cols-2 gap-8">
           {reviews?.length ? (
             reviews.map((review) => (
               <div

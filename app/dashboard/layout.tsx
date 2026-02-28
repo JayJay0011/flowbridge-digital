@@ -34,6 +34,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         .eq("id", user.id)
         .single();
 
+      if (profileData?.role === "admin") {
+        router.replace("/admin");
+        return;
+      }
+
       setProfile(profileData ?? null);
     };
 
@@ -77,7 +82,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <main className={`min-h-screen ${themeClass} bg-[var(--dash-bg)] text-[var(--dash-text)]`}>
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-[var(--dash-muted)]">

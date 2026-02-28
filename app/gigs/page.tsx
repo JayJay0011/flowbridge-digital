@@ -31,7 +31,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-20 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Service Gigs
           </p>
@@ -46,7 +46,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
       </section>
 
       <section className="py-10 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <form action="/gigs" method="get" className="flex flex-col md:flex-row gap-4">
             <input
               type="text"
@@ -71,7 +71,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
       </section>
 
       <section className="py-20">
-        <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-6">
           {gigs?.length ? (
             gigs.map((gig) => (
             <Link

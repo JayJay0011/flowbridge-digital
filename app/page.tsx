@@ -49,7 +49,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,_rgba(14,116,144,0.35),_transparent_50%)]" />
         <div className="absolute inset-0 opacity-20 bg-[linear-gradient(120deg,_rgba(255,255,255,0.08),_transparent_60%)]" />
 
-        <div className="relative max-w-5xl mx-auto px-6 py-24">
+        <div className="relative max-w-5xl mx-auto px-4 md:px-6 py-24">
           <div className="max-w-2xl">
             <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
               Flowbridge Digital
@@ -113,7 +113,7 @@ export default function Home() {
 
       {/* ================= POPULAR CATEGORIES ================= */}
       <section className="py-20 bg-white border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="flex items-end justify-between gap-6 flex-wrap">
             <div>
               <h2 className="text-3xl md:text-4xl font-semibold">
@@ -180,7 +180,7 @@ export default function Home() {
 
       {/* ================= PROBLEM SECTION ================= */}
       <section className="py-24 bg-white border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6 text-center space-y-12">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 text-center space-y-12">
 
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
             Does Your Business Feel Like This?
@@ -207,7 +207,7 @@ export default function Home() {
 
       {/* ================= SOLUTION SECTION ================= */}
       <section className="py-24 bg-slate-50 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6 text-center space-y-10">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 text-center space-y-10">
 
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
             We Bring Structure Back to Your Business
@@ -247,7 +247,7 @@ export default function Home() {
       </section>
       {/* ================= PROCESS SECTION ================= */}
 <section className="py-32 bg-white">
-  <div className="max-w-5xl mx-auto px-6 text-center space-y-16">
+  <div className="max-w-5xl mx-auto px-4 md:px-6 text-center space-y-16">
 
     <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
       Our Process
@@ -293,7 +293,7 @@ export default function Home() {
 </section>
 {/* ================= WHY FLOWBRIDGE ================= */}
 <section className="py-32 bg-slate-50">
-  <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
+  <div className="max-w-4xl mx-auto px-4 md:px-6 text-center space-y-12">
 
     <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">
       Built for Operators, Not Just Founders
@@ -325,7 +325,7 @@ export default function Home() {
 </section>
 {/* Outcomes Section */}
 <section className="py-24 bg-white">
-  <div className="max-w-6xl mx-auto px-6 text-center">
+  <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
     <h2 className="text-3xl md:text-4xl font-semibold text-gray-900">
       What Changes After We Work Together
     </h2>
@@ -366,7 +366,7 @@ export default function Home() {
 </section>
 {/* Testimonials Section */}
 <section className="py-24 bg-gray-50">
-  <div className="max-w-6xl mx-auto px-6 text-center">
+  <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
     <h2 className="text-3xl md:text-4xl font-semibold text-gray-900">
       Trusted by Operators Across Industries
     </h2>
@@ -449,7 +449,7 @@ export default function Home() {
 
         {/* Final CTA Section */}
         <section className="py-28 bg-slate-900 text-white text-center">
-          <div className="max-w-3xl mx-auto px-6">
+          <div className="max-w-3xl mx-auto px-4 md:px-6">
             <h2 className="text-3xl md:text-4xl font-semibold">
               Ready to Regain Control of Your Operations?
             </h2>

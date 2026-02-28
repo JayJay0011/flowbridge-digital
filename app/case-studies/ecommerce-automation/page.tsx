@@ -7,7 +7,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* HERO */}
       <section className="py-28 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-4xl md:text-5xl font-semibold mb-6">
             Ecommerce Automation Infrastructure
           </h1>
@@ -21,7 +21,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* CONTEXT */}
       <section className="py-24">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             The Challenge
           </h2>
@@ -39,7 +39,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* MOCKUP 1 */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-12">
             Centralized Revenue & Order Dashboard
           </h2>
@@ -58,7 +58,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* MOCKUP 2 */}
       <section className="py-24">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-12">
             CRM & Automation Flow Structuring
           </h2>
@@ -77,7 +77,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* MOCKUP 3 */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-12">
             Order Fulfillment Automation Pipeline
           </h2>
@@ -96,7 +96,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* RESULTS */}
       <section className="py-24">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-8">
             Implementation Results
           </h2>
@@ -113,7 +113,7 @@ export default function EcommerceAutomationCaseStudy() {
 
       {/* CTA */}
       <section className="py-28 bg-slate-900 text-white text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Structure Your Ecommerce Operations?
           </h2>

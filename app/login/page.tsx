@@ -19,11 +19,29 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const redirectByRole = async () => {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userId = sessionData.session?.user.id;
+    const safeNext = nextPath.startsWith("/admin") ? "/dashboard" : nextPath;
+    if (!userId) {
+      router.replace(safeNext);
+      return;
+    }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .maybeSingle();
+
+    router.replace(profile?.role === "admin" ? "/admin" : safeNext);
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        router.replace(nextPath);
+        await redirectByRole();
       }
     };
     checkSession();
@@ -44,7 +62,7 @@ function LoginPageInner() {
         setLoading(false);
         return;
       }
-      router.replace(nextPath);
+      await redirectByRole();
       return;
     }
 
@@ -136,7 +154,7 @@ function LoginPageInner() {
         return;
       }
 
-      router.replace(nextPath);
+      await redirectByRole();
       return;
     }
   };

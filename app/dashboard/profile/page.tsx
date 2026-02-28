@@ -65,11 +65,19 @@ export default function DashboardProfilePage() {
 
     if (error) {
       const errorMessage = error.message.toLowerCase();
-      if (errorMessage.includes("avatar_url") || errorMessage.includes("business_category")) {
+      const schemaError =
+        errorMessage.includes("schema") ||
+        errorMessage.includes("cache") ||
+        errorMessage.includes("column");
+      if (
+        errorMessage.includes("avatar_url") ||
+        errorMessage.includes("business_category") ||
+        errorMessage.includes("company_name") ||
+        schemaError
+      ) {
         const { error: fallbackError } = await supabase
           .from("profiles")
           .update({
-            company_name: form.company_name || null,
             phone: form.phone || null,
           })
           .eq("id", userId);
@@ -77,7 +85,7 @@ export default function DashboardProfilePage() {
           setMessage(fallbackError.message);
         } else {
           setMessage(
-            "Profile updated, but some fields couldn't save. Make sure the profiles table has avatar_url and business_category columns."
+            "Profile updated, but some fields couldn't save. Run the profile fields migration in Supabase and refresh."
           );
         }
       } else {

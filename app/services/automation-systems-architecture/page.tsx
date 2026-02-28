@@ -4,7 +4,7 @@ export default function AutomationPage() {
 
       {/* HERO */}
       <section className="py-28">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h1 className="text-4xl md:text-6xl font-semibold leading-tight mb-6">
             Business Process Automation &
             <br /> Systems Architecture
@@ -30,7 +30,7 @@ export default function AutomationPage() {
 
       {/* PROBLEM SECTION */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-12">
             When Operations Start Slowing Growth
           </h2>
@@ -53,7 +53,7 @@ export default function AutomationPage() {
 
       {/* WHAT WE BUILD */}
       <section className="py-28">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-16 text-center">
             What Automation Looks Like Inside Your Business
           </h2>
@@ -86,7 +86,7 @@ export default function AutomationPage() {
 
       {/* IMPLEMENTATION PROCESS */}
       <section className="py-24 bg-slate-50">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-12">
             Our Implementation Process
           </h2>
@@ -113,7 +113,7 @@ export default function AutomationPage() {
 
       {/* OUTCOME SECTION */}
       <section className="py-28 bg-slate-900 text-white">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-10">
             The Result: Operational Clarity & Scalable Infrastructure
           </h2>
@@ -128,7 +128,7 @@ export default function AutomationPage() {
 
       {/* FINAL CTA */}
       <section className="py-28 text-center">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Rebuild Your Operational Systems?
           </h2>

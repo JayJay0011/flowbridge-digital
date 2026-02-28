@@ -64,7 +64,7 @@ export default function StrategyCallPage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-28 bg-slate-50">
-        <div className="max-w-3xl mx-auto px-6">
+        <div className="max-w-3xl mx-auto px-4 md:px-6">
           <h1 className="text-4xl md:text-5xl font-semibold mb-6 text-center">
             Systems Consultation Request
           </h1>

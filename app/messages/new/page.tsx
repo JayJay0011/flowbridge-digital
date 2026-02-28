@@ -43,7 +43,7 @@ export default function NewMessagePage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Message Flowbridge</h1>
           <p className="text-slate-600 mt-2">
             Send a note to our team and we will respond within 1 business day.
@@ -52,7 +52,7 @@ export default function NewMessagePage() {
       </section>
 
       <section className="py-12">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <form className="grid gap-6" onSubmit={onSubmit}>
             <div className="grid gap-2">
               <label className="text-sm font-medium">Subject</label>

@@ -371,7 +371,7 @@ export default function DashboardMessagesPage() {
         </div>
       </div>
 
-      <div className="border border-[var(--dash-border)] rounded-2xl p-6 bg-[var(--dash-surface-2)]">
+      <div className="border border-[var(--dash-border)] rounded-2xl p-4 md:p-6 bg-[var(--dash-surface-2)]">
         {loading ? (
           <div className="text-[var(--dash-muted)]">Loading messages...</div>
         ) : messages.length === 0 ? (
@@ -379,7 +379,7 @@ export default function DashboardMessagesPage() {
             No messages yet. Start a conversation below.
           </div>
         ) : (
-          <div className="space-y-4 max-h-[520px] overflow-y-auto pr-2">
+          <div className="space-y-4 max-h-[50vh] md:max-h-[520px] overflow-y-auto md:pr-2">
             {messages.map((message) => {
               const isAgent = message.status === "replied";
               const parsed = parseReply(message.body);
@@ -392,7 +392,7 @@ export default function DashboardMessagesPage() {
                 const offerStatus = offersById[offer.offerId]?.status ?? "sent";
                 return (
                   <div key={message.id} className="flex justify-start">
-                    <div className="max-w-[70%] w-full border border-[var(--dash-border)] rounded-2xl bg-[var(--dash-surface)] p-4 shadow-sm">
+                  <div className="w-full md:max-w-[70%] border border-[var(--dash-border)] rounded-2xl bg-[var(--dash-surface)] p-4 shadow-sm">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-semibold">{offer.title}</h4>
                         {offer.price ? (
@@ -478,7 +478,7 @@ export default function DashboardMessagesPage() {
                   className={`flex ${isAgent ? "justify-start" : "justify-end"} group`}
                 >
                   <div
-                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] md:max-w-[70%] rounded-2xl px-4 py-3 ${
                       isAgent
                         ? "bg-[var(--dash-surface)] text-[var(--dash-text)] border border-[var(--dash-border)]"
                         : "bg-slate-900 text-white"
@@ -554,7 +554,7 @@ export default function DashboardMessagesPage() {
               }
             }}
             placeholder="Type your message..."
-            className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
+            className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 text-sm text-[var(--dash-text)] placeholder:text-[var(--dash-muted)] focus:outline-none focus:ring-2 focus:ring-slate-900"
           />
           {error && <div className="text-sm text-red-600">{error}</div>}
           <div className="flex items-center justify-between">

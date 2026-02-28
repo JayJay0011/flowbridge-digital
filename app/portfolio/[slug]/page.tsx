@@ -34,7 +34,7 @@ export default async function PortfolioDetailPage({ params }: Params) {
   if (!item) {
     return (
       <main className="bg-white text-slate-900 py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-3xl font-semibold">Portfolio item not found</h1>
           <p className="mt-4 text-slate-600">
             This project is not available. Browse the portfolio instead.
@@ -53,7 +53,7 @@ export default async function PortfolioDetailPage({ params }: Params) {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-20 bg-slate-950 text-white">
-        <div className="max-w-4xl mx-auto px-6">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Portfolio
           </p>
@@ -65,7 +65,7 @@ export default async function PortfolioDetailPage({ params }: Params) {
       </section>
 
       <section className="py-16">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="aspect-[16/9] bg-slate-100 rounded-2xl overflow-hidden">
             {item.cover_url ? (
               // eslint-disable-next-line @next/next/no-img-element

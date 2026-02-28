@@ -339,7 +339,7 @@ export default function ChatWidget() {
   return (
     <div className="fixed bottom-6 right-6 z-50">
       {open ? (
-        <div className="w-[340px] md:w-[380px] rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="w-[calc(100vw-2rem)] max-w-[380px] rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 bg-slate-900 text-white">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-slate-300">
@@ -427,7 +427,7 @@ export default function ChatWidget() {
                     sendTyping();
                   }}
                   placeholder="Type a message..."
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
 
                 {uploads.length > 0 ? (

@@ -20,7 +20,7 @@ export default function HowWeWorkPage() {
 
       {/* HERO */}
       <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 text-center">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
             Process
           </p>
@@ -55,7 +55,7 @@ export default function HowWeWorkPage() {
 
       {/* 5 FLAGSHIP FRAMEWORK */}
       <section className="py-20 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
           <h2 className="text-3xl font-semibold mb-16 text-center">
             The Flowbridge 5-Stage Systems Framework
           </h2>
@@ -153,7 +153,7 @@ export default function HowWeWorkPage() {
 
       {/* ARCHITECTURE FLOW */}
       <section className="py-20 bg-slate-50 border-b border-slate-100">
-        <div className="max-w-5xl mx-auto px-6 text-center">
+        <div className="max-w-5xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-12">
             Our Implementation Architecture
           </h2>
@@ -174,7 +174,7 @@ export default function HowWeWorkPage() {
 
       {/* FINAL CTA */}
       <section className="py-24">
-        <div className="max-w-4xl mx-auto px-6 text-center">
+        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h2 className="text-3xl font-semibold mb-6">
             Ready to Rebuild Your Systems the Right Way?
           </h2>

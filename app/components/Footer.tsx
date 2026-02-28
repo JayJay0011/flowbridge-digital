@@ -1,7 +1,7 @@
 export default function Footer() {
   return (
     <footer className="bg-slate-900 text-slate-300">
-      <div className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-4 gap-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-16 grid md:grid-cols-4 gap-10">
 
         {/* Brand Column */}
         <div className="space-y-4">
@@ -125,7 +125,7 @@ export default function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-slate-800">
-        <div className="max-w-6xl mx-auto px-6 py-6 text-sm text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 text-sm text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© {new Date().getFullYear()} Flowbridge Digital. All rights reserved.</p>
           <p>Built with clarity.</p>
         </div>

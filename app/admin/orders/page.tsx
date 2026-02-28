@@ -42,7 +42,7 @@ export default function AdminOrdersPage() {
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Orders</h1>
           <p className="text-slate-600 mt-2">
             Track incoming client requests and order status.
@@ -51,7 +51,7 @@ export default function AdminOrdersPage() {
       </section>
 
       <section className="py-12">
-        <div className="max-w-6xl mx-auto px-6">
+        <div className="max-w-6xl mx-auto px-4 md:px-6">
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-600">
