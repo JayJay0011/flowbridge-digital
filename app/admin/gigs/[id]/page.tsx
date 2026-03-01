@@ -27,12 +27,9 @@ type GigRecord = {
   summary: string | null;
   highlights: string[] | null;
   price_text: string | null;
-  order_here_url: string | null;
   order_fiverr_url: string | null;
   cover_url: string | null;
   gallery_urls: string[] | null;
-  seller_name: string | null;
-  seller_title: string | null;
   delivery_days: number | null;
   status: "draft" | "published";
   package_basic: PackageData;
@@ -57,13 +54,15 @@ export default function AdminGigEditPage() {
   const [basic, setBasic] = useState<PackageInput>(toPackageInput(null));
   const [standard, setStandard] = useState<PackageInput>(toPackageInput(null));
   const [premium, setPremium] = useState<PackageInput>(toPackageInput(null));
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       const { data } = await supabase
         .from("gigs")
         .select(
-          "id,title,slug,summary,highlights,price_text,order_here_url,order_fiverr_url,cover_url,gallery_urls,seller_name,seller_title,delivery_days,status,package_basic,package_standard,package_premium"
+          "id,title,slug,summary,highlights,price_text,order_fiverr_url,cover_url,gallery_urls,delivery_days,status,package_basic,package_standard,package_premium"
         )
         .eq("id", params.id)
         .single();
@@ -72,6 +71,7 @@ export default function AdminGigEditPage() {
         setBasic(toPackageInput((data as GigRecord).package_basic));
         setStandard(toPackageInput((data as GigRecord).package_standard));
         setPremium(toPackageInput((data as GigRecord).package_premium));
+        setGalleryUrls((data as GigRecord).gallery_urls ?? []);
       }
     };
     load();
@@ -82,10 +82,60 @@ export default function AdminGigEditPage() {
     [gig?.highlights]
   );
 
-  const galleryText = useMemo(
-    () => (gig?.gallery_urls?.join(", ") || ""),
-    [gig?.gallery_urls]
-  );
+  const uploadFile = async (file: File, folder: string) => {
+    const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
+    const path = `gigs/${folder}/${Date.now()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage
+      .from("public-assets")
+      .upload(path, file, { upsert: true });
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+    const { data } = supabase.storage.from("public-assets").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleCoverUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file || !gig) return;
+    setUploading(true);
+    setMessage(null);
+    try {
+      const url = await uploadFile(file, "covers");
+      setGig({ ...gig, cover_url: url });
+    } catch (uploadError) {
+      setMessage(
+        uploadError instanceof Error ? uploadError.message : "Upload failed."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (!files.length) return;
+    setUploading(true);
+    setMessage(null);
+    try {
+      const urls = await Promise.all(
+        files.map((file) => uploadFile(file, "gallery"))
+      );
+      setGalleryUrls((prev) => [...prev, ...urls]);
+    } catch (uploadError) {
+      setMessage(
+        uploadError instanceof Error ? uploadError.message : "Upload failed."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
 
   const packagePayload = (pkg: PackageInput) => ({
     title: pkg.title.trim() || null,
@@ -109,17 +159,9 @@ export default function AdminGigEditPage() {
         slug: gig.slug.trim(),
         summary: gig.summary?.trim() || null,
         price_text: gig.price_text?.trim() || null,
-        order_here_url: gig.order_here_url?.trim() || null,
         order_fiverr_url: gig.order_fiverr_url?.trim() || null,
         cover_url: gig.cover_url?.trim() || null,
-        gallery_urls: galleryText
-          ? galleryText
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : null,
-        seller_name: gig.seller_name?.trim() || null,
-        seller_title: gig.seller_title?.trim() || null,
+        gallery_urls: galleryUrls.length ? galleryUrls : null,
         delivery_days: gig.delivery_days ?? null,
         highlights: highlightText
           ? highlightText
@@ -212,44 +254,34 @@ export default function AdminGigEditPage() {
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-semibold">Cover image URL</label>
+              <label className="text-sm font-semibold">Cover image</label>
               <input
-                value={gig.cover_url ?? ""}
-                onChange={(event) => setGig({ ...gig, cover_url: event.target.value })}
+                type="file"
+                accept="image/*"
+                onChange={handleCoverUpload}
                 className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
               />
+              {gig.cover_url ? (
+                <p className="text-xs text-slate-500 mt-2">
+                  Cover uploaded ✓
+                </p>
+              ) : null}
             </div>
             <div>
-              <label className="text-sm font-semibold">Gallery URLs (comma)</label>
+              <label className="text-sm font-semibold">Gallery images</label>
               <input
-                value={galleryText}
-                onChange={(event) =>
-                  setGig({ ...gig, gallery_urls: event.target.value.split(",") })
-                }
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleGalleryUpload}
                 className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
               />
-            </div>
-          </div>
-          <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold">Seller name</label>
-              <input
-                value={gig.seller_name ?? ""}
-                onChange={(event) =>
-                  setGig({ ...gig, seller_name: event.target.value })
-                }
-                className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-              />
-            </div>
-            <div>
-              <label className="text-sm font-semibold">Seller title</label>
-              <input
-                value={gig.seller_title ?? ""}
-                onChange={(event) =>
-                  setGig({ ...gig, seller_title: event.target.value })
-                }
-                className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-              />
+              {galleryUrls.length ? (
+                <p className="text-xs text-slate-500 mt-2">
+                  {galleryUrls.length} gallery image
+                  {galleryUrls.length > 1 ? "s" : ""} uploaded ✓
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
@@ -340,6 +372,10 @@ export default function AdminGigEditPage() {
           ))}
         </div>
       </div>
+
+      {uploading ? (
+        <p className="text-sm text-slate-500">Uploading media...</p>
+      ) : null}
 
       <div className="flex items-center gap-3">
         <button

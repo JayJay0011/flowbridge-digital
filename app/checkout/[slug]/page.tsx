@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Params) {
 export default async function CheckoutPage({ params }: Params) {
   const { data: gig } = await supabasePublic
     .from("gigs")
-    .select("id,title,summary,price_text,highlights")
+    .select("id,title,summary,price_text,highlights,package_basic")
     .eq("slug", params.slug)
     .single();
 
@@ -91,7 +91,7 @@ export default async function CheckoutPage({ params }: Params) {
             <div className="mt-6 flex items-center justify-between text-sm">
               <span>Starting Price</span>
               <span className="font-semibold text-slate-900">
-                {gig.price_text || "Custom scope"}
+                {gig.package_basic?.price || gig.price_text || "Custom scope"}
               </span>
             </div>
             <div className="mt-6 border-t border-slate-200 pt-6 text-sm text-slate-600">

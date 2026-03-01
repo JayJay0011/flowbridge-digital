@@ -18,13 +18,10 @@ export default function NewGigPage() {
   const [summary, setSummary] = useState("");
   const [priceText, setPriceText] = useState("");
   const [status, setStatus] = useState("draft");
-  const [orderHereUrl, setOrderHereUrl] = useState("");
   const [orderFiverrUrl, setOrderFiverrUrl] = useState("");
   const [highlights, setHighlights] = useState("");
   const [coverUrl, setCoverUrl] = useState("");
-  const [galleryUrls, setGalleryUrls] = useState("");
-  const [sellerName, setSellerName] = useState("");
-  const [sellerTitle, setSellerTitle] = useState("");
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryDays, setDeliveryDays] = useState("");
   const [basicTitle, setBasicTitle] = useState("");
   const [basicPrice, setBasicPrice] = useState("");
@@ -43,6 +40,62 @@ export default function NewGigPage() {
   const [premiumFeatures, setPremiumFeatures] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const uploadFile = async (file: File, folder: string) => {
+    const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
+    const path = `gigs/${folder}/${Date.now()}-${safeName}`;
+    const { error: uploadError } = await supabase.storage
+      .from("public-assets")
+      .upload(path, file, { upsert: true });
+    if (uploadError) {
+      throw new Error(uploadError.message);
+    }
+    const { data } = supabase.storage.from("public-assets").getPublicUrl(path);
+    return data.publicUrl;
+  };
+
+  const handleCoverUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const url = await uploadFile(file, "covers");
+      setCoverUrl(url);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error ? uploadError.message : "Upload failed."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const handleGalleryUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = event.target.files ? Array.from(event.target.files) : [];
+    if (!files.length) return;
+    setUploading(true);
+    setError(null);
+    try {
+      const urls = await Promise.all(
+        files.map((file) => uploadFile(file, "gallery"))
+      );
+      setGalleryUrls((prev) => [...prev, ...urls]);
+    } catch (uploadError) {
+      setError(
+        uploadError instanceof Error ? uploadError.message : "Upload failed."
+      );
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -54,11 +107,6 @@ export default function NewGigPage() {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    const galleryList = galleryUrls
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean);
-
     const packageBasic = {
       title: basicTitle || null,
       price: basicPrice || null,
@@ -98,13 +146,10 @@ export default function NewGigPage() {
       summary,
       price_text: priceText || null,
       status,
-      order_here_url: orderHereUrl || null,
       order_fiverr_url: orderFiverrUrl || null,
       highlights: highlightList.length ? highlightList : null,
       cover_url: coverUrl || null,
-      gallery_urls: galleryList.length ? galleryList : null,
-      seller_name: sellerName || null,
-      seller_title: sellerTitle || null,
+      gallery_urls: galleryUrls.length ? galleryUrls : null,
       delivery_days: deliveryDays ? Number(deliveryDays) : null,
       package_basic: packageBasic,
       package_standard: packageStandard,
@@ -183,16 +228,6 @@ export default function NewGigPage() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="grid gap-4">
-                <label className="text-sm font-medium">Order Here URL</label>
-                <input
-                  type="url"
-                  placeholder="https://flowbridge.io/checkout/automation-blueprint"
-                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  value={orderHereUrl}
-                  onChange={(event) => setOrderHereUrl(event.target.value)}
-                />
-              </div>
-              <div className="grid gap-4">
                 <label className="text-sm font-medium">Order on Fiverr URL</label>
                 <input
                   type="url"
@@ -202,10 +237,19 @@ export default function NewGigPage() {
                   onChange={(event) => setOrderFiverrUrl(event.target.value)}
                 />
               </div>
+              <div className="grid gap-2 text-sm text-slate-500">
+                <span className="font-medium text-slate-700">
+                  Order Here
+                </span>
+                <p>
+                  Checkout links are automatic. Every gig routes to
+                  <span className="font-semibold"> /checkout/[gig-slug]</span>.
+                </p>
+              </div>
             </div>
 
             <div className="grid gap-4">
-              <label className="text-sm font-medium">Highlights</label>
+              <label className="text-sm font-medium">Key Outcomes</label>
               <input
                 type="text"
                 placeholder="Add 3-5 outcome bullets separated by commas"
@@ -217,49 +261,32 @@ export default function NewGigPage() {
 
             <div className="grid md:grid-cols-2 gap-6">
               <div className="grid gap-4">
-                <label className="text-sm font-medium">Cover Image URL</label>
+                <label className="text-sm font-medium">Cover Image</label>
                 <input
-                  type="url"
-                  placeholder="https://..."
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverUpload}
                   className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  value={coverUrl}
-                  onChange={(event) => setCoverUrl(event.target.value)}
                 />
+                {coverUrl ? (
+                  <p className="text-xs text-slate-500">Cover uploaded ✓</p>
+                ) : null}
               </div>
               <div className="grid gap-4">
-                <label className="text-sm font-medium">
-                  Gallery URLs (comma separated)
-                </label>
+                <label className="text-sm font-medium">Gallery Images</label>
                 <input
-                  type="text"
-                  placeholder="https://..., https://..."
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleGalleryUpload}
                   className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  value={galleryUrls}
-                  onChange={(event) => setGalleryUrls(event.target.value)}
                 />
-              </div>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="grid gap-4">
-                <label className="text-sm font-medium">Seller Name</label>
-                <input
-                  type="text"
-                  placeholder="Flowbridge Digital"
-                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  value={sellerName}
-                  onChange={(event) => setSellerName(event.target.value)}
-                />
-              </div>
-              <div className="grid gap-4">
-                <label className="text-sm font-medium">Seller Title</label>
-                <input
-                  type="text"
-                  placeholder="Automation & CRM Systems"
-                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  value={sellerTitle}
-                  onChange={(event) => setSellerTitle(event.target.value)}
-                />
+                {galleryUrls.length ? (
+                  <p className="text-xs text-slate-500">
+                    {galleryUrls.length} gallery image
+                    {galleryUrls.length > 1 ? "s" : ""} uploaded ✓
+                  </p>
+                ) : null}
               </div>
             </div>
 
@@ -372,9 +399,10 @@ export default function NewGigPage() {
               />
             </div>
 
-            {error && (
-              <div className="text-sm text-red-600">{error}</div>
-            )}
+            {uploading ? (
+              <p className="text-sm text-slate-500">Uploading media...</p>
+            ) : null}
+            {error && <div className="text-sm text-red-600">{error}</div>}
 
             <div className="flex justify-end">
               <button

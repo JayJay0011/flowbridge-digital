@@ -17,7 +17,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
 
   let request = supabasePublic
     .from("gigs")
-    .select("id,title,slug,summary,price_text")
+    .select("id,title,slug,summary,price_text,package_basic,cover_url")
     .order("created_at", { ascending: false });
 
   if (query) {
@@ -73,22 +73,45 @@ export default async function GigsPage({ searchParams }: PageProps) {
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-6">
           {gigs?.length ? (
-            gigs.map((gig) => (
-            <Link
-              key={gig.id}
-              href={`/gigs/${gig.slug}`}
-              className="border border-slate-200 rounded-2xl p-6 bg-white hover:shadow-md transition"
-            >
-              <h2 className="text-xl font-semibold">{gig.title}</h2>
-              <p className="mt-4 text-slate-600">{gig.summary}</p>
-              <p className="mt-6 text-sm font-medium text-slate-900">
-                {gig.price_text || "Starting at custom scope"}
-              </p>
-              <div className="mt-6 text-sm font-medium text-slate-900">
-                View Details →
-              </div>
-            </Link>
-            ))
+            gigs.map((gig) => {
+              const description = gig.summary
+                ? gig.summary.length > 180
+                  ? `${gig.summary.slice(0, 180)}...`
+                  : gig.summary
+                : "Details will be shared after discovery.";
+              const startingPrice =
+                gig.package_basic?.price || gig.price_text || "Custom scope";
+              return (
+                <Link
+                  key={gig.id}
+                  href={`/gigs/${gig.slug}`}
+                  className="border border-slate-200 rounded-2xl p-6 bg-white hover:shadow-md transition flex flex-col"
+                >
+                  <div className="aspect-[16/10] rounded-xl bg-slate-100 overflow-hidden">
+                    {gig.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={gig.cover_url}
+                        alt={gig.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
+                        Gig cover
+                      </div>
+                    )}
+                  </div>
+                  <h2 className="text-xl font-semibold mt-6">{gig.title}</h2>
+                  <p className="mt-3 text-slate-600">{description}</p>
+                  <p className="mt-6 text-sm font-semibold text-slate-900">
+                    Starting at {startingPrice}
+                  </p>
+                  <div className="mt-4 text-sm font-medium text-slate-900">
+                    View Details →
+                  </div>
+                </Link>
+              );
+            })
           ) : (
             <div className="border border-slate-200 rounded-2xl p-6 bg-white text-slate-600">
               Gigs will appear here once published.
