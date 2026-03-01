@@ -48,6 +48,48 @@ h4 {
   --dash-strong: #ffffff;
 }
 
+.admin-theme-dark {
+  --admin-bg: #0f172a;
+  --admin-surface: #111827;
+  --admin-surface-2: #0b1220;
+  --admin-border: #1f2937;
+  --admin-text: #f8fafc;
+  --admin-muted: #94a3b8;
+}
+
+.admin-theme-dark .bg-white {
+  background-color: var(--admin-surface);
+}
+
+.admin-theme-dark .bg-slate-50,
+.admin-theme-dark .bg-slate-100 {
+  background-color: var(--admin-surface-2);
+}
+
+.admin-theme-dark .text-slate-900 {
+  color: var(--admin-text);
+}
+
+.admin-theme-dark .text-slate-800,
+.admin-theme-dark .text-slate-700,
+.admin-theme-dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+.admin-theme-dark .text-slate-500,
+.admin-theme-dark .text-slate-400 {
+  color: var(--admin-muted);
+}
+
+.admin-theme-dark .border-slate-100,
+.admin-theme-dark .border-slate-200 {
+  border-color: var(--admin-border);
+}
+
+.admin-theme-dark .border-slate-300 {
+  border-color: #334155;
+}
+
 .typing-indicator {
   display: inline-flex;
   align-items: center;

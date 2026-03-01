@@ -11,24 +11,6 @@ type PageProps = {
   searchParams?: { q?: string };
 };
 
-const caseStudies = [
-  {
-    title: "Ecommerce Automation",
-    summary: "Systems automation for ecommerce operations and lead capture.",
-    href: "/case-studies/ecommerce-automation",
-  },
-  {
-    title: "Medspa CRM Rebuild",
-    summary: "CRM pipeline clarity and lifecycle automation for medspa teams.",
-    href: "/case-studies/medspa-crm-rebuild",
-  },
-  {
-    title: "Internal Operations",
-    summary: "Operational visibility and process design for internal teams.",
-    href: "/case-studies/internal-operations",
-  },
-];
-
 export default async function SearchPage({ searchParams }: PageProps) {
   const query = searchParams?.q?.trim() || "";
 
@@ -41,22 +23,29 @@ export default async function SearchPage({ searchParams }: PageProps) {
   let portfolioRequest = supabasePublic
     .from("portfolio")
     .select("id,title,slug,summary,cover_url");
+  let caseStudiesRequest = supabasePublic
+    .from("case_studies")
+    .select("id,title,slug,summary");
 
   if (query) {
     const filter = `title.ilike.%${query}%,summary.ilike.%${query}%,description.ilike.%${query}%`;
     gigsRequest = gigsRequest.or(filter);
     servicesRequest = servicesRequest.or(filter);
     portfolioRequest = portfolioRequest.or(filter);
+    caseStudiesRequest = caseStudiesRequest.or(filter);
   }
 
-  const [{ data: gigs }, { data: services }, { data: portfolio }] =
-    await Promise.all([gigsRequest, servicesRequest, portfolioRequest]);
-
-  const filteredCaseStudies = query
-    ? caseStudies.filter((item) =>
-        `${item.title} ${item.summary}`.toLowerCase().includes(query.toLowerCase())
-      )
-    : caseStudies;
+  const [
+    { data: gigs },
+    { data: services },
+    { data: portfolio },
+    { data: caseStudies },
+  ] = await Promise.all([
+    gigsRequest,
+    servicesRequest,
+    portfolioRequest,
+    caseStudiesRequest,
+  ]);
 
   return (
     <main className="bg-white text-slate-900">
@@ -134,13 +123,13 @@ export default async function SearchPage({ searchParams }: PageProps) {
           </ResultSection>
 
           <ResultSection title="Case Studies">
-            {filteredCaseStudies.length ? (
-              filteredCaseStudies.map((item) => (
+            {caseStudies?.length ? (
+              caseStudies.map((item) => (
                 <ResultCard
-                  key={item.href}
+                  key={item.id}
                   title={item.title}
                   description={item.summary}
-                  href={item.href}
+                  href={`/case-studies/${item.slug}`}
                 />
               ))
             ) : (

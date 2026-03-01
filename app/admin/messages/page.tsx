@@ -353,7 +353,7 @@ export default function AdminMessagesPage() {
       const state = presenceChannel.presenceState();
       const online = Object.values(state)
         .flat()
-        .some((item: any) => item.role === "client");
+        .some((item) => (item as { role?: string }).role === "client");
       setClientOnline(online);
     });
 

@@ -113,13 +113,21 @@ export default function AdminGigsPage() {
                       {new Date(gig.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                      <button
-                        onClick={() => toggleStatus(gig)}
-                        className="text-slate-900 hover:text-slate-700 transition"
-                        disabled={updating === gig.id}
-                      >
-                        {gig.status === "published" ? "Unpublish" : "Publish"}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <Link
+                          href={`/admin/gigs/${gig.id}`}
+                          className="text-slate-600 hover:text-slate-900 transition"
+                        >
+                          Edit
+                        </Link>
+                        <button
+                          onClick={() => toggleStatus(gig)}
+                          className="text-slate-900 hover:text-slate-700 transition"
+                          disabled={updating === gig.id}
+                        >
+                          {gig.status === "published" ? "Unpublish" : "Publish"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   ))

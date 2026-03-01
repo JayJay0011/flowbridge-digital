@@ -1,6 +1,45 @@
 import Link from "next/link";
+import { supabasePublic } from "../lib/supabasePublic";
 
-export default function CaseStudiesPage() {
+export const revalidate = 0;
+
+const fallbackCases = [
+  {
+    title: "CRM Rebuild for Medspa Clinic",
+    summary:
+      "Replacing fragmented lead management with structured pipeline automation.",
+    href: "/case-studies/medspa-crm-rebuild",
+  },
+  {
+    title: "Ecommerce Automation Infrastructure",
+    summary:
+      "Designing backend automation systems to improve operational visibility.",
+    href: "/case-studies/ecommerce-automation",
+  },
+  {
+    title: "Internal Operations Dashboard for Agency",
+    summary:
+      "Building a structured admin portal to centralize reporting and delivery.",
+    href: "/case-studies/internal-operations",
+  },
+];
+
+export default async function CaseStudiesPage() {
+  const { data } = await supabasePublic
+    .from("case_studies")
+    .select("id,title,slug,summary")
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  const cases =
+    data?.length
+      ? data.map((item) => ({
+          title: item.title,
+          summary: item.summary,
+          href: `/case-studies/${item.slug}`,
+        }))
+      : fallbackCases;
+
   return (
     <main className="bg-white text-slate-900">
 
@@ -41,56 +80,23 @@ export default function CaseStudiesPage() {
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-3 gap-8">
 
-            {/* CASE 1 */}
-            <Link
-              href="/case-studies/medspa-crm-rebuild"
-              className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-xl font-semibold mb-3">
-                CRM Rebuild for Medspa Clinic
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Replacing fragmented lead management with structured pipeline
-                automation and lifecycle workflows.
-              </p>
-              <span className="text-sm text-slate-500">
-                CRM & Pipeline Engineering →
-              </span>
-            </Link>
-
-            {/* CASE 2 */}
-            <Link
-              href="/case-studies/ecommerce-automation"
-              className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-xl font-semibold mb-3">
-                Ecommerce Automation Infrastructure
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Designing backend automation systems to improve order tracking,
-                onboarding, and operational visibility.
-              </p>
-              <span className="text-sm text-slate-500">
-                Automation & Systems Architecture →
-              </span>
-            </Link>
-
-            {/* CASE 3 */}
-            <Link
-              href="/case-studies/agency-dashboard"
-              className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition"
-            >
-              <h3 className="text-xl font-semibold mb-3">
-                Internal Operations Dashboard for Agency
-              </h3>
-              <p className="text-slate-600 mb-4">
-                Building a structured admin portal to centralize reporting,
-                task visibility, and team coordination.
-              </p>
-              <span className="text-sm text-slate-500">
-                Platform Development →
-              </span>
-            </Link>
+            {cases.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition"
+              >
+                <h3 className="text-xl font-semibold mb-3">
+                  {item.title}
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  {item.summary}
+                </p>
+                <span className="text-sm text-slate-500">
+                  View case →
+                </span>
+              </Link>
+            ))}
 
           </div>
         </div>

@@ -12,7 +12,7 @@ export const revalidate = 0;
 export default async function PortfolioPage() {
   const { data: items } = await supabasePublic
     .from("portfolio")
-    .select("id,title,slug,summary,cover_url")
+    .select("id,title,slug,summary,cover_url,case_study_slug")
     .order("created_at", { ascending: false });
 
   return (
@@ -35,35 +35,42 @@ export default async function PortfolioPage() {
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-8">
           {items?.length ? (
-            items.map((item) => (
-              <Link
-                key={item.id}
-                href={`/portfolio/${item.slug}`}
-                className="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition"
-              >
-                <div className="aspect-[4/3] bg-slate-100">
-                  {item.cover_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.cover_url}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
-                      Cover image
-                    </div>
-                  )}
-                </div>
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold">{item.title}</h3>
-                  <p className="text-slate-600 mt-2">{item.summary}</p>
-                  <div className="mt-4 text-sm font-semibold text-slate-900">
-                    View case →
+            items.map((item) => {
+              const href = item.case_study_slug
+                ? `/case-studies/${item.case_study_slug}`
+                : `/portfolio/${item.slug}`;
+              return (
+                <Link
+                  key={item.id}
+                  href={href}
+                  className="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition"
+                >
+                  <div className="aspect-[4/3] bg-slate-100">
+                    {item.cover_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.cover_url}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
+                        Cover image
+                      </div>
+                    )}
                   </div>
-                </div>
-              </Link>
-            ))
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold">{item.title}</h3>
+                    <p className="text-slate-600 mt-2">{item.summary}</p>
+                    <div className="mt-4 text-sm font-semibold text-slate-900">
+                      {item.case_study_slug
+                        ? "View case study →"
+                        : "View case →"}
+                    </div>
+                  </div>
+                </Link>
+              );
+            })
           ) : (
             <div className="border border-slate-200 rounded-2xl p-6 text-slate-500">
               Portfolio items will appear here once published.

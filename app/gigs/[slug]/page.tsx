@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabasePublic } from "../../lib/supabasePublic";
+import PackageTabs from "./PackageTabs";
 
 export const revalidate = 0;
 
@@ -30,7 +31,7 @@ export default async function GigDetailPage({ params }: Params) {
   const { data: gig } = await supabasePublic
     .from("gigs")
     .select(
-      "title,summary,highlights,order_here_url,order_fiverr_url,price_text"
+      "title,summary,highlights,order_here_url,order_fiverr_url,price_text,cover_url,gallery_urls,seller_name,seller_title,delivery_days,package_basic,package_standard,package_premium"
     )
     .eq("slug", params.slug)
     .single();
@@ -54,78 +55,116 @@ export default async function GigDetailPage({ params }: Params) {
     );
   }
 
+  const images = [gig.cover_url, ...(gig.gallery_urls ?? [])].filter(Boolean);
+
   return (
     <main className="bg-white text-slate-900">
-      <section className="py-20 bg-white">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 grid lg:grid-cols-[1.3fr_0.7fr] gap-10">
-          <div>
-            <p className="text-sm text-slate-500 uppercase tracking-[0.2em]">
-              About this gig
-            </p>
-            <h1 className="text-4xl md:text-5xl font-semibold mt-4">
-              {gig.title}
-            </h1>
-            <p className="mt-6 text-lg text-slate-600">{gig.summary}</p>
+      <section className="py-16 bg-white">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 grid lg:grid-cols-[1.4fr_0.6fr] gap-10">
+          <div className="space-y-6">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                Services / Automation
+              </p>
+              <h1 className="text-3xl md:text-4xl font-semibold mt-4">
+                {gig.title}
+              </h1>
+            </div>
 
-            <div className="mt-10">
-              <h2 className="text-xl font-semibold">What You Get</h2>
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-700">
+                {gig.seller_name
+                  ? gig.seller_name.slice(0, 2).toUpperCase()
+                  : "FB"}
+              </div>
+              <div>
+                <p className="text-sm font-semibold">
+                  {gig.seller_name || "Flowbridge Digital"}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {gig.seller_title || "Automation & CRM Systems"}
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-slate-200 rounded-2xl overflow-hidden">
+              {images.length ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={images[0] as string}
+                  alt={gig.title}
+                  className="w-full h-[360px] object-cover"
+                />
+              ) : (
+                <div className="h-[360px] bg-slate-100 flex items-center justify-center text-slate-400">
+                  Gig cover
+                </div>
+              )}
+            </div>
+
+            <p className="text-slate-600">{gig.summary}</p>
+
+            <div>
+              <h2 className="text-xl font-semibold">What’s included</h2>
               {gig.highlights?.length ? (
-                <ul className="mt-6 space-y-3 text-slate-600 list-disc list-inside">
+                <div className="mt-4 flex flex-wrap gap-3">
                   {gig.highlights.map((item: string) => (
-                    <li key={item}>{item}</li>
+                    <span
+                      key={item}
+                      className="text-xs px-3 py-2 rounded-full bg-slate-100 text-slate-700"
+                    >
+                      {item}
+                    </span>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p className="mt-4 text-slate-600">
                   Highlights will be added soon.
                 </p>
               )}
             </div>
-          </div>
 
-          <aside className="border border-slate-200 rounded-2xl p-6 bg-white shadow-sm h-fit">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Package</h3>
-              <span className="text-sm text-slate-500">Standard</span>
-            </div>
-            <p className="text-2xl font-semibold mt-4 text-slate-900">
-              {gig.price_text || "Custom scope"}
-            </p>
-            <p className="text-sm text-slate-600 mt-2">
-              Full build plan with scoped deliverables and timeline.
-            </p>
-
-            <div className="mt-6 space-y-2 text-sm text-slate-600">
-              <div>• Discovery + audit</div>
-              <div>• System design</div>
-              <div>• Implementation plan</div>
-            </div>
-
-            <div className="mt-8 grid gap-3">
-              <Link
-                href={gig.order_here_url || `/checkout/${params.slug}`}
-                className="px-6 py-3 bg-slate-900 text-white rounded-xl text-center font-semibold hover:bg-slate-800 transition"
-              >
-                Continue
-              </Link>
+            <div className="flex items-center gap-4">
               {gig.order_fiverr_url ? (
                 <a
                   href={gig.order_fiverr_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-6 py-3 border border-slate-300 rounded-xl text-center hover:bg-slate-50 transition"
+                  className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
                 >
                   Order on Fiverr
                 </a>
               ) : null}
-            </div>
-
-            <div className="mt-6 pt-6 border-t border-slate-200">
               <Link
                 href="/strategy-call"
-                className="w-full inline-flex items-center justify-center px-6 py-3 border border-slate-300 rounded-xl text-sm font-semibold hover:bg-slate-50 transition"
+                className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
               >
                 Message Flowbridge
+              </Link>
+            </div>
+          </div>
+
+          <aside className="space-y-4">
+            <PackageTabs
+              basic={gig.package_basic}
+              standard={gig.package_standard}
+              premium={gig.package_premium}
+            />
+
+            <div className="border border-slate-200 rounded-2xl p-5 bg-white">
+              <div className="text-xs uppercase tracking-[0.2em] text-slate-400">
+                Delivery
+              </div>
+              <p className="text-sm text-slate-600 mt-2">
+                {gig.delivery_days
+                  ? `${gig.delivery_days} days average delivery`
+                  : "Timeline confirmed after kickoff"}
+              </p>
+              <Link
+                href={gig.order_here_url || `/checkout/${params.slug}`}
+                className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold"
+              >
+                Continue
               </Link>
             </div>
           </aside>

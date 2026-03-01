@@ -21,6 +21,26 @@ export default function NewGigPage() {
   const [orderHereUrl, setOrderHereUrl] = useState("");
   const [orderFiverrUrl, setOrderFiverrUrl] = useState("");
   const [highlights, setHighlights] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [galleryUrls, setGalleryUrls] = useState("");
+  const [sellerName, setSellerName] = useState("");
+  const [sellerTitle, setSellerTitle] = useState("");
+  const [deliveryDays, setDeliveryDays] = useState("");
+  const [basicTitle, setBasicTitle] = useState("");
+  const [basicPrice, setBasicPrice] = useState("");
+  const [basicDescription, setBasicDescription] = useState("");
+  const [basicDelivery, setBasicDelivery] = useState("");
+  const [basicFeatures, setBasicFeatures] = useState("");
+  const [standardTitle, setStandardTitle] = useState("");
+  const [standardPrice, setStandardPrice] = useState("");
+  const [standardDescription, setStandardDescription] = useState("");
+  const [standardDelivery, setStandardDelivery] = useState("");
+  const [standardFeatures, setStandardFeatures] = useState("");
+  const [premiumTitle, setPremiumTitle] = useState("");
+  const [premiumPrice, setPremiumPrice] = useState("");
+  const [premiumDescription, setPremiumDescription] = useState("");
+  const [premiumDelivery, setPremiumDelivery] = useState("");
+  const [premiumFeatures, setPremiumFeatures] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +54,43 @@ export default function NewGigPage() {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
+    const galleryList = galleryUrls
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    const packageBasic = {
+      title: basicTitle || null,
+      price: basicPrice || null,
+      description: basicDescription || null,
+      delivery_days: basicDelivery ? Number(basicDelivery) : null,
+      features: basicFeatures
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    };
+
+    const packageStandard = {
+      title: standardTitle || null,
+      price: standardPrice || null,
+      description: standardDescription || null,
+      delivery_days: standardDelivery ? Number(standardDelivery) : null,
+      features: standardFeatures
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    };
+
+    const packagePremium = {
+      title: premiumTitle || null,
+      price: premiumPrice || null,
+      description: premiumDescription || null,
+      delivery_days: premiumDelivery ? Number(premiumDelivery) : null,
+      features: premiumFeatures
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    };
 
     const { error: insertError } = await supabase.from("gigs").insert({
       title,
@@ -44,6 +101,14 @@ export default function NewGigPage() {
       order_here_url: orderHereUrl || null,
       order_fiverr_url: orderFiverrUrl || null,
       highlights: highlightList.length ? highlightList : null,
+      cover_url: coverUrl || null,
+      gallery_urls: galleryList.length ? galleryList : null,
+      seller_name: sellerName || null,
+      seller_title: sellerTitle || null,
+      delivery_days: deliveryDays ? Number(deliveryDays) : null,
+      package_basic: packageBasic,
+      package_standard: packageStandard,
+      package_premium: packagePremium,
     });
 
     if (insertError) {
@@ -148,6 +213,153 @@ export default function NewGigPage() {
                 value={highlights}
                 onChange={(event) => setHighlights(event.target.value)}
               />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid gap-4">
+                <label className="text-sm font-medium">Cover Image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://..."
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  value={coverUrl}
+                  onChange={(event) => setCoverUrl(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-4">
+                <label className="text-sm font-medium">
+                  Gallery URLs (comma separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="https://..., https://..."
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  value={galleryUrls}
+                  onChange={(event) => setGalleryUrls(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="grid gap-4">
+                <label className="text-sm font-medium">Seller Name</label>
+                <input
+                  type="text"
+                  placeholder="Flowbridge Digital"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  value={sellerName}
+                  onChange={(event) => setSellerName(event.target.value)}
+                />
+              </div>
+              <div className="grid gap-4">
+                <label className="text-sm font-medium">Seller Title</label>
+                <input
+                  type="text"
+                  placeholder="Automation & CRM Systems"
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  value={sellerTitle}
+                  onChange={(event) => setSellerTitle(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4">
+              <label className="text-sm font-medium">Delivery Days</label>
+              <input
+                type="number"
+                placeholder="7"
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                value={deliveryDays}
+                onChange={(event) => setDeliveryDays(event.target.value)}
+              />
+            </div>
+
+            <div className="grid lg:grid-cols-3 gap-6">
+              {[
+                {
+                  label: "Basic",
+                  title: basicTitle,
+                  setTitle: setBasicTitle,
+                  price: basicPrice,
+                  setPrice: setBasicPrice,
+                  description: basicDescription,
+                  setDescription: setBasicDescription,
+                  delivery: basicDelivery,
+                  setDelivery: setBasicDelivery,
+                  features: basicFeatures,
+                  setFeatures: setBasicFeatures,
+                },
+                {
+                  label: "Standard",
+                  title: standardTitle,
+                  setTitle: setStandardTitle,
+                  price: standardPrice,
+                  setPrice: setStandardPrice,
+                  description: standardDescription,
+                  setDescription: setStandardDescription,
+                  delivery: standardDelivery,
+                  setDelivery: setStandardDelivery,
+                  features: standardFeatures,
+                  setFeatures: setStandardFeatures,
+                },
+                {
+                  label: "Premium",
+                  title: premiumTitle,
+                  setTitle: setPremiumTitle,
+                  price: premiumPrice,
+                  setPrice: setPremiumPrice,
+                  description: premiumDescription,
+                  setDescription: setPremiumDescription,
+                  delivery: premiumDelivery,
+                  setDelivery: setPremiumDelivery,
+                  features: premiumFeatures,
+                  setFeatures: setPremiumFeatures,
+                },
+              ].map((pkg) => (
+                <div
+                  key={pkg.label}
+                  className="border border-slate-200 rounded-2xl p-4"
+                >
+                  <p className="text-sm font-semibold">{pkg.label} package</p>
+                  <div className="mt-3 grid gap-3">
+                    <input
+                      type="text"
+                      placeholder="Package title"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+                      value={pkg.title}
+                      onChange={(event) => pkg.setTitle(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="$400"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+                      value={pkg.price}
+                      onChange={(event) => pkg.setPrice(event.target.value)}
+                    />
+                    <textarea
+                      rows={3}
+                      placeholder="Package description"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+                      value={pkg.description}
+                      onChange={(event) => pkg.setDescription(event.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Delivery days"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+                      value={pkg.delivery}
+                      onChange={(event) => pkg.setDelivery(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Features (comma separated)"
+                      className="w-full border border-slate-300 rounded-xl px-3 py-2 text-sm"
+                      value={pkg.features}
+                      onChange={(event) => pkg.setFeatures(event.target.value)}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
 
             <div className="grid gap-4">

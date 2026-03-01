@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Params) {
 export default async function PortfolioDetailPage({ params }: Params) {
   const { data: item } = await supabasePublic
     .from("portfolio")
-    .select("title,summary,outcomes,cover_url")
+    .select("title,summary,outcomes,cover_url,case_study_slug")
     .eq("slug", params.slug)
     .single();
 
@@ -95,6 +95,21 @@ export default async function PortfolioDetailPage({ params }: Params) {
               </p>
             )}
           </div>
+
+          {item.case_study_slug ? (
+            <div className="mt-12">
+              <h2 className="text-2xl font-semibold">Full Case Study</h2>
+              <p className="mt-3 text-slate-600">
+                Explore the full breakdown of strategy, execution, and results.
+              </p>
+              <Link
+                href={`/case-studies/${item.case_study_slug}`}
+                className="mt-6 inline-flex items-center text-sm font-semibold text-slate-900"
+              >
+                Read the case study →
+              </Link>
+            </div>
+          ) : null}
         </div>
       </section>
     </main>

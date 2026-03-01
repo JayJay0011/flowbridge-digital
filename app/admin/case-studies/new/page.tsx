@@ -1,69 +1,52 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 
-type CaseStudyOption = {
-  id: string;
-  title: string;
-  slug: string;
-};
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)+/g, "");
-}
-
-export default function AdminPortfolioNewPage() {
+export default function AdminCaseStudyNewPage() {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [caseStudies, setCaseStudies] = useState<CaseStudyOption[]>([]);
   const [form, setForm] = useState({
     title: "",
     slug: "",
     summary: "",
+    industry: "",
     cover_url: "",
-    outcomes: "",
-    case_study_slug: "",
+    results: "",
+    body: "",
     status: "draft",
   });
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase
-        .from("case_studies")
-        .select("id,title,slug")
-        .order("created_at", { ascending: false });
-      setCaseStudies((data ?? []) as CaseStudyOption[]);
-    };
-    load();
-  }, []);
-
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSaving(true);
     setMessage(null);
 
-    const slug = form.slug.trim() || slugify(form.title);
-    const outcomesList = form.outcomes
+    const slug =
+      form.slug.trim() ||
+      form.title
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)+/g, "");
+
+    const resultsList = form.results
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
 
     const { data, error } = await supabase
-      .from("portfolio")
+      .from("case_studies")
       .insert({
         title: form.title.trim(),
         slug,
         summary: form.summary.trim() || null,
+        industry: form.industry.trim() || null,
         cover_url: form.cover_url.trim() || null,
-        outcomes: outcomesList.length ? outcomesList : null,
-        case_study_slug: form.case_study_slug.trim() || null,
+        results: resultsList.length ? resultsList : null,
+        body: form.body.trim() || null,
         status: form.status,
       })
       .select("id")
@@ -75,16 +58,16 @@ export default function AdminPortfolioNewPage() {
       return;
     }
 
-    router.push(`/admin/portfolio/${data.id}`);
+    router.push(`/admin/case-studies/${data.id}`);
   };
 
   return (
     <section className="max-w-3xl space-y-6">
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
-          Portfolio
+          Case Studies
         </p>
-        <h2 className="text-3xl font-semibold mt-2">New portfolio item</h2>
+        <h2 className="text-3xl font-semibold mt-2">New case study</h2>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -114,42 +97,46 @@ export default function AdminPortfolioNewPage() {
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-semibold">Industry</label>
+            <input
+              value={form.industry}
+              onChange={(event) =>
+                setForm({ ...form, industry: event.target.value })
+              }
+              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">Cover image URL</label>
+            <input
+              value={form.cover_url}
+              onChange={(event) =>
+                setForm({ ...form, cover_url: event.target.value })
+              }
+              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+            />
+          </div>
+        </div>
         <div>
-          <label className="text-sm font-semibold">Cover image URL</label>
+          <label className="text-sm font-semibold">Key results (comma)</label>
           <input
-            value={form.cover_url}
+            value={form.results}
             onChange={(event) =>
-              setForm({ ...form, cover_url: event.target.value })
+              setForm({ ...form, results: event.target.value })
             }
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">Key outcomes (comma)</label>
-          <input
-            value={form.outcomes}
-            onChange={(event) =>
-              setForm({ ...form, outcomes: event.target.value })
-            }
+          <label className="text-sm font-semibold">Body</label>
+          <textarea
+            value={form.body}
+            onChange={(event) => setForm({ ...form, body: event.target.value })}
+            rows={10}
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
-        </div>
-        <div>
-          <label className="text-sm font-semibold">Linked case study</label>
-          <select
-            value={form.case_study_slug}
-            onChange={(event) =>
-              setForm({ ...form, case_study_slug: event.target.value })
-            }
-            className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-          >
-            <option value="">No linked case study</option>
-            {caseStudies.map((item) => (
-              <option key={item.id} value={item.slug}>
-                {item.title}
-              </option>
-            ))}
-          </select>
         </div>
         <div>
           <label className="text-sm font-semibold">Status</label>
@@ -171,11 +158,11 @@ export default function AdminPortfolioNewPage() {
             disabled={saving}
             className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold"
           >
-            {saving ? "Saving..." : "Create portfolio item"}
+            {saving ? "Saving..." : "Create case study"}
           </button>
           <button
             type="button"
-            onClick={() => router.push("/admin/portfolio")}
+            onClick={() => router.push("/admin/case-studies")}
             className="text-sm font-semibold text-slate-600"
           >
             Cancel

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 
@@ -19,7 +19,7 @@ function LoginPageInner() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  const redirectByRole = async () => {
+  const redirectByRole = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const userId = sessionData.session?.user.id;
     const safeNext = nextPath.startsWith("/admin") ? "/dashboard" : nextPath;
@@ -35,7 +35,7 @@ function LoginPageInner() {
       .maybeSingle();
 
     router.replace(profile?.role === "admin" ? "/admin" : safeNext);
-  };
+  }, [nextPath, router]);
 
   useEffect(() => {
     const checkSession = async () => {
@@ -45,7 +45,7 @@ function LoginPageInner() {
       }
     };
     checkSession();
-  }, [nextPath, router]);
+  }, [redirectByRole]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

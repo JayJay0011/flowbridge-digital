@@ -141,7 +141,7 @@ export default function DashboardMessagesPage() {
       const state = presenceChannel.presenceState();
       const online = Object.values(state)
         .flat()
-        .some((item: any) => item.role === "agent");
+        .some((item) => (item as { role?: string }).role === "agent");
       setAgentOnline(online);
     });
 

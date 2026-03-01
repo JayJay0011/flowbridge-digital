@@ -25,9 +25,9 @@ export default function PrivacyPolicyPage() {
         <div className="max-w-4xl mx-auto px-4 md:px-6 space-y-10">
           <div className="space-y-4 text-slate-600 leading-relaxed">
             <p>
-              This Privacy Policy explains how Flowbridge Digital ("we", "us",
-              "our") collects, uses, and protects your information when you
-              visit our website or use our services.
+              This Privacy Policy explains how Flowbridge Digital (&quot;we&quot;,
+              &quot;us&quot;, &quot;our&quot;) collects, uses, and protects your
+              information when you visit our website or use our services.
             </p>
             <p>
               By using our website, you agree to the collection and use of

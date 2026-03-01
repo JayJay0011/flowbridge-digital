@@ -1,4 +1,7 @@
-import Link from "next/link"
+import Link from "next/link";
+import { supabasePublic } from "../lib/supabasePublic";
+
+export const revalidate = 0;
 
 export const metadata = {
   title: "Services",
@@ -6,7 +9,48 @@ export const metadata = {
     "Automation, CRM, growth infrastructure, platform development, and operational support services.",
 };
 
-export default function ServicesPage() {
+const fallbackServices = [
+  {
+    title: "Automation & Systems Architecture",
+    description:
+      "Business process automation, workflow engineering, and backend operational structuring.",
+    slug: "automation-systems-architecture",
+  },
+  {
+    title: "CRM & Pipeline Engineering",
+    description:
+      "Structured CRM design, lifecycle workflows, and revenue visibility systems.",
+    slug: "crm-pipeline",
+  },
+  {
+    title: "Growth Infrastructure",
+    description:
+      "Email marketing systems, lead nurturing automation, and conversion infrastructure.",
+    slug: "growth-infrastructure",
+  },
+  {
+    title: "Platform Development",
+    description:
+      "Modern web applications and internal tools built for operational scalability.",
+    slug: "platform-development",
+  },
+  {
+    title: "Operational Support",
+    description:
+      "Structured VA systems, backend documentation, and execution support frameworks.",
+    slug: "operational-support",
+  },
+];
+
+export default async function ServicesPage() {
+  const { data } = await supabasePublic
+    .from("services")
+    .select("title,slug,description")
+    .eq("status", "published")
+    .order("created_at", { ascending: false });
+
+  const services = data?.length ? data : fallbackServices;
+
   return (
     <main className="bg-white text-slate-900">
 
@@ -47,35 +91,14 @@ export default function ServicesPage() {
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-3 gap-10">
 
-            <ServiceCard
-              title="Automation & Systems Architecture"
-              desc="Business process automation, workflow engineering, and backend operational structuring."
-              href="/services/automation-systems-architecture"
-            />
-
-            <ServiceCard
-              title="CRM & Pipeline Engineering"
-              desc="Structured CRM design, lifecycle workflows, and revenue visibility systems."
-              href="/services/crm-pipeline"
-            />
-
-            <ServiceCard
-              title="Growth Infrastructure"
-              desc="Email marketing systems, lead nurturing automation, and conversion infrastructure."
-              href="/services/growth-infrastructure"
-            />
-
-            <ServiceCard
-              title="Platform Development"
-              desc="Modern web applications and internal tools built for operational scalability."
-              href="/services/platform-development"
-            />
-
-            <ServiceCard
-              title="Operational Support"
-              desc="Structured VA systems, backend documentation, and execution support frameworks."
-              href="/services/operational-support"
-            />
+            {services.map((service) => (
+              <ServiceCard
+                key={service.slug}
+                title={service.title}
+                desc={service.description || ""}
+                href={`/services/${service.slug}`}
+              />
+            ))}
 
           </div>
         </div>

@@ -12,6 +12,11 @@ const cards = [
     href: "/admin/portfolio",
   },
   {
+    title: "Case Studies",
+    desc: "Create deep-dive system transformations and results.",
+    href: "/admin/case-studies",
+  },
+  {
     title: "Services",
     desc: "Edit your core services and positioning copy.",
     href: "/admin/services",

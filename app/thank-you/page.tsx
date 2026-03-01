@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function ThankYouPage() {
   return (
     <main className="bg-white text-slate-900 min-h-screen flex items-center justify-center px-6">
@@ -14,12 +16,12 @@ export default function ThankYouPage() {
           Our team will review your details and reach out within 24 hours.
         </p>
 
-        <a
+        <Link
           href="/"
           className="inline-block bg-slate-900 text-white px-8 py-3 rounded-xl hover:bg-slate-800 transition"
         >
           Return to Home
-        </a>
+        </Link>
 
       </div>
     </main>

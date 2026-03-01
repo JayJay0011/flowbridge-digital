@@ -25,9 +25,9 @@ export default function TermsOfServicePage() {
         <div className="max-w-4xl mx-auto px-4 md:px-6 space-y-10">
           <div className="space-y-4 text-slate-600 leading-relaxed">
             <p>
-              These Terms of Service ("Terms") govern your access to and use of
-              the Flowbridge Digital website and services. By accessing the
-              website, you agree to be bound by these Terms.
+              These Terms of Service (&quot;Terms&quot;) govern your access to and
+              use of the Flowbridge Digital website and services. By accessing
+              the website, you agree to be bound by these Terms.
             </p>
           </div>
 

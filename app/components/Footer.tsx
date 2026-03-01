@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 export default function Footer() {
@@ -33,28 +34,28 @@ export default function Footer() {
           </h4>
           <ul className="space-y-3 text-sm">
             <li>
-              <a
+              <Link
                 href="/services/automation-systems-architecture"
                 className="hover:text-white transition-colors duration-300"
               >
                 Automation Systems
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/services/crm-pipeline"
                 className="hover:text-white transition-colors duration-300"
               >
                 CRM & Pipeline Design
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/services/growth-infrastructure"
                 className="hover:text-white transition-colors duration-300"
               >
                 Strategic Consulting
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -66,37 +67,60 @@ export default function Footer() {
           </h4>
           <ul className="space-y-3 text-sm">
             <li>
-              <a href="/portfolio" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/portfolio"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Portfolio
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/blog" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/case-studies"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Case Studies
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Blog
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/reviews" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/reviews"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Reviews
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/about" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/about"
+                className="hover:text-white transition-colors duration-300"
+              >
                 About
-              </a>
+              </Link>
             </li>
             <li>
-              <a
+              <Link
                 href="/how-we-work"
                 className="hover:text-white transition-colors duration-300"
               >
                 Our Process
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/contact" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/contact"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Contact
-              </a>
+              </Link>
             </li>
             <li>
               <a
@@ -118,19 +142,28 @@ export default function Footer() {
           </h4>
           <ul className="space-y-3 text-sm">
             <li>
-              <a href="/#faq" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/#faq"
+                className="hover:text-white transition-colors duration-300"
+              >
                 FAQs
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/privacy-policy" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/privacy-policy"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Privacy Policy
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/terms-of-service" className="hover:text-white transition-colors duration-300">
+              <Link
+                href="/terms-of-service"
+                className="hover:text-white transition-colors duration-300"
+              >
                 Terms of Service
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

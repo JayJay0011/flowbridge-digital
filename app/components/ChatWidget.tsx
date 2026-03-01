@@ -220,7 +220,7 @@ export default function ChatWidget() {
       recorder.start();
       recorderRef.current = recorder;
       setRecording(true);
-    } catch (err) {
+    } catch {
       setError("Microphone access is required to record a voice note.");
     }
   };

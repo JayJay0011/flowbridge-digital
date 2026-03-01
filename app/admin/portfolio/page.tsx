@@ -9,6 +9,7 @@ type PortfolioItem = {
   title: string;
   status: string;
   created_at: string;
+  case_study_slug: string | null;
 };
 
 export default function AdminPortfolioPage() {
@@ -22,7 +23,7 @@ export default function AdminPortfolioPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("portfolio")
-        .select("id,title,status,created_at")
+        .select("id,title,status,created_at,case_study_slug")
         .order("created_at", { ascending: false });
 
       if (isMounted) {
@@ -97,17 +98,28 @@ export default function AdminPortfolioPage() {
                 <p className="mt-3 text-sm text-slate-500">
                   Updated {new Date(item.created_at).toLocaleDateString()}
                 </p>
-              <div className="mt-6 text-sm font-medium text-slate-900">
-                <button
-                  onClick={() => toggleStatus(item)}
-                  className="text-slate-900 hover:text-slate-700 transition"
-                  disabled={updating === item.id}
-                >
-                  {item.status === "published" ? "Unpublish" : "Publish"}
-                </button>
+                {item.case_study_slug ? (
+                  <p className="mt-2 text-xs text-slate-400">
+                    Case study: {item.case_study_slug}
+                  </p>
+                ) : null}
+                <div className="mt-6 flex items-center gap-4 text-sm font-medium text-slate-900">
+                  <Link
+                    href={`/admin/portfolio/${item.id}`}
+                    className="text-slate-600 hover:text-slate-900 transition"
+                  >
+                    Edit
+                  </Link>
+                  <button
+                    onClick={() => toggleStatus(item)}
+                    className="text-slate-900 hover:text-slate-700 transition"
+                    disabled={updating === item.id}
+                  >
+                    {item.status === "published" ? "Unpublish" : "Publish"}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            ))
           )}
         </div>
       </section>

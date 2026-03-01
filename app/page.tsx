@@ -1,7 +1,6 @@
 
 import Link from "next/link"
 import FAQSection from "./components/FAQSection";
-import Footer from "./components/Footer"
 
 export default function Home() {
   const jsonLd = {

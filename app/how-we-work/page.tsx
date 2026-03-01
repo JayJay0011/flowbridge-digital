@@ -180,7 +180,7 @@ export default function HowWeWorkPage() {
           </h2>
           <p className="text-slate-600 mb-8">
             If your business feels scattered, disconnected, or manually intensive,
-            it's time to implement structured infrastructure.
+            it&apos;s time to implement structured infrastructure.
           </p>
 
           <a

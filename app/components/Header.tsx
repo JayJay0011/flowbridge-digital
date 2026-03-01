@@ -64,6 +64,9 @@ export default function Header() {
           <Link href="/portfolio" className="transition">
             Portfolio
           </Link>
+          <Link href="/case-studies" className="transition">
+            Case Studies
+          </Link>
           <Link href="/blog" className="transition">
             Blog
           </Link>
@@ -121,6 +124,9 @@ export default function Header() {
             </Link>
             <Link href="/portfolio" onClick={() => setMobileOpen(false)}>
               Portfolio
+            </Link>
+            <Link href="/case-studies" onClick={() => setMobileOpen(false)}>
+              Case Studies
             </Link>
             <Link href="/blog" onClick={() => setMobileOpen(false)}>
               Blog
