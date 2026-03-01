@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 type PackageInfo = {
   title?: string | null;
@@ -11,6 +12,7 @@ type PackageInfo = {
 };
 
 type Props = {
+  slug: string;
   basic?: PackageInfo | null;
   standard?: PackageInfo | null;
   premium?: PackageInfo | null;
@@ -22,7 +24,7 @@ const tabs = [
   { key: "premium", label: "Premium" },
 ] as const;
 
-export default function PackageTabs({ basic, standard, premium }: Props) {
+export default function PackageTabs({ slug, basic, standard, premium }: Props) {
   const [active, setActive] = useState<typeof tabs[number]["key"]>("basic");
 
   const pkg =
@@ -70,9 +72,12 @@ export default function PackageTabs({ basic, standard, premium }: Props) {
             ))}
           </ul>
         ) : null}
-        <button className="w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-semibold">
+        <Link
+          href={`/checkout/${slug}?package=${active}`}
+          className="w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-semibold text-center block"
+        >
           Continue
-        </button>
+        </Link>
       </div>
     </div>
   );

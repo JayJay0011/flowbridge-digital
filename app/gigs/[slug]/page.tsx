@@ -31,7 +31,7 @@ export default async function GigDetailPage({ params }: Params) {
   const { data: gig } = await supabasePublic
     .from("gigs")
     .select(
-      "title,summary,highlights,order_here_url,order_fiverr_url,price_text,cover_url,gallery_urls,seller_name,seller_title,delivery_days,package_basic,package_standard,package_premium"
+      "title,summary,highlights,order_fiverr_url,price_text,cover_url,gallery_urls,delivery_days,package_basic,package_standard,package_premium"
     )
     .eq("slug", params.slug)
     .single();
@@ -73,16 +73,12 @@ export default async function GigDetailPage({ params }: Params) {
 
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center text-sm font-semibold text-slate-700">
-                {gig.seller_name
-                  ? gig.seller_name.slice(0, 2).toUpperCase()
-                  : "FB"}
+                FB
               </div>
               <div>
-                <p className="text-sm font-semibold">
-                  {gig.seller_name || "Flowbridge Digital"}
-                </p>
+                <p className="text-sm font-semibold">Flowbridge Digital</p>
                 <p className="text-xs text-slate-500">
-                  {gig.seller_title || "Automation & CRM Systems"}
+                  Automation &amp; CRM Systems
                 </p>
               </div>
             </div>
@@ -161,7 +157,7 @@ export default async function GigDetailPage({ params }: Params) {
                   : "Timeline confirmed after kickoff"}
               </p>
               <Link
-                href={gig.order_here_url || `/checkout/${params.slug}`}
+                href={`/checkout/${params.slug}`}
                 className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold"
               >
                 Continue
