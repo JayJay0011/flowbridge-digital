@@ -104,7 +104,7 @@ export default async function CaseStudyDetailPage({ params }: Params) {
 
           {paragraphs.length ? (
             <div className="space-y-4 text-slate-600 leading-relaxed">
-              {paragraphs.map((paragraph) => (
+              {paragraphs.map((paragraph: string) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
