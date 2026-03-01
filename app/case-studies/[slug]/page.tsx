@@ -51,7 +51,10 @@ export default async function CaseStudyDetailPage({ params }: Params) {
   }
 
   const paragraphs = item.body
-    ? item.body.split("\n").map((entry) => entry.trim()).filter(Boolean)
+    ? item.body
+        .split("\n")
+        .map((entry: string) => entry.trim())
+        .filter(Boolean)
     : [];
 
   return (
