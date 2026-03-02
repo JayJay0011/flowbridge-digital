@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
-export default function OrderAction({ gigId }: { gigId: string }) {
+type Props = {
+  gigId: string;
+  packageKey: "basic" | "standard" | "premium";
+};
+
+export default function OrderAction({ gigId, packageKey }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -30,19 +35,36 @@ export default function OrderAction({ gigId }: { gigId: string }) {
     setSubmitting(true);
     setMessage(null);
 
-    const { error } = await supabase.from("orders").insert({
-      client_id: userId,
-      gig_id: gigId,
-      status: "new",
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      router.push("/login?mode=signup");
+      return;
+    }
+
+    const response = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ gigId, packageKey }),
     });
 
-    if (error) {
-      setMessage(error.message);
+    if (!response.ok) {
+      const payload = await response.json();
+      setMessage(payload?.error || "Unable to start checkout.");
       setSubmitting(false);
       return;
     }
 
-    router.push("/dashboard?order=created");
+    const payload = await response.json();
+    if (payload?.url) {
+      window.location.href = payload.url;
+      return;
+    }
+    setMessage("Unable to start checkout.");
+    setSubmitting(false);
   };
 
   if (loading) {
@@ -58,7 +80,7 @@ export default function OrderAction({ gigId }: { gigId: string }) {
         disabled={submitting}
         className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition disabled:opacity-60"
       >
-        {userId ? "Continue to Order" : "Sign in to Order"}
+        {userId ? "Confirm and pay" : "Sign in to Order"}
       </button>
       <p className="text-sm text-slate-500 mt-3">
         {userId

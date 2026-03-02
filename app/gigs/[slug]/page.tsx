@@ -30,11 +30,9 @@ export async function generateMetadata({ params }: Params) {
 export default async function GigDetailPage({ params }: Params) {
   const { data: gig } = await supabasePublic
     .from("gigs")
-    .select(
-      "title,summary,highlights,order_fiverr_url,price_text,cover_url,gallery_urls,delivery_days,package_basic,package_standard,package_premium"
-    )
+    .select("*")
     .eq("slug", params.slug)
-    .single();
+    .maybeSingle();
 
   if (!gig) {
     return (
@@ -142,6 +140,7 @@ export default async function GigDetailPage({ params }: Params) {
 
           <aside className="space-y-4">
             <PackageTabs
+              slug={params.slug}
               basic={gig.package_basic}
               standard={gig.package_standard}
               premium={gig.package_premium}

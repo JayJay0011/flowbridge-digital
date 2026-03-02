@@ -99,6 +99,11 @@ create table if not exists public.orders (
   client_id uuid references public.profiles(id) on delete set null,
   gig_id uuid references public.gigs(id) on delete set null,
   status text not null default 'new' check (status in ('new', 'in_progress', 'complete', 'cancelled')),
+  package_tier text,
+  amount_cents int,
+  currency text default 'usd',
+  stripe_session_id text,
+  payment_status text default 'unpaid' check (payment_status in ('unpaid', 'paid', 'failed')),
   created_at timestamptz not null default now()
 );
 

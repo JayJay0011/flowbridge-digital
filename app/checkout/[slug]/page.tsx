@@ -25,12 +25,14 @@ export async function generateMetadata({ params }: Params) {
   };
 }
 
-export default async function CheckoutPage({ params }: Params) {
+type PageProps = Params & { searchParams?: { package?: string } };
+
+export default async function CheckoutPage({ params, searchParams }: PageProps) {
   const { data: gig } = await supabasePublic
     .from("gigs")
-    .select("id,title,summary,price_text,highlights,package_basic")
+    .select("*")
     .eq("slug", params.slug)
-    .single();
+    .maybeSingle();
 
   if (!gig) {
     return (
@@ -50,6 +52,21 @@ export default async function CheckoutPage({ params }: Params) {
       </main>
     );
   }
+
+  const packageKey =
+    searchParams?.package === "standard" || searchParams?.package === "premium"
+      ? searchParams.package
+      : "basic";
+
+  const selectedPackage =
+    packageKey === "standard"
+      ? gig.package_standard
+      : packageKey === "premium"
+        ? gig.package_premium
+        : gig.package_basic;
+
+  const selectedPrice =
+    selectedPackage?.price || gig.price_text || "Custom scope";
 
   return (
     <main className="bg-white text-slate-900">
@@ -82,16 +99,22 @@ export default async function CheckoutPage({ params }: Params) {
             )}
 
             <div className="mt-10">
-              <OrderAction gigId={gig.id} />
+              <OrderAction gigId={gig.id} packageKey={packageKey} />
             </div>
           </div>
 
           <div className="border border-slate-200 rounded-2xl p-8 bg-slate-50">
             <h3 className="text-lg font-semibold">Order Summary</h3>
             <div className="mt-6 flex items-center justify-between text-sm">
-              <span>Starting Price</span>
+              <span>Selected package</span>
+              <span className="font-semibold text-slate-900 capitalize">
+                {packageKey}
+              </span>
+            </div>
+            <div className="mt-4 flex items-center justify-between text-sm">
+              <span>Price</span>
               <span className="font-semibold text-slate-900">
-                {gig.package_basic?.price || gig.price_text || "Custom scope"}
+                {selectedPrice}
               </span>
             </div>
             <div className="mt-6 border-t border-slate-200 pt-6 text-sm text-slate-600">

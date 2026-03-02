@@ -79,8 +79,13 @@ export default async function GigsPage({ searchParams }: PageProps) {
                   ? `${gig.summary.slice(0, 180)}...`
                   : gig.summary
                 : "Details will be shared after discovery.";
-              const startingPrice =
+              const rawPrice =
                 gig.package_basic?.price || gig.price_text || "Custom scope";
+              const startingPrice =
+                typeof rawPrice === "string" &&
+                rawPrice.toLowerCase().includes("starting")
+                  ? rawPrice
+                  : `Starting at ${rawPrice}`;
               return (
                 <Link
                   key={gig.id}
@@ -104,7 +109,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
                   <h2 className="text-xl font-semibold mt-6">{gig.title}</h2>
                   <p className="mt-3 text-slate-600">{description}</p>
                   <p className="mt-6 text-sm font-semibold text-slate-900">
-                    Starting at {startingPrice}
+                    {startingPrice}
                   </p>
                   <div className="mt-4 text-sm font-medium text-slate-900">
                     View Details →
