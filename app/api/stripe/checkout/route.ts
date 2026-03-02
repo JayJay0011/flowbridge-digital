@@ -2,8 +2,6 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "",
   process.env.SUPABASE_SERVICE_ROLE_KEY || ""
@@ -26,6 +24,16 @@ const parsePriceToCents = (value?: string | null) => {
 
 export async function POST(request: Request) {
   try {
+    const stripeSecret = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecret) {
+      return NextResponse.json(
+        { error: "Stripe secret key is missing." },
+        { status: 500 }
+      );
+    }
+
+    const stripe = new Stripe(stripeSecret);
+
     const authHeader = request.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.replace("Bearer ", "")
