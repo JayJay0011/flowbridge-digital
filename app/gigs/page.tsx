@@ -17,7 +17,8 @@ export default async function GigsPage({ searchParams }: PageProps) {
 
   let request = supabasePublic
     .from("gigs")
-    .select("id,title,slug,summary,price_text,package_basic,cover_url")
+    .select("id,title,slug,summary,price_text,package_basic,cover_url,status")
+    .eq("status", "published")
     .order("created_at", { ascending: false });
 
   if (query) {

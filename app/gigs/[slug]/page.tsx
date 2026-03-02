@@ -9,11 +9,14 @@ type Params = {
 };
 
 export async function generateMetadata({ params }: Params) {
+  const slug = decodeURIComponent(params.slug);
   const { data: gig } = await supabasePublic
     .from("gigs")
     .select("title,summary")
-    .eq("slug", params.slug)
-    .single();
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
+    .maybeSingle();
 
   if (!gig) {
     return {
@@ -28,10 +31,13 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function GigDetailPage({ params }: Params) {
+  const slug = decodeURIComponent(params.slug);
   const { data: gig } = await supabasePublic
     .from("gigs")
     .select("*")
-    .eq("slug", params.slug)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
     .maybeSingle();
 
   if (!gig) {
