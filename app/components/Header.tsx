@@ -49,44 +49,47 @@ export default function Header() {
 
   return (
     <header className="w-full border-b bg-white text-slate-900 border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-5 flex items-center justify-between">
-        <Link href="/" className="text-xl font-semibold tracking-tight">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 flex items-center justify-between gap-4">
+        <Link
+          href="/"
+          className="text-3xl md:text-xl font-semibold tracking-tight whitespace-nowrap"
+        >
           Flowbridge Digital
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-          <Link href="/services" className="transition">
+        <nav className="hidden md:flex items-center gap-5 text-[15px] font-medium text-slate-600 whitespace-nowrap">
+          <Link href="/services" className="transition whitespace-nowrap">
             Services
           </Link>
-          <Link href="/gigs" className="transition">
+          <Link href="/gigs" className="transition whitespace-nowrap">
             Gigs
           </Link>
-          <Link href="/portfolio" className="transition">
+          <Link href="/portfolio" className="transition whitespace-nowrap">
             Portfolio
           </Link>
-          <Link href="/case-studies" className="transition">
+          <Link href="/case-studies" className="transition whitespace-nowrap">
             Case Studies
           </Link>
-          <Link href="/blog" className="transition">
+          <Link href="/blog" className="transition whitespace-nowrap">
             Blog
           </Link>
-          <Link href="/about" className="transition">
+          <Link href="/about" className="transition whitespace-nowrap">
             About
           </Link>
-          <Link href="/reviews" className="transition">
+          <Link href="/reviews" className="transition whitespace-nowrap">
             Reviews
           </Link>
-          <Link href="/contact" className="transition">
+          <Link href="/contact" className="transition whitespace-nowrap">
             Contact
           </Link>
           {email ? null : (
-            <Link href="/login" className="transition">
+            <Link href="/login" className="transition whitespace-nowrap">
               Login
             </Link>
           )}
           <Link
             href={email ? "/dashboard" : "/login?mode=signup"}
-            className="ml-2 px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-900 text-white hover:bg-slate-800"
+            className="ml-1 px-4 py-2 rounded-lg text-sm font-semibold transition bg-slate-900 text-white hover:bg-slate-800 whitespace-nowrap"
           >
             {email ? "Dashboard" : "Get Started"}
           </Link>
@@ -96,7 +99,7 @@ export default function Header() {
           href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
           target="_blank"
           rel="noreferrer"
-          className="hidden md:inline-flex px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-slate-100 text-slate-900 hover:bg-slate-200"
+          className="hidden md:inline-flex px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-slate-100 text-slate-900 hover:bg-slate-200 whitespace-nowrap"
         >
           Book Call
         </a>
