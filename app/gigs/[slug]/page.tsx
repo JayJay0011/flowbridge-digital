@@ -3,6 +3,8 @@ import { supabasePublic } from "../../lib/supabasePublic";
 import PackageTabs from "./PackageTabs";
 
 export const revalidate = 0;
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 type Params = {
   params: { slug: string };
@@ -32,7 +34,7 @@ export async function generateMetadata({ params }: Params) {
 
 export default async function GigDetailPage({ params }: Params) {
   const slug = decodeURIComponent(params.slug);
-  const { data: gig } = await supabasePublic
+  let { data: gig } = await supabasePublic
     .from("gigs")
     .select("*")
     .eq("slug", slug)
@@ -42,7 +44,7 @@ export default async function GigDetailPage({ params }: Params) {
 
   if (!gig) {
     return (
-      <main className="bg-white text-slate-900 py-24">
+      <main className="bg-white text-slate-900 py-24 min-h-[60vh]">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
           <h1 className="text-3xl font-semibold">Gig not found</h1>
           <p className="mt-4 text-slate-600">
