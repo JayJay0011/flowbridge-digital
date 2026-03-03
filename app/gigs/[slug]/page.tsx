@@ -6,6 +6,23 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
+const GIG_DETAIL_COLUMNS = `
+  id,
+  title,
+  slug,
+  status,
+  summary,
+  price_text,
+  highlights,
+  cover_url,
+  gallery_urls,
+  delivery_days,
+  order_fiverr_url,
+  package_basic,
+  package_standard,
+  package_premium
+`;
+
 type Params = {
   params: { slug: string };
 };
@@ -22,7 +39,7 @@ export async function generateMetadata({ params }: Params) {
   const slug = decodeURIComponent(params.slug);
   const { data: gig } = await supabasePublic
     .from("gigs")
-    .select("title,summary")
+    .select("title,summary,status,slug")
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
@@ -44,18 +61,20 @@ export default async function GigDetailPage({ params }: Params) {
   const slug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = normalizeSlug(slug);
 
-  let { data: gig } = await supabasePublic
+  const { data: exactGig, error: exactError } = await supabasePublic
     .from("gigs")
-    .select("*")
+    .select(GIG_DETAIL_COLUMNS)
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
     .maybeSingle();
 
+  let gig = exactGig;
+
   if (!gig) {
-    const { data: publishedGigs } = await supabasePublic
+    const { data: publishedGigs, error: listError } = await supabasePublic
       .from("gigs")
-      .select("*")
+      .select(GIG_DETAIL_COLUMNS)
       .eq("status", "published")
       .limit(200);
 
@@ -68,6 +87,28 @@ export default async function GigDetailPage({ params }: Params) {
           normalizedSlug.startsWith(itemSlug)
         );
       }) ?? null;
+
+    if (!gig && (exactError || listError)) {
+      return (
+        <main className="bg-white text-slate-900 py-24 min-h-[60vh]">
+          <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
+            <h1 className="text-3xl font-semibold">Gig lookup error</h1>
+            <p className="mt-4 text-slate-600">
+              The gig could not be loaded due to a data access error.
+            </p>
+            <p className="mt-2 text-xs text-slate-500">
+              {exactError?.message || listError?.message}
+            </p>
+            <Link
+              href="/gigs"
+              className="mt-8 inline-block text-sm font-medium text-slate-900"
+            >
+              View all gigs →
+            </Link>
+          </div>
+        </main>
+      );
+    }
   }
 
   if (!gig) {
