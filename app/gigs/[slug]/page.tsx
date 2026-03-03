@@ -10,6 +10,14 @@ type Params = {
   params: { slug: string };
 };
 
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
+
 export async function generateMetadata({ params }: Params) {
   const slug = decodeURIComponent(params.slug);
   const { data: gig } = await supabasePublic
@@ -33,7 +41,9 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function GigDetailPage({ params }: Params) {
-  const slug = decodeURIComponent(params.slug);
+  const slug = decodeURIComponent(params.slug).trim();
+  const normalizedSlug = normalizeSlug(slug);
+
   let { data: gig } = await supabasePublic
     .from("gigs")
     .select("*")
@@ -41,6 +51,24 @@ export default async function GigDetailPage({ params }: Params) {
     .eq("status", "published")
     .limit(1)
     .maybeSingle();
+
+  if (!gig) {
+    const { data: publishedGigs } = await supabasePublic
+      .from("gigs")
+      .select("*")
+      .eq("status", "published")
+      .limit(200);
+
+    gig =
+      publishedGigs?.find((item) => {
+        const itemSlug = normalizeSlug(item.slug ?? "");
+        return (
+          itemSlug === normalizedSlug ||
+          itemSlug.startsWith(normalizedSlug) ||
+          normalizedSlug.startsWith(itemSlug)
+        );
+      }) ?? null;
+  }
 
   if (!gig) {
     return (
