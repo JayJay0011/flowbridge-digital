@@ -90,7 +90,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
               return (
                 <Link
                   key={gig.id}
-                  href={`/gigs/${gig.slug}`}
+                  href={`/gigs/${gig.slug}?id=${gig.id}`}
                   className="border border-slate-200 rounded-2xl p-6 bg-white hover:shadow-md transition flex flex-col"
                 >
                   <div className="aspect-[16/10] rounded-xl bg-slate-100 overflow-hidden">

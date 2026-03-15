@@ -25,6 +25,42 @@ const GIG_DETAIL_COLUMNS = `
 
 type Params = {
   params: { slug: string };
+  searchParams?: { id?: string };
+};
+
+type GigRecord = {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  summary: string | null;
+  price_text: string | null;
+  highlights: string[] | null;
+  cover_url: string | null;
+  gallery_urls: string[] | null;
+  delivery_days: number | null;
+  order_fiverr_url: string | null;
+  package_basic: {
+    title?: string | null;
+    price?: string | null;
+    description?: string | null;
+    delivery_days?: number | null;
+    features?: string[] | null;
+  } | null;
+  package_standard: {
+    title?: string | null;
+    price?: string | null;
+    description?: string | null;
+    delivery_days?: number | null;
+    features?: string[] | null;
+  } | null;
+  package_premium: {
+    title?: string | null;
+    price?: string | null;
+    description?: string | null;
+    delivery_days?: number | null;
+    features?: string[] | null;
+  } | null;
 };
 
 function normalizeSlug(value: string) {
@@ -57,19 +93,37 @@ export async function generateMetadata({ params }: Params) {
   };
 }
 
-export default async function GigDetailPage({ params }: Params) {
+export default async function GigDetailPage({ params, searchParams }: Params) {
   const slug = decodeURIComponent(params.slug).trim();
   const normalizedSlug = normalizeSlug(slug);
+  const gigId = searchParams?.id?.trim() || "";
 
-  const { data: exactGig, error: exactError } = await supabasePublic
-    .from("gigs")
-    .select(GIG_DETAIL_COLUMNS)
-    .eq("slug", slug)
-    .eq("status", "published")
-    .limit(1)
-    .maybeSingle();
+  let gig: GigRecord | null = null;
 
-  let gig = exactGig;
+  if (gigId) {
+    const { data: idMatch } = await supabasePublic
+      .from("gigs")
+      .select(GIG_DETAIL_COLUMNS)
+      .eq("id", gigId)
+      .eq("status", "published")
+      .limit(1)
+      .maybeSingle();
+    if (idMatch) {
+      gig = idMatch;
+    }
+  }
+
+  const { data: exactGig, error: exactError } = gig
+    ? { data: gig, error: null }
+    : await supabasePublic
+        .from("gigs")
+        .select(GIG_DETAIL_COLUMNS)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle();
+
+  gig = exactGig;
 
   if (!gig) {
     const { data: publishedGigs, error: listError } = await supabasePublic
@@ -79,7 +133,7 @@ export default async function GigDetailPage({ params }: Params) {
       .limit(200);
 
     gig =
-      publishedGigs?.find((item) => {
+      (publishedGigs as GigRecord[] | null)?.find((item: GigRecord) => {
         const itemSlug = normalizeSlug(item.slug ?? "");
         return (
           itemSlug === normalizedSlug ||
