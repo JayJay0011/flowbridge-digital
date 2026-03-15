@@ -2,16 +2,6 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-);
-
-const supabaseAuth = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
-);
-
 const parsePriceToCents = (value?: string | null) => {
   if (!value) return null;
   const match = value.match(/[\d,.]+/);
@@ -24,6 +14,19 @@ const parsePriceToCents = (value?: string | null) => {
 
 export async function POST(request: Request) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+      return NextResponse.json(
+        { error: "Supabase environment variables are missing." },
+        { status: 500 }
+      );
+    }
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey);
+
     const stripeSecret = process.env.STRIPE_SECRET_KEY;
     if (!stripeSecret) {
       return NextResponse.json(
