@@ -55,18 +55,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
         className={`${manrope.variable} ${fraunces.variable} bg-white text-slate-900`}
       >
-
         <Header />
-
         {children}
-
         <ChatWidget />
-
         <Footer />
-
       </body>
     </html>
-  )
+  );
 }
