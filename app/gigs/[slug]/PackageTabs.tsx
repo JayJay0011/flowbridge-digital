@@ -80,7 +80,7 @@ export default function PackageTabs({
           </ul>
         ) : null}
         <Link
-          href={`/checkout/${slug}?id=${gigId}&package=${active}`}
+          href={`/checkout?id=${gigId}&package=${active}`}
           className="w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-semibold text-center block"
         >
           Continue

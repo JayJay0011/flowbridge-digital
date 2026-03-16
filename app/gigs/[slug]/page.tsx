@@ -349,10 +349,10 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   : "Timeline confirmed after kickoff"}
               </p>
               <Link
-                href={`/checkout/${slug}?id=${gig.id}`}
-                className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold"
+                href="/strategy-call"
+                className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm font-semibold"
               >
-                Continue
+                Contact us for custom offer
               </Link>
             </div>
           </aside>
