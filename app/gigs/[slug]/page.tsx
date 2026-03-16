@@ -71,6 +71,21 @@ function normalizeSlug(value: string) {
     .replace(/-+/g, "-");
 }
 
+function summaryToParagraphs(summary?: string | null) {
+  if (!summary) return [];
+  if (summary.includes("\n")) {
+    return summary
+      .split("\n")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  return summary
+    .split(".")
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => `${entry}.`);
+}
+
 export async function generateMetadata({ params }: Params) {
   const { slug: rawSlug } = await params;
   const slug = decodeURIComponent(rawSlug);
@@ -188,6 +203,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
   }
 
   const images = [gig.cover_url, ...(gig.gallery_urls ?? [])].filter(Boolean);
+  const summaryParagraphs = summaryToParagraphs(gig.summary);
 
   return (
     <main className="bg-white text-slate-900">
@@ -230,19 +246,32 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
               )}
             </div>
 
-            <p className="text-slate-600">{gig.summary}</p>
+            <section className="space-y-4">
+              <h2 className="text-xl font-semibold">Service overview</h2>
+              {summaryParagraphs.length ? (
+                <div className="space-y-4 text-slate-700 leading-relaxed">
+                  {summaryParagraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-600">
+                  We will confirm scope and outcomes during kickoff.
+                </p>
+              )}
+            </section>
 
             <div>
               <h2 className="text-xl font-semibold">What’s included</h2>
               {gig.highlights?.length ? (
-                <div className="mt-4 flex flex-wrap gap-3">
+                <div className="mt-4 grid sm:grid-cols-2 gap-3">
                   {gig.highlights.map((item: string) => (
-                    <span
+                    <div
                       key={item}
-                      className="text-xs px-3 py-2 rounded-full bg-slate-100 text-slate-700"
+                      className="text-sm px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700"
                     >
                       {item}
-                    </span>
+                    </div>
                   ))}
                 </div>
               ) : (
@@ -250,6 +279,35 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   Highlights will be added soon.
                 </p>
               )}
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Delivery
+                </p>
+                <p className="mt-3 text-sm text-slate-700">
+                  {gig.delivery_days
+                    ? `${gig.delivery_days} day average delivery`
+                    : "Timeline confirmed after scope review"}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Best for
+                </p>
+                <p className="mt-3 text-sm text-slate-700">
+                  Teams that need cleaner operations, faster follow-up, and a more reliable backend.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Next step
+                </p>
+                <p className="mt-3 text-sm text-slate-700">
+                  Choose a package, continue to checkout, and confirm scope before kickoff.
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-4">
@@ -275,6 +333,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
           <aside className="space-y-4">
             <PackageTabs
               slug={slug}
+              gigId={gig.id}
               basic={gig.package_basic}
               standard={gig.package_standard}
               premium={gig.package_premium}
@@ -290,7 +349,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   : "Timeline confirmed after kickoff"}
               </p>
               <Link
-                href={`/checkout/${slug}`}
+                href={`/checkout/${slug}?id=${gig.id}`}
                 className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold"
               >
                 Continue
