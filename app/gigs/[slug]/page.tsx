@@ -24,8 +24,8 @@ const GIG_DETAIL_COLUMNS = `
 `;
 
 type Params = {
-  params: { slug: string };
-  searchParams?: { id?: string };
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ id?: string }>;
 };
 
 type GigRecord = {
@@ -72,7 +72,8 @@ function normalizeSlug(value: string) {
 }
 
 export async function generateMetadata({ params }: Params) {
-  const slug = decodeURIComponent(params.slug);
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug);
   const { data: gig } = await supabasePublic
     .from("gigs")
     .select("title,summary,status,slug")
@@ -94,9 +95,11 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function GigDetailPage({ params, searchParams }: Params) {
-  const slug = decodeURIComponent(params.slug).trim();
+  const { slug: rawSlug } = await params;
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const slug = decodeURIComponent(rawSlug).trim();
   const normalizedSlug = normalizeSlug(slug);
-  const gigId = searchParams?.id?.trim() || "";
+  const gigId = resolvedSearchParams?.id?.trim() || "";
 
   let gig: GigRecord | null = null;
 
@@ -271,7 +274,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
 
           <aside className="space-y-4">
             <PackageTabs
-              slug={params.slug}
+              slug={slug}
               basic={gig.package_basic}
               standard={gig.package_standard}
               premium={gig.package_premium}
@@ -287,7 +290,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   : "Timeline confirmed after kickoff"}
               </p>
               <Link
-                href={`/checkout/${params.slug}`}
+                href={`/checkout/${slug}`}
                 className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl bg-slate-900 text-white text-sm font-semibold"
               >
                 Continue
