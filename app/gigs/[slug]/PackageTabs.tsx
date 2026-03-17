@@ -82,7 +82,7 @@ export default function PackageTabs({
           </ul>
         ) : null}
         <Link
-          href={`/checkout?id=${gigId}&package=${active}&title=${encodeURIComponent(gigTitle)}`}
+          href={`/checkout?id=${gigId}&package=${active}&title=${encodeURIComponent(gigTitle)}&price=${encodeURIComponent(pkg?.price || "Custom quote")}&description=${encodeURIComponent(pkg?.description || "Scope is confirmed after a short discovery review.")}&delivery=${encodeURIComponent(pkg?.delivery_days ? `${pkg.delivery_days} day${pkg.delivery_days === 1 ? "" : "s"}` : "Confirmed after scope")}`}
           className="w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-semibold text-center block"
         >
           Continue

@@ -5,7 +5,7 @@ import OrderAction from "./[slug]/order-action";
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ package?: string; id?: string; title?: string } | undefined>;
+type SearchParams = Promise<{ package?: string; id?: string; title?: string; price?: string; description?: string; delivery?: string } | undefined>;
 
 const CHECKOUT_GIG_COLUMNS = `
   id,
@@ -58,6 +58,9 @@ export default async function CheckoutRootPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const gigId = resolvedSearchParams?.id?.trim() || "";
   const titleFromQuery = resolvedSearchParams?.title?.trim() || "Selected service";
+  const priceFromQuery = resolvedSearchParams?.price?.trim() || "";
+  const descriptionFromQuery = resolvedSearchParams?.description?.trim() || "";
+  const deliveryFromQuery = resolvedSearchParams?.delivery?.trim() || "";
   const gig = gigId ? await resolveGig(gigId) : null;
 
   const packageKey =
@@ -75,14 +78,19 @@ export default async function CheckoutRootPage({
     : null;
 
   const selectedPrice =
-    selectedPackage?.price || gig?.price_text || "Price confirmed after scope review";
+    selectedPackage?.price || priceFromQuery || gig?.price_text || "Custom quote";
   const selectedDescription =
     selectedPackage?.description ||
+    descriptionFromQuery ||
     "Scope is confirmed after a short discovery review.";
   const selectedDelivery =
-    selectedPackage?.delivery || gig?.average_delivery || "Confirmed after scope";
+    (selectedPackage?.delivery_days ? `${selectedPackage.delivery_days} day${selectedPackage.delivery_days === 1 ? "" : "s"}` : "") ||
+    deliveryFromQuery ||
+    gig?.average_delivery ||
+    "Confirmed after scope";
   const pageTitle = gig?.title || titleFromQuery;
   const pageSummary = gig?.summary || "Review your package, confirm your details, and continue to payment.";
+  const totalPrice = selectedPrice;
 
   return (
     <main className="bg-white text-slate-900">
@@ -100,34 +108,35 @@ export default async function CheckoutRootPage({
 
       <section className="py-16">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-[1.15fr_0.85fr] md:px-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-8">
-            <h2 className="text-2xl font-semibold">Order details</h2>
+          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+            <h2 className="text-3xl font-semibold tracking-tight">Order details</h2>
 
-            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-                Selected package
-              </p>
-              <div className="mt-3 flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-2xl font-semibold capitalize">{packageKey}</p>
-                  <p className="mt-2 max-w-xl text-sm text-slate-600">
-                    {selectedDescription}
-                  </p>
+            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="flex items-start justify-between gap-6">
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Selected package</p>
+                  <h3 className="text-2xl font-semibold capitalize text-slate-950">{packageKey}</h3>
+                  <p className="max-w-2xl text-base leading-7 text-slate-600">{selectedDescription}</p>
+                  <div className="flex flex-wrap gap-3 pt-2 text-sm text-slate-600">
+                    <span className="rounded-full bg-slate-100 px-3 py-1">Delivery: {selectedDelivery}</span>
+                    <span className="rounded-full bg-slate-100 px-3 py-1">Agency: Flowbridge Digital</span>
+                  </div>
                 </div>
-                <p className="whitespace-nowrap text-xl font-semibold">
-                  {selectedPrice}
-                </p>
+                <div className="min-w-[140px] text-right">
+                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Amount</p>
+                  <p className="mt-2 text-3xl font-semibold text-slate-950">{selectedPrice}</p>
+                </div>
               </div>
             </div>
 
             {gig?.highlights?.length ? (
               <div className="mt-8">
-                <h3 className="text-lg font-semibold">Included in this order</h3>
+                <h3 className="text-lg font-semibold">What is included</h3>
                 <ul className="mt-4 grid gap-3 text-slate-700 sm:grid-cols-2">
                   {gig.highlights.map((item: string) => (
                     <li
                       key={item}
-                      className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm"
                     >
                       {item}
                     </li>
@@ -141,34 +150,35 @@ export default async function CheckoutRootPage({
             </div>
           </div>
 
-          <div className="h-fit rounded-2xl border border-slate-200 bg-slate-50 p-8">
-            <h3 className="text-lg font-semibold">Order summary</h3>
+          <div className="h-fit rounded-3xl border border-slate-200 bg-slate-50 p-8 shadow-sm md:sticky md:top-24">
+            <div className="flex items-center justify-between gap-4">
+              <h3 className="text-3xl font-semibold tracking-tight">Total</h3>
+              <div className="text-3xl font-semibold text-slate-950">{totalPrice}</div>
+            </div>
 
-            <div className="mt-6 space-y-4 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-600">Selected package</span>
-                <span className="font-semibold capitalize text-slate-900">
-                  {packageKey}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-600">Price</span>
-                <span className="font-semibold text-slate-900">
-                  {selectedPrice}
-                </span>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-slate-600">Delivery</span>
-                <span className="font-semibold text-slate-900">
-                  {selectedDelivery}
-                </span>
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+              <div className="space-y-4 text-sm">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-slate-600">Selected package</span>
+                  <span className="font-semibold capitalize text-slate-900">{packageKey}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-slate-600">Package price</span>
+                  <span className="font-semibold text-slate-900">{selectedPrice}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-slate-600">Service fee</span>
+                  <span className="font-semibold text-slate-900">$0</span>
+                </div>
+                <div className="border-t border-slate-200 pt-4 flex items-center justify-between gap-4 text-base">
+                  <span className="font-semibold text-slate-900">Total</span>
+                  <span className="font-semibold text-slate-950">{totalPrice}</span>
+                </div>
               </div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-600">
-              Final pricing and scope are confirmed before work begins. If the
-              project needs a custom buildout, we align deliverables during
-              onboarding.
+              Secure payment is processed only after you confirm the selected package. Once Stripe is connected, clicking <span className="font-semibold text-slate-900">Confirm and pay</span> redirects the client to Stripe Checkout.
             </div>
 
             <Link
