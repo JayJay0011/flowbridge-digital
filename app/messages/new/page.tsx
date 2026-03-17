@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
@@ -10,6 +10,37 @@ export default function NewMessagePage() {
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const gigTitle = params.get("gigTitle")?.trim();
+    const packageType = params.get("package")?.trim();
+    const source = params.get("source")?.trim();
+
+    if (!gigTitle) return;
+
+    if (!subject) {
+      setSubject(`Inquiry: ${gigTitle}`);
+    }
+
+    if (!body) {
+      const lines = [
+        source === "gig"
+          ? `I am interested in this service: ${gigTitle}.`
+          : `I am interested in: ${gigTitle}.`,
+        packageType === "custom"
+          ? "I need a custom offer for my scope."
+          : packageType
+            ? `I want to discuss the ${packageType} package.`
+            : "I want to discuss the right package for my needs.",
+        "Here is what I need:",
+        "",
+      ];
+      setBody(lines.join("\n"));
+    }
+  }, [subject, body]);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();

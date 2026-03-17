@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { supabasePublic } from "../lib/supabasePublic";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 import OrderAction from "./[slug]/order-action";
 
 export const revalidate = 0;
@@ -24,13 +24,14 @@ const CHECKOUT_GIG_COLUMNS = `
 async function resolveGig(gigId?: string) {
   if (!gigId) return null;
 
-  const { data } = await supabasePublic
+  const { data } = await supabaseAdmin
     .from("gigs")
     .select(CHECKOUT_GIG_COLUMNS)
     .eq("id", gigId)
-    .eq("status", "published")
     .maybeSingle();
 
+  if (!data) return null;
+  if (data.status && data.status !== "published") return null;
   return data;
 }
 

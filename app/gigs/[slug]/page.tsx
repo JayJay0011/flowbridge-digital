@@ -322,7 +322,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                 </a>
               ) : null}
               <Link
-                href="/strategy-call"
+                href={`/messages/new?source=gig&gigId=${gig.id}&gigTitle=${encodeURIComponent(gig.title)}`}
                 className="px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold"
               >
                 Message Flowbridge
@@ -349,7 +349,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   : "Timeline confirmed after kickoff"}
               </p>
               <Link
-                href="/strategy-call"
+                href={`/messages/new?source=gig&gigId=${gig.id}&gigTitle=${encodeURIComponent(gig.title)}&package=custom`}
                 className="mt-4 inline-flex w-full items-center justify-center px-4 py-3 rounded-xl border border-slate-300 text-slate-900 text-sm font-semibold"
               >
                 Contact us for custom offer
