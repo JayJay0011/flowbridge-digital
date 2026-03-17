@@ -5,7 +5,7 @@ import OrderAction from "./[slug]/order-action";
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ package?: string; id?: string } | undefined>;
+type SearchParams = Promise<{ package?: string; id?: string; title?: string } | undefined>;
 
 const CHECKOUT_GIG_COLUMNS = `
   id,
@@ -41,15 +41,12 @@ export async function generateMetadata({
   searchParams?: SearchParams;
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const titleFromQuery = resolvedSearchParams?.title?.trim() || "Selected service";
   const gig = await resolveGig(resolvedSearchParams?.id?.trim());
 
-  if (!gig) {
-    return { title: "Checkout" };
-  }
-
   return {
-    title: `Checkout - ${gig.title}`,
-    description: gig.summary,
+    title: `Checkout - ${gig?.title || titleFromQuery}`,
+    description: gig?.summary || "Review your package and continue to payment.",
   };
 }
 
@@ -60,26 +57,8 @@ export default async function CheckoutRootPage({
 }) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const gigId = resolvedSearchParams?.id?.trim() || "";
-  const gig = await resolveGig(gigId);
-
-  if (!gig) {
-    return (
-      <main className="bg-white py-24 text-slate-900 min-h-[70vh]">
-        <div className="mx-auto max-w-4xl px-4 text-center md:px-6">
-          <h1 className="text-3xl font-semibold">Checkout unavailable</h1>
-          <p className="mt-4 text-slate-600">
-            We could not find the selected gig for checkout.
-          </p>
-          <Link
-            href="/gigs"
-            className="mt-8 inline-block text-sm font-semibold text-slate-900"
-          >
-            Back to gigs -&gt;
-          </Link>
-        </div>
-      </main>
-    );
-  }
+  const titleFromQuery = resolvedSearchParams?.title?.trim() || "Selected service";
+  const gig = gigId ? await resolveGig(gigId) : null;
 
   const packageKey =
     resolvedSearchParams?.package === "standard" ||
@@ -87,20 +66,23 @@ export default async function CheckoutRootPage({
       ? resolvedSearchParams.package
       : "basic";
 
-  const selectedPackage =
-    packageKey === "standard"
+  const selectedPackage = gig
+    ? packageKey === "standard"
       ? gig.package_standard
       : packageKey === "premium"
         ? gig.package_premium
-        : gig.package_basic;
+        : gig.package_basic
+    : null;
 
   const selectedPrice =
-    selectedPackage?.price || gig.price_text || "Custom scope";
+    selectedPackage?.price || gig?.price_text || "Price confirmed after scope review";
   const selectedDescription =
     selectedPackage?.description ||
     "Scope is confirmed after a short discovery review.";
   const selectedDelivery =
-    selectedPackage?.delivery || gig.average_delivery || "Confirmed after scope";
+    selectedPackage?.delivery || gig?.average_delivery || "Confirmed after scope";
+  const pageTitle = gig?.title || titleFromQuery;
+  const pageSummary = gig?.summary || "Review your package, confirm your details, and continue to payment.";
 
   return (
     <main className="bg-white text-slate-900">
@@ -110,9 +92,9 @@ export default async function CheckoutRootPage({
             Checkout
           </p>
           <h1 className="mt-6 text-4xl font-semibold md:text-5xl">
-            {gig.title}
+            {pageTitle}
           </h1>
-          <p className="mt-6 max-w-3xl text-lg text-slate-200">{gig.summary}</p>
+          <p className="mt-6 max-w-3xl text-lg text-slate-200">{pageSummary}</p>
         </div>
       </section>
 
@@ -138,7 +120,7 @@ export default async function CheckoutRootPage({
               </div>
             </div>
 
-            {gig.highlights?.length ? (
+            {gig?.highlights?.length ? (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold">Included in this order</h3>
                 <ul className="mt-4 grid gap-3 text-slate-700 sm:grid-cols-2">
@@ -155,7 +137,7 @@ export default async function CheckoutRootPage({
             ) : null}
 
             <div className="mt-10">
-              <OrderAction gigId={gig.id} packageKey={packageKey} />
+              {gigId ? <OrderAction gigId={gigId} packageKey={packageKey} /> : <p className="text-sm text-red-600">Missing gig reference. Please return to the gig page and try again.</p>}
             </div>
           </div>
 
@@ -190,7 +172,7 @@ export default async function CheckoutRootPage({
             </div>
 
             <Link
-              href={`/gigs/${gig.slug}?id=${gig.id}&package=${packageKey}`}
+              href={gig ? `/gigs/${gig.slug}?id=${gig.id}&package=${packageKey}` : `/gigs`}
               className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-900"
             >
               Back to gig

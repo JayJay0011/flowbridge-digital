@@ -334,6 +334,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
             <PackageTabs
               slug={slug}
               gigId={gig.id}
+              gigTitle={gig.title}
               basic={gig.package_basic}
               standard={gig.package_standard}
               premium={gig.package_premium}

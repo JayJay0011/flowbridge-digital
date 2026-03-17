@@ -14,6 +14,7 @@ type PackageInfo = {
 type Props = {
   slug: string;
   gigId: string;
+  gigTitle: string;
   basic?: PackageInfo | null;
   standard?: PackageInfo | null;
   premium?: PackageInfo | null;
@@ -28,6 +29,7 @@ const tabs = [
 export default function PackageTabs({
   slug,
   gigId,
+  gigTitle,
   basic,
   standard,
   premium,
@@ -80,7 +82,7 @@ export default function PackageTabs({
           </ul>
         ) : null}
         <Link
-          href={`/checkout?id=${gigId}&package=${active}`}
+          href={`/checkout?id=${gigId}&package=${active}&title=${encodeURIComponent(gigTitle)}`}
           className="w-full mt-4 bg-slate-900 text-white py-3 rounded-xl font-semibold text-center block"
         >
           Continue
