@@ -21,26 +21,28 @@ export default function NewMessagePage() {
 
     if (!gigTitle) return;
 
-    if (!subject) {
-      setSubject(`Inquiry: ${gigTitle}`);
-    }
+    const timer = window.setTimeout(() => {
+      setSubject((current) => current || `Inquiry: ${gigTitle}`);
+      setBody((current) => {
+        if (current) return current;
+        const lines = [
+          source === "gig"
+            ? `I am interested in this service: ${gigTitle}.`
+            : `I am interested in: ${gigTitle}.`,
+          packageType === "custom"
+            ? "I need a custom offer for my scope."
+            : packageType
+              ? `I want to discuss the ${packageType} package.`
+              : "I want to discuss the right package for my needs.",
+          "Here is what I need:",
+          "",
+        ];
+        return lines.join("\n");
+      });
+    }, 0);
 
-    if (!body) {
-      const lines = [
-        source === "gig"
-          ? `I am interested in this service: ${gigTitle}.`
-          : `I am interested in: ${gigTitle}.`,
-        packageType === "custom"
-          ? "I need a custom offer for my scope."
-          : packageType
-            ? `I want to discuss the ${packageType} package.`
-            : "I want to discuss the right package for my needs.",
-        "Here is what I need:",
-        "",
-      ];
-      setBody(lines.join("\n"));
-    }
-  }, [subject, body]);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();

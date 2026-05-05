@@ -101,7 +101,13 @@ export default function AdminPortfolioEditPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => router.push(`/portfolio/${item.slug}`)}
+            onClick={() =>
+                router.push(
+                  item.case_study_slug
+                    ? `/case-studies/${item.case_study_slug}`
+                    : `/portfolio/${item.slug}`
+                )
+              }
             className="text-sm font-semibold text-slate-600"
           >
             Preview

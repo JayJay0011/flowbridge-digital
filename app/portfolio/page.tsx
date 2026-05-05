@@ -13,6 +13,7 @@ export default async function PortfolioPage() {
   const { data: items } = await supabasePublic
     .from("portfolio")
     .select("id,title,slug,summary,cover_url,case_study_slug")
+    .eq("status", "published")
     .order("created_at", { ascending: false });
 
   return (

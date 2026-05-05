@@ -4,15 +4,65 @@ import { supabasePublic } from "../../lib/supabasePublic";
 export const revalidate = 0;
 
 type Params = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: Params) {
-  const { data: item } = await supabasePublic
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+const PORTFOLIO_DETAIL_COLUMNS =
+  "title,summary,outcomes,cover_url,case_study_slug,slug";
+
+type PortfolioItem = {
+  title: string;
+  summary: string | null;
+  outcomes: string[] | null;
+  cover_url: string | null;
+  case_study_slug: string | null;
+  slug: string;
+};
+
+function normalizeSlug(value: string) {
+  return decodeURIComponent(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
+
+async function getPublishedPortfolioItem(rawSlug: string) {
+  const slug = decodeURIComponent(rawSlug).trim();
+  const normalizedSlug = normalizeSlug(slug);
+
+  const { data: exactItem, error: exactError } = await supabasePublic
     .from("portfolio")
-    .select("title,summary")
-    .eq("slug", params.slug)
-    .single();
+    .select(PORTFOLIO_DETAIL_COLUMNS)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
+    .maybeSingle();
+
+  if (exactItem) {
+    return { item: exactItem as PortfolioItem, error: null };
+  }
+
+  const { data: publishedItems, error: listError } = await supabasePublic
+    .from("portfolio")
+    .select(PORTFOLIO_DETAIL_COLUMNS)
+    .eq("status", "published")
+    .limit(200);
+
+  const item =
+    (publishedItems as PortfolioItem[] | null)?.find(
+      (entry) => normalizeSlug(entry.slug ?? "") === normalizedSlug
+    ) ?? null;
+
+  return { item, error: exactError || listError };
+}
+
+export async function generateMetadata({ params }: Params) {
+  const { slug } = await params;
+  const { item } = await getPublishedPortfolioItem(slug);
 
   if (!item) {
     return { title: "Portfolio Item" };
@@ -25,11 +75,8 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function PortfolioDetailPage({ params }: Params) {
-  const { data: item } = await supabasePublic
-    .from("portfolio")
-    .select("title,summary,outcomes,cover_url,case_study_slug")
-    .eq("slug", params.slug)
-    .single();
+  const { slug } = await params;
+  const { item, error } = await getPublishedPortfolioItem(slug);
 
   if (!item) {
     return (
@@ -39,6 +86,9 @@ export default async function PortfolioDetailPage({ params }: Params) {
           <p className="mt-4 text-slate-600">
             This project is not available. Browse the portfolio instead.
           </p>
+          {error ? (
+            <p className="mt-2 text-xs text-slate-500">{error.message}</p>
+          ) : null}
           <Link
             href="/portfolio"
             className="mt-8 inline-block text-sm font-semibold text-slate-900"

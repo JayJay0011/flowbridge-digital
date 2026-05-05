@@ -332,7 +332,6 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
 
           <aside className="space-y-4">
             <PackageTabs
-              slug={slug}
               gigId={gig.id}
               gigTitle={gig.title}
               basic={gig.package_basic}

@@ -34,6 +34,7 @@ export default function DashboardMessagesPage() {
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const lastTypingSentRef = useRef<number>(0);
+  const messageListRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const loadMessages = async (clientId: string) => {
@@ -160,7 +161,12 @@ export default function DashboardMessagesPage() {
   }, [userId]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    requestAnimationFrame(() => {
+      if (messageListRef.current) {
+        messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+      }
+      endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    });
   }, [messages]);
 
   const lastAgentMessage = useMemo(
@@ -379,7 +385,10 @@ export default function DashboardMessagesPage() {
             No messages yet. Start a conversation below.
           </div>
         ) : (
-          <div className="space-y-4 max-h-[50vh] md:max-h-[520px] overflow-y-auto md:pr-2">
+          <div
+            ref={messageListRef}
+            className="space-y-4 max-h-[50vh] md:max-h-[520px] overflow-y-auto md:pr-2"
+          >
             {messages.map((message) => {
               const isAgent = message.status === "replied";
               const parsed = parseReply(message.body);

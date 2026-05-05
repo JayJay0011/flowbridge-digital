@@ -12,7 +12,6 @@ type PackageInfo = {
 };
 
 type Props = {
-  slug: string;
   gigId: string;
   gigTitle: string;
   basic?: PackageInfo | null;
@@ -27,7 +26,6 @@ const tabs = [
 ] as const;
 
 export default function PackageTabs({
-  slug,
   gigId,
   gigTitle,
   basic,

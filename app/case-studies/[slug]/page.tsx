@@ -4,15 +4,66 @@ import { supabasePublic } from "../../lib/supabasePublic";
 export const revalidate = 0;
 
 type Params = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: Params) {
-  const { data: item } = await supabasePublic
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+const CASE_STUDY_DETAIL_COLUMNS =
+  "title,summary,industry,body,cover_url,results,slug";
+
+type CaseStudy = {
+  title: string;
+  summary: string | null;
+  industry: string | null;
+  body: string | null;
+  cover_url: string | null;
+  results: string[] | null;
+  slug: string;
+};
+
+function normalizeSlug(value: string) {
+  return decodeURIComponent(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
+
+async function getPublishedCaseStudy(rawSlug: string) {
+  const slug = decodeURIComponent(rawSlug).trim();
+  const normalizedSlug = normalizeSlug(slug);
+
+  const { data: exactItem, error: exactError } = await supabasePublic
     .from("case_studies")
-    .select("title,summary")
-    .eq("slug", params.slug)
-    .single();
+    .select(CASE_STUDY_DETAIL_COLUMNS)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
+    .maybeSingle();
+
+  if (exactItem) {
+    return { item: exactItem as CaseStudy, error: null };
+  }
+
+  const { data: publishedItems, error: listError } = await supabasePublic
+    .from("case_studies")
+    .select(CASE_STUDY_DETAIL_COLUMNS)
+    .eq("status", "published")
+    .limit(200);
+
+  const item =
+    (publishedItems as CaseStudy[] | null)?.find(
+      (entry) => normalizeSlug(entry.slug ?? "") === normalizedSlug
+    ) ?? null;
+
+  return { item, error: exactError || listError };
+}
+
+export async function generateMetadata({ params }: Params) {
+  const { slug } = await params;
+  const { item } = await getPublishedCaseStudy(slug);
 
   if (!item) {
     return { title: "Case Study" };
@@ -25,11 +76,8 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function CaseStudyDetailPage({ params }: Params) {
-  const { data: item } = await supabasePublic
-    .from("case_studies")
-    .select("title,summary,industry,body,cover_url,results")
-    .eq("slug", params.slug)
-    .single();
+  const { slug } = await params;
+  const { item, error } = await getPublishedCaseStudy(slug);
 
   if (!item) {
     return (
@@ -39,6 +87,9 @@ export default async function CaseStudyDetailPage({ params }: Params) {
           <p className="mt-4 text-slate-600">
             This case study is not available. Browse all case studies instead.
           </p>
+          {error ? (
+            <p className="mt-2 text-xs text-slate-500">{error.message}</p>
+          ) : null}
           <Link
             href="/case-studies"
             className="mt-8 inline-block text-sm font-semibold text-slate-900"

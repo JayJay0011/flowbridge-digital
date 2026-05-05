@@ -4,15 +4,21 @@ import { supabasePublic } from "../../lib/supabasePublic";
 export const revalidate = 0;
 
 type Params = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export async function generateMetadata({ params }: Params) {
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
   const { data: service } = await supabasePublic
     .from("services")
     .select("title,description")
-    .eq("slug", params.slug)
-    .single();
+    .eq("slug", slug)
+    .limit(1)
+    .maybeSingle();
 
   if (!service) {
     return { title: "Service" };
@@ -25,11 +31,14 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function ServiceDetailPage({ params }: Params) {
+  const { slug: rawSlug } = await params;
+  const slug = decodeURIComponent(rawSlug).trim();
   const { data: service } = await supabasePublic
     .from("services")
     .select("title,description")
-    .eq("slug", params.slug)
-    .single();
+    .eq("slug", slug)
+    .limit(1)
+    .maybeSingle();
 
   if (!service) {
     return (

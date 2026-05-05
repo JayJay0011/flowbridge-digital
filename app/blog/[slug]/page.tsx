@@ -2,18 +2,65 @@ import Link from "next/link";
 import { supabasePublic } from "../../lib/supabasePublic";
 
 type Params = {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 };
 
 export const revalidate = 0;
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+const BLOG_DETAIL_COLUMNS = "title,excerpt,body,cover_url,published_at,slug";
+
+type BlogPost = {
+  title: string;
+  excerpt: string | null;
+  body: string | null;
+  cover_url: string | null;
+  published_at: string | null;
+  slug: string;
+};
+
+function normalizeSlug(value: string) {
+  return decodeURIComponent(value)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-");
+}
+
+async function getPublishedPost(rawSlug: string) {
+  const slug = decodeURIComponent(rawSlug).trim();
+  const normalizedSlug = normalizeSlug(slug);
+
+  const { data: exactPost, error: exactError } = await supabasePublic
+    .from("blog_posts")
+    .select(BLOG_DETAIL_COLUMNS)
+    .eq("slug", slug)
+    .eq("status", "published")
+    .limit(1)
+    .maybeSingle();
+
+  if (exactPost) {
+    return { post: exactPost as BlogPost, error: null };
+  }
+
+  const { data: publishedPosts, error: listError } = await supabasePublic
+    .from("blog_posts")
+    .select(BLOG_DETAIL_COLUMNS)
+    .eq("status", "published")
+    .limit(200);
+
+  const post =
+    (publishedPosts as BlogPost[] | null)?.find(
+      (item) => normalizeSlug(item.slug ?? "") === normalizedSlug
+    ) ?? null;
+
+  return { post, error: exactError || listError };
+}
 
 export async function generateMetadata({ params }: Params) {
-  const { data: post } = await supabasePublic
-    .from("blog_posts")
-    .select("title,excerpt")
-    .eq("slug", params.slug)
-    .eq("status", "published")
-    .single();
+  const { slug } = await params;
+  const { post } = await getPublishedPost(slug);
 
   if (!post) {
     return { title: "Article Not Found" };
@@ -26,12 +73,8 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function BlogPostPage({ params }: Params) {
-  const { data: post } = await supabasePublic
-    .from("blog_posts")
-    .select("title,excerpt,body,cover_url,published_at")
-    .eq("slug", params.slug)
-    .eq("status", "published")
-    .single();
+  const { slug } = await params;
+  const { post, error } = await getPublishedPost(slug);
 
   if (!post) {
     return (
@@ -41,6 +84,9 @@ export default async function BlogPostPage({ params }: Params) {
           <p className="mt-4 text-slate-600">
             This article is not available yet.
           </p>
+          {error ? (
+            <p className="mt-2 text-xs text-slate-500">{error.message}</p>
+          ) : null}
           <Link href="/blog" className="mt-6 inline-block text-sm font-semibold">
             View all articles →
           </Link>
@@ -78,10 +124,16 @@ export default async function BlogPostPage({ params }: Params) {
             />
           ) : null}
           <p className="text-lg text-slate-600 mt-8">{post.excerpt}</p>
-          <div className="mt-8 space-y-6 text-slate-700 leading-relaxed">
-            {(post.body || "").split("\n").map((line: string, index: number) => (
-              <p key={`${line}-${index}`}>{line}</p>
-            ))}
+          <div className="mt-8 space-y-6 text-lg text-slate-700 leading-8">
+            {(post.body || "")
+              .split(/\n{2,}/)
+              .map((block: string) => block.trim())
+              .filter(Boolean)
+              .map((block: string, index: number) => (
+                <p key={`${block}-${index}`} className="whitespace-pre-line">
+                  {block}
+                </p>
+              ))}
           </div>
         </div>
       </section>
