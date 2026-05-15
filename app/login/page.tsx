@@ -9,9 +9,15 @@ function LoginPageInner() {
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/dashboard";
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
+  const initialStep =
+    initialMode === "signup" && searchParams.get("step") === "username"
+      ? "username"
+      : "details";
 
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
-  const [step, setStep] = useState<"details" | "verify" | "username">("details");
+  const [step, setStep] = useState<"details" | "verify" | "username">(
+    initialStep
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -30,9 +36,16 @@ function LoginPageInner() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role")
+      .select("role,username")
       .eq("id", userId)
       .maybeSingle();
+
+    if (profile?.role !== "admin" && !profile?.username) {
+      router.replace(
+        `/login?mode=signup&step=username&next=${encodeURIComponent(safeNext)}`
+      );
+      return;
+    }
 
     router.replace(profile?.role === "admin" ? "/admin" : safeNext);
   }, [nextPath, router]);
@@ -40,12 +53,18 @@ function LoginPageInner() {
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
+      if (mode === "signup" && step === "username") {
+        if (data.session?.user.email && !email) {
+          setEmail(data.session.user.email);
+        }
+        return;
+      }
       if (data.session) {
         await redirectByRole();
       }
     };
     checkSession();
-  }, [redirectByRole]);
+  }, [email, mode, redirectByRole, step]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -69,7 +88,10 @@ function LoginPageInner() {
     if (step === "details") {
       const { error } = await supabase.auth.signInWithOtp({
         email,
-        options: { shouldCreateUser: true },
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
       });
 
       if (error) {
@@ -85,9 +107,16 @@ function LoginPageInner() {
     }
 
     if (step === "verify") {
+      const verificationCode = code.replace(/\D/g, "");
+      if (verificationCode.length !== 6) {
+        setMessage("Enter the 6-digit verification code from your email.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.verifyOtp({
         email,
-        token: code,
+        token: verificationCode,
         type: "email",
       });
 
@@ -116,7 +145,10 @@ function LoginPageInner() {
     }
 
     if (step === "username") {
-      const normalized = username.trim().toLowerCase();
+      const normalized = username
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "");
       if (normalized.length < 3) {
         setMessage("Username must be at least 3 characters.");
         setLoading(false);
@@ -149,7 +181,11 @@ function LoginPageInner() {
         .eq("id", userId);
 
       if (profileError) {
-        setMessage(profileError.message);
+        setMessage(
+          profileError.code === "23505"
+            ? "Username already taken. Try another."
+            : profileError.message
+        );
         setLoading(false);
         return;
       }
@@ -267,11 +303,15 @@ function LoginPageInner() {
                   <input
                     type="text"
                     required
-                    value={code}
-                    onChange={(event) => setCode(event.target.value)}
-                    className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    placeholder="6-digit code"
-                  />
+                  value={code}
+                  onChange={(event) =>
+                    setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  inputMode="numeric"
+                  maxLength={6}
+                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  placeholder="6-digit code"
+                />
                 </div>
               ) : null}
 
@@ -282,12 +322,18 @@ function LoginPageInner() {
                     type="text"
                     required
                     value={username}
-                    onChange={(event) => setUsername(event.target.value)}
+                    onChange={(event) =>
+                      setUsername(
+                        event.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9_]/g, "")
+                      )
+                    }
                     className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
                     placeholder="flowbridge"
                   />
                   <p className="text-xs text-slate-500">
-                    Usernames must be unique and at least 3 characters.
+                    Use at least 3 letters, numbers, or underscores.
                   </p>
                 </div>
               ) : null}

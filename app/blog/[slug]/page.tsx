@@ -28,6 +28,67 @@ function normalizeSlug(value: string) {
     .replace(/-+/g, "-");
 }
 
+function formatDate(value?: string | null) {
+  if (!value) return "Flowbridge Digital";
+  return new Intl.DateTimeFormat("en", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+function getArticleBlocks(body?: string | null) {
+  return (body || "")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function isHeading(block: string) {
+  const hasEndingPunctuation = /[.!?]$/.test(block);
+  const wordCount = block.split(/\s+/).length;
+  return wordCount <= 12 && !hasEndingPunctuation;
+}
+
+function isListItem(block: string) {
+  const wordCount = block.split(/\s+/).length;
+  return wordCount <= 9 && !/[.!?]$/.test(block) && !block.includes(":");
+}
+
+function renderArticleBlock(block: string, index: number) {
+  if (isHeading(block)) {
+    return (
+      <h2
+        key={`${block}-${index}`}
+        className="pt-8 text-2xl md:text-3xl font-semibold tracking-tight text-slate-950"
+      >
+        {block}
+      </h2>
+    );
+  }
+
+  if (isListItem(block)) {
+    return (
+      <p
+        key={`${block}-${index}`}
+        className="flex gap-3 text-base md:text-lg leading-8 text-slate-700"
+      >
+        <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-900" />
+        <span>{block}</span>
+      </p>
+    );
+  }
+
+  return (
+    <p
+      key={`${block}-${index}`}
+      className="text-base md:text-lg leading-8 md:leading-9 text-slate-700"
+    >
+      {block}
+    </p>
+  );
+}
+
 async function getPublishedPost(rawSlug: string) {
   const slug = decodeURIComponent(rawSlug).trim();
   const normalizedSlug = normalizeSlug(slug);
@@ -75,6 +136,7 @@ export async function generateMetadata({ params }: Params) {
 export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
   const { post, error } = await getPublishedPost(slug);
+  const articleBlocks = getArticleBlocks(post?.body);
 
   if (!post) {
     return (
@@ -97,45 +159,76 @@ export default async function BlogPostPage({ params }: Params) {
 
   return (
     <main className="bg-white text-slate-900">
-      <section className="py-20 bg-slate-950 text-white">
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
-          <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
-            Blog
-          </p>
-          <h1 className="text-4xl md:text-5xl font-semibold mt-6">
+      <section className="bg-slate-950 text-white">
+        <div className="mx-auto max-w-4xl px-4 py-20 md:px-6 md:py-24">
+          <Link
+            href="/blog"
+            className="inline-flex text-sm font-semibold text-slate-300 transition hover:text-white"
+          >
+            Back to blog
+          </Link>
+          <div className="mt-10 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-slate-400">
+            <span>Flowbridge Digital</span>
+            <span className="h-1 w-1 rounded-full bg-slate-500" />
+            <span>{formatDate(post.published_at)}</span>
+          </div>
+          <h1 className="mt-6 text-4xl font-semibold leading-tight md:text-6xl md:leading-[1.05]">
             {post.title}
           </h1>
-          <p className="text-slate-200 mt-4">
-            {post.published_at
-              ? new Date(post.published_at).toLocaleDateString()
-              : "Flowbridge Digital"}
-          </p>
+          {post.excerpt ? (
+            <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-200 md:text-xl">
+              {post.excerpt}
+            </p>
+          ) : null}
         </div>
       </section>
 
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 md:px-6">
+      <section className="py-12 md:py-16">
+        <article className="mx-auto max-w-3xl px-4 md:px-6">
           {post.cover_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={post.cover_url}
-              alt={post.title}
-              className="w-full rounded-3xl border border-slate-200 object-cover max-h-[420px]"
-            />
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={post.cover_url}
+                alt={post.title}
+                className="aspect-[16/9] w-full object-cover"
+              />
+            </div>
           ) : null}
-          <p className="text-lg text-slate-600 mt-8">{post.excerpt}</p>
-          <div className="mt-8 space-y-6 text-lg text-slate-700 leading-8">
-            {(post.body || "")
-              .split(/\n{2,}/)
-              .map((block: string) => block.trim())
-              .filter(Boolean)
-              .map((block: string, index: number) => (
-                <p key={`${block}-${index}`} className="whitespace-pre-line">
-                  {block}
-                </p>
-              ))}
+
+          {post.excerpt ? (
+            <p className="mt-10 border-l-4 border-slate-900 pl-5 text-xl font-medium leading-9 text-slate-900">
+              {post.excerpt}
+            </p>
+          ) : null}
+
+          <div className="mt-10 space-y-5">
+            {articleBlocks.length ? (
+              articleBlocks.map(renderArticleBlock)
+            ) : (
+              <p className="text-lg leading-8 text-slate-700">
+                This article is being prepared.
+              </p>
+            )}
           </div>
-        </div>
+
+          <div className="mt-16 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8">
+            <h2 className="text-2xl font-semibold text-slate-950">
+              Need this kind of system in your business?
+            </h2>
+            <p className="mt-3 text-base leading-7 text-slate-600">
+              Flowbridge helps service businesses structure CRM, automation, and
+              follow-up systems so leads, clients, and operations stop slipping
+              through the cracks.
+            </p>
+            <Link
+              href="/strategy-call"
+              className="mt-6 inline-flex rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+            >
+              Book a strategy call
+            </Link>
+          </div>
+        </article>
       </section>
     </main>
   );

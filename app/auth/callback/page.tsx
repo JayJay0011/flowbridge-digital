@@ -21,12 +21,17 @@ export default function AuthCallbackPage() {
       if (userId) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("role")
+          .select("role,username")
           .eq("id", userId)
           .maybeSingle();
 
         if (profile?.role === "admin") {
           router.replace("/admin");
+          return;
+        }
+
+        if (!profile?.username) {
+          router.replace("/login?mode=signup&step=username&next=/dashboard");
           return;
         }
       }
