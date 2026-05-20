@@ -23,6 +23,8 @@ function LoginPageInner() {
   const [code, setCode] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
   const [message, setMessage] = useState<string | null>(null);
 
   const redirectByRole = useCallback(async () => {
@@ -66,6 +68,43 @@ function LoginPageInner() {
     checkSession();
   }, [email, mode, redirectByRole, step]);
 
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => {
+      setResendCooldown((seconds) => Math.max(0, seconds - 1));
+    }, 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const sendVerificationCode = async () => {
+    return supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
+  const handleResendCode = async () => {
+    if (!email || resendCooldown > 0) return;
+    setResending(true);
+    setMessage(null);
+
+    const { error } = await sendVerificationCode();
+
+    if (error) {
+      setMessage(error.message);
+      setResending(false);
+      return;
+    }
+
+    setCode("");
+    setResendCooldown(60);
+    setMessage("A new verification code has been sent.");
+    setResending(false);
+  };
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -86,13 +125,7 @@ function LoginPageInner() {
     }
 
     if (step === "details") {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+      const { error } = await sendVerificationCode();
 
       if (error) {
         setMessage(error.message);
@@ -101,15 +134,17 @@ function LoginPageInner() {
       }
 
       setStep("verify");
-      setMessage("Enter the 6-digit code sent to your email.");
+      setCode("");
+      setResendCooldown(60);
+      setMessage("Enter the verification code sent to your email.");
       setLoading(false);
       return;
     }
 
     if (step === "verify") {
       const verificationCode = code.replace(/\D/g, "");
-      if (verificationCode.length !== 6) {
-        setMessage("Enter the 6-digit verification code from your email.");
+      if (verificationCode.length < 6) {
+        setMessage("Enter the full verification code from your email.");
         setLoading(false);
         return;
       }
@@ -303,15 +338,30 @@ function LoginPageInner() {
                   <input
                     type="text"
                     required
-                  value={code}
-                  onChange={(event) =>
-                    setCode(event.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  inputMode="numeric"
-                  maxLength={6}
-                  className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  placeholder="6-digit code"
-                />
+                    value={code}
+                    onChange={(event) =>
+                      setCode(event.target.value.replace(/\D/g, "").slice(0, 8))
+                    }
+                    inputMode="numeric"
+                    maxLength={8}
+                    className="w-full border border-slate-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    placeholder="Enter code"
+                  />
+                  <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
+                    <span>Use the latest code sent to your inbox.</span>
+                    <button
+                      type="button"
+                      onClick={handleResendCode}
+                      disabled={resending || resendCooldown > 0}
+                      className="font-semibold text-slate-900 disabled:text-slate-400"
+                    >
+                      {resending
+                        ? "Sending..."
+                        : resendCooldown > 0
+                          ? `Resend in ${resendCooldown}s`
+                          : "Resend code"}
+                    </button>
+                  </div>
                 </div>
               ) : null}
 
