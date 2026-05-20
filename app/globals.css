@@ -125,3 +125,20 @@ h4 {
     opacity: 1;
   }
 }
+
+@keyframes review-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-320px * 5 - 20px * 5));
+  }
+}
+
+.animate-review-scroll {
+  animation: review-scroll 25s linear infinite;
+}
+
+.animate-review-scroll:hover {
+  animation-play-state: paused;
+}

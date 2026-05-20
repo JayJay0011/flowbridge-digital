@@ -117,54 +117,42 @@ export default function DashboardProfilePage() {
       return;
     }
 
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session) {
+      setMessage("Session expired. Please sign in again.");
+      return;
+    }
+
     setUploading(true);
     setMessage(null);
 
-    const { data } = await supabase.auth.getSession();
-    const activeUserId = data.session?.user.id;
-    if (!activeUserId) {
-      setMessage("Session expired. Please sign in again.");
+    const body = new FormData();
+    body.append("file", file);
+
+    const response = await fetch("/api/profile/avatar", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body,
+    });
+
+    const result = (await response.json()) as {
+      avatarUrl?: string;
+      error?: string;
+    };
+
+    if (!response.ok || !result.avatarUrl) {
+      setMessage(result.error || "Upload failed. Please try again.");
       setUploading(false);
       return;
     }
 
-    const fileExt = file.name.split(".").pop() || "jpg";
-    const filePath = `avatars/${activeUserId}/${Date.now()}.${fileExt}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("public-assets")
-      .upload(filePath, file, { upsert: true });
-
-    if (uploadError) {
-      if (uploadError.message.toLowerCase().includes("not found")) {
-        setMessage(
-          "Upload failed. Please confirm the Supabase storage bucket 'public-assets' exists."
-        );
-      } else {
-        setMessage(uploadError.message);
-      }
-      setUploading(false);
-      return;
-    }
-
-    const { data: publicUrl } = supabase.storage
-      .from("public-assets")
-      .getPublicUrl(filePath);
-
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ avatar_url: publicUrl.publicUrl })
-      .eq("id", activeUserId);
-
-    if (profileError) {
-      setMessage(profileError.message);
-      setUploading(false);
-      return;
-    }
-
-    setForm((prev) => ({ ...prev, avatar_url: publicUrl.publicUrl }));
+    setForm((prev) => ({ ...prev, avatar_url: result.avatarUrl || "" }));
     setMessage("Profile photo updated.");
     setUploading(false);
+    event.target.value = "";
   };
 
   if (loading) {

@@ -1,6 +1,7 @@
 
 import Link from "next/link"
 import FAQSection from "./components/FAQSection";
+import ReviewsPreview from "./components/ReviewsPreview";
 
 export default function Home() {
   const jsonLd = {
@@ -363,84 +364,7 @@ export default function Home() {
     </div>
   </div>
 </section>
-{/* Testimonials Section */}
-<section className="py-24 bg-gray-50">
-  <div className="max-w-6xl mx-auto px-4 md:px-6 text-center">
-    <h2 className="text-3xl md:text-4xl font-semibold text-gray-900">
-      Trusted by Operators Across Industries
-    </h2>
-
-    <p className="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
-      From ecommerce to medical practices, we design systems that bring clarity and structure.
-    </p>
-
-    <div className="mt-16 grid md:grid-cols-3 gap-10 text-left">
-      
-      {/* Ashley */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="aspect-video rounded-xl overflow-hidden">
-          <iframe
-            src="https://www.youtube.com/embed/qcpyw1omFMQ"
-            className="w-full h-full"
-            allowFullScreen
-          ></iframe>
-        </div>
-        <h3 className="mt-6 text-lg font-semibold text-gray-900">
-          Ashley Bayes
-        </h3>
-        <p className="text-sm text-gray-500">
-          Founder, NavBuddyTM (Driving Instructor)
-        </p>
-      </div>
-
-      {/* Nicky */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="aspect-video rounded-xl overflow-hidden">
-          <iframe
-            src="https://www.youtube.com/embed/K6AG2KZ3auI"
-            className="w-full h-full"
-            allowFullScreen
-          ></iframe>
-        </div>
-        <h3 className="mt-6 text-lg font-semibold text-gray-900">
-          Nicky Terrebonne
-        </h3>
-        <p className="text-sm text-gray-500">
-          Ecommerce Store Owner
-        </p>
-      </div>
-
-      {/* Dr Ayona */}
-      <div className="bg-white rounded-2xl shadow-sm p-6">
-        <div className="aspect-video rounded-xl overflow-hidden">
-          <iframe
-            src="https://www.youtube.com/embed/ExBODRPBiuw"
-            className="w-full h-full"
-            allowFullScreen
-          ></iframe>
-        </div>
-        <h3 className="mt-6 text-lg font-semibold text-gray-900">
-          Dr. Ayona
-        </h3>
-        <p className="text-sm text-gray-500">
-          Founder, Ayona Medspa & Beauty Bar
-        </p>
-      </div>
-
-    </div>
-
-    <div className="mt-16">
-      <a
-        href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
-        target="_blank"
-        rel="noreferrer"
-        className="inline-block bg-gray-900 text-white px-8 py-3 rounded-xl hover:bg-gray-800 transition"
-      >
-        Book a Strategy Call
-      </a>
-    </div>
-  </div>
-</section>
+<ReviewsPreview />
 
 <FAQSection />
         

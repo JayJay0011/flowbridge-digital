@@ -342,8 +342,14 @@ export default function ChatWidget() {
     return null;
   }
 
+  const isDashboard = pathname?.startsWith("/dashboard");
+
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div
+      className={`fixed right-4 z-50 md:right-6 ${
+        isDashboard ? "bottom-24 lg:bottom-6" : "bottom-6"
+      }`}
+    >
       {open ? (
         <div className="w-[calc(100vw-2rem)] max-w-[380px] rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 bg-slate-900 text-white">
@@ -377,7 +383,7 @@ export default function ChatWidget() {
 
           <div className="px-4 py-3 bg-slate-50 text-xs text-slate-500">
             {userId
-              ? "Your messages sync to your client dashboard."
+              ? "Your messages sync to your dashboard."
               : "Log in to start chatting with Flowbridge."}
           </div>
 

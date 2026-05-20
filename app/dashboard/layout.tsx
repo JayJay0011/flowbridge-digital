@@ -70,6 +70,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard/orders", label: "Orders" },
     { href: "/dashboard/messages", label: "Inbox" },
     { href: "/dashboard/profile", label: "Profile" },
+    { href: "/dashboard/reviews", label: "Reviews" },
     { href: "/dashboard/billing", label: "Billing" },
     { href: "/dashboard/support", label: "Support" },
     { href: "/dashboard/referrals", label: "Referrals" },
@@ -108,7 +109,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.24em] text-[var(--dash-muted)]">
-                Client Dashboard
+                Dashboard
               </p>
               <h1 className="mt-1 truncate text-xl font-semibold md:text-2xl">
                 Welcome back{profile?.username ? `, ${profile.username}` : ""}.
@@ -122,12 +123,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             >
               Search services
             </Link>
-            <Link href="/" className={headerLinkClass}>
-              Main site
-            </Link>
-            <button onClick={handleSignOut} className={headerLinkClass}>
-              Log out
-            </button>
+            <div className="hidden items-center gap-4 md:flex">
+              <Link href="/" className={headerLinkClass}>
+                Main site
+              </Link>
+              <button onClick={handleSignOut} className={headerLinkClass}>
+                Log out
+              </button>
+            </div>
           </div>
         </header>
 
@@ -152,10 +155,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               )}
               <div>
                 <p className="text-sm font-semibold">
-                  {profile?.company_name || "Flowbridge Client"}
+                  {profile?.company_name || "Flowbridge account"}
                 </p>
                 <p className="text-xs text-[var(--dash-muted)]">
-                  {profile?.username || "Client dashboard"}
+                  {profile?.username || "Dashboard"}
                 </p>
               </div>
               <Link

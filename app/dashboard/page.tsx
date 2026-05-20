@@ -24,14 +24,14 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-[1.4fr_0.8fr]">
         <div className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface-2)] p-6 md:p-8">
           <p className="text-sm font-semibold text-[var(--dash-muted)]">
-            Client portal
+            Workspace
           </p>
           <h2 className="mt-3 text-2xl font-semibold md:text-3xl">
             Manage your Flowbridge work from one place.
           </h2>
           <p className="mt-4 max-w-2xl text-[var(--dash-muted)]">
             Track active orders, continue conversations, update your profile,
-            and request support without leaving the dashboard.
+            and request support from one organized workspace.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <Link
