@@ -7,6 +7,7 @@ export default function DashboardProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [form, setForm] = useState({
     avatar_url: "",
     company_name: "",
@@ -21,6 +22,7 @@ export default function DashboardProfilePage() {
       const { data } = await supabase.auth.getSession();
       const user = data.session?.user;
       if (!user) return;
+      setUserId(user.id);
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -103,15 +105,31 @@ export default function DashboardProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith("image/")) {
+      setMessage("Please upload an image file.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      setMessage("Profile photo must be 3MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
     setUploading(true);
     setMessage(null);
 
     const { data } = await supabase.auth.getSession();
-    const userId = data.session?.user.id;
-    if (!userId) return;
+    const activeUserId = data.session?.user.id;
+    if (!activeUserId) {
+      setMessage("Session expired. Please sign in again.");
+      setUploading(false);
+      return;
+    }
 
-    const fileExt = file.name.split(".").pop();
-    const filePath = `avatars/${userId}-${Date.now()}.${fileExt}`;
+    const fileExt = file.name.split(".").pop() || "jpg";
+    const filePath = `avatars/${activeUserId}/${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from("public-assets")
@@ -133,7 +151,19 @@ export default function DashboardProfilePage() {
       .from("public-assets")
       .getPublicUrl(filePath);
 
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ avatar_url: publicUrl.publicUrl })
+      .eq("id", activeUserId);
+
+    if (profileError) {
+      setMessage(profileError.message);
+      setUploading(false);
+      return;
+    }
+
     setForm((prev) => ({ ...prev, avatar_url: publicUrl.publicUrl }));
+    setMessage("Profile photo updated.");
     setUploading(false);
   };
 
@@ -142,78 +172,98 @@ export default function DashboardProfilePage() {
   }
 
   return (
-    <section>
-      <h2 className="text-2xl font-semibold">Profile</h2>
-      <p className="text-[var(--dash-muted)] mt-2">
-        Update your company details and avatar.
-      </p>
+    <section className="space-y-8">
+      <div>
+        <h2 className="text-2xl font-semibold">Profile</h2>
+        <p className="mt-2 text-[var(--dash-muted)]">
+          Update your company details and profile photo.
+        </p>
+      </div>
 
-      <form onSubmit={onSubmit} className="mt-8 grid gap-6 max-w-xl">
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Profile photo (upload)</label>
-          <p className="text-xs text-[var(--dash-muted)]">
-            Upload an image file. No URL needed.
-          </p>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleAvatarUpload}
-            className="w-full border border-dashed border-[var(--dash-border)] rounded-xl px-4 py-3 text-sm text-[var(--dash-muted)] bg-transparent"
-          />
-          {form.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={form.avatar_url}
-              alt="Profile avatar"
-              className="h-16 w-16 rounded-full object-cover border border-[var(--dash-border)]"
+      <form onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-[280px_1fr]">
+        <div className="h-fit rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface-2)] p-6">
+          <div className="flex flex-col items-center text-center">
+            {form.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={form.avatar_url}
+                alt="Profile avatar"
+                className="h-28 w-28 rounded-full border border-[var(--dash-border)] object-cover"
+              />
+            ) : (
+              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-[var(--dash-surface)] text-2xl font-semibold text-[var(--dash-muted)]">
+                {(form.company_name || "FB").slice(0, 2).toUpperCase()}
+              </div>
+            )}
+            <label className="mt-5 inline-flex cursor-pointer rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+              {uploading ? "Uploading..." : "Upload photo"}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="sr-only"
+                disabled={uploading}
+              />
+            </label>
+            <p className="mt-3 text-xs leading-5 text-[var(--dash-muted)]">
+              JPG, PNG, or WebP. Max 3MB. The photo saves automatically after upload.
+            </p>
+            {userId ? (
+              <p className="mt-4 break-all text-[11px] text-[var(--dash-muted)]">
+                Profile ID: {userId.slice(0, 8)}
+              </p>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="grid gap-6">
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Company name</label>
+            <input
+              type="text"
+              className="w-full rounded-xl border border-[var(--dash-border)] bg-transparent px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              value={form.company_name}
+              onChange={(event) =>
+                setForm({ ...form, company_name: event.target.value })
+              }
+              placeholder="Your company"
             />
-          ) : null}
-          {uploading ? (
-            <p className="text-xs text-[var(--dash-muted)]">Uploading...</p>
-          ) : null}
-        </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Company name</label>
-          <input
-            type="text"
-            className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            value={form.company_name}
-            onChange={(event) => setForm({ ...form, company_name: event.target.value })}
-            placeholder="Your company"
-          />
-        </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Business category</label>
-          <input
-            type="text"
-            className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            value={form.business_category}
-            onChange={(event) =>
-              setForm({ ...form, business_category: event.target.value })
-            }
-            placeholder="Ecommerce, SaaS, Agency..."
-          />
-        </div>
-        <div className="grid gap-2">
-          <label className="text-sm font-medium">Phone</label>
-          <input
-            type="text"
-            className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            value={form.phone}
-            onChange={(event) => setForm({ ...form, phone: event.target.value })}
-            placeholder="+1 555 000 0000"
-          />
-        </div>
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Business category</label>
+            <input
+              type="text"
+              className="w-full rounded-xl border border-[var(--dash-border)] bg-transparent px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              value={form.business_category}
+              onChange={(event) =>
+                setForm({ ...form, business_category: event.target.value })
+              }
+              placeholder="Ecommerce, SaaS, Agency..."
+            />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Phone</label>
+            <input
+              type="text"
+              className="w-full rounded-xl border border-[var(--dash-border)] bg-transparent px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
+              value={form.phone}
+              onChange={(event) => setForm({ ...form, phone: event.target.value })}
+              placeholder="+1 555 000 0000"
+            />
+          </div>
 
-        {message && <div className="text-sm text-[var(--dash-muted)]">{message}</div>}
+          {message && (
+            <div className="text-sm text-[var(--dash-muted)]">{message}</div>
+          )}
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition disabled:opacity-60"
-        >
-          {saving ? "Saving..." : "Save changes"}
-        </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60"
+          >
+            {saving ? "Saving..." : "Save changes"}
+          </button>
+        </div>
       </form>
     </section>
   );

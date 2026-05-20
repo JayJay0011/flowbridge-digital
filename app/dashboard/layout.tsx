@@ -66,10 +66,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const navItems = [
+    { href: "/dashboard", label: "Home" },
     { href: "/dashboard/orders", label: "Orders" },
-    { href: "/dashboard/billing", label: "Add billing" },
+    { href: "/dashboard/messages", label: "Inbox" },
+    { href: "/dashboard/profile", label: "Profile" },
+    { href: "/dashboard/billing", label: "Billing" },
     { href: "/dashboard/support", label: "Support" },
-    { href: "/dashboard/referrals", label: "Refer a friend" },
+    { href: "/dashboard/referrals", label: "Referrals" },
   ];
 
   const isDark = theme === "dark";
@@ -83,39 +86,54 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     : "text-sm font-semibold text-[var(--dash-muted)] hover:text-[var(--dash-strong)]";
 
   return (
-    <main className={`min-h-screen ${themeClass} bg-[var(--dash-bg)] text-[var(--dash-text)]`}>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 py-10">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-[var(--dash-muted)]">
-              Client Dashboard
-            </p>
-            <h1 className="text-2xl md:text-3xl font-semibold mt-3">
-              Welcome back{profile?.username ? `, ${profile.username}` : ""}.
-            </h1>
-            <p className="mt-2 text-[var(--dash-muted)]">
-              Track orders, message the team, and manage your profile.
-            </p>
+    <main
+      className={`min-h-screen ${themeClass} bg-[var(--dash-bg)] pb-24 text-[var(--dash-text)] lg:pb-0`}
+    >
+      <div className="mx-auto max-w-7xl px-4 py-6 md:px-6 lg:py-8">
+        <header className="flex flex-col gap-5 rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-4 md:flex-row md:items-center md:justify-between md:p-5">
+          <div className="flex min-w-0 items-center gap-3">
+            {profile?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar_url}
+                alt={profile?.company_name || profile?.username || "Profile"}
+                className="h-12 w-12 shrink-0 rounded-full border border-[var(--dash-border)] object-cover"
+              />
+            ) : (
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--dash-surface-2)] text-sm font-semibold text-[var(--dash-muted)]">
+                {(profile?.company_name || profile?.username || "FB")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-[0.24em] text-[var(--dash-muted)]">
+                Client Dashboard
+              </p>
+              <h1 className="mt-1 truncate text-xl font-semibold md:text-2xl">
+                Welcome back{profile?.username ? `, ${profile.username}` : ""}.
+              </h1>
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <Link
-              href="/"
-              className={headerLinkClass}
+              href="/gigs"
+              className="inline-flex items-center justify-center rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface-2)] px-4 py-3 text-sm font-semibold text-[var(--dash-strong)] transition hover:bg-[var(--dash-bg)]"
             >
-              Back to main site →
+              Search services
             </Link>
-            <button
-              onClick={handleSignOut}
-              className={headerLinkClass}
-            >
+            <Link href="/" className={headerLinkClass}>
+              Main site
+            </Link>
+            <button onClick={handleSignOut} className={headerLinkClass}>
               Log out
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="mt-10 grid lg:grid-cols-[240px_1fr] gap-8">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[260px_1fr]">
           <aside
-            className="rounded-3xl p-6 bg-[var(--dash-surface)] border border-[var(--dash-border)]"
+            className="hidden rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-5 lg:block"
           >
             <div className="flex flex-col items-center text-center gap-3">
               {profile?.avatar_url ? (
@@ -154,7 +172,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   key={item.href}
                   href={item.href}
                   className={`flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-medium transition ${
-                    pathname === item.href
+                    pathname === item.href ||
+                    (item.href !== "/dashboard" && pathname.startsWith(item.href))
                       ? isDark
                         ? "bg-white text-slate-900"
                         : "bg-slate-900 text-white"
@@ -233,12 +252,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </aside>
 
           <div
-            className="rounded-3xl p-6 md:p-10 bg-[var(--dash-surface)] text-[var(--dash-text)] border border-[var(--dash-border)]"
+            className="rounded-3xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-5 text-[var(--dash-text)] md:p-8 lg:p-10"
           >
             {children}
           </div>
         </div>
       </div>
+
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-[var(--dash-border)] bg-[var(--dash-surface)] px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] lg:hidden">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-1">
+          {navItems.slice(0, 4).map((item) => {
+            const active =
+              pathname === item.href ||
+              (item.href !== "/dashboard" && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`rounded-2xl px-2 py-2 text-center text-xs font-semibold transition ${
+                  active
+                    ? "bg-slate-900 text-white"
+                    : "text-[var(--dash-muted)]"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </main>
   );
 }
