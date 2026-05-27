@@ -90,10 +90,10 @@ export default function TermsOfServicePage() {
             <p className="text-slate-600 leading-relaxed">
               For questions about these Terms, email{" "}
               <a
-                href="mailto:hello@flowbridgedigital.com"
+                href="mailto:support@flowbridgedigital.org"
                 className="underline"
               >
-                hello@flowbridgedigital.com
+                support@flowbridgedigital.org
               </a>
               .
             </p>

@@ -1,73 +1,67 @@
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
+type StrategyCallRequest = {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  businessModel?: string;
+  pains?: string;
+  goals?: string;
+  timeline?: string;
+};
+
+export async function POST(request: Request) {
   try {
-    const body = await req.json();
+    const body = (await request.json()) as StrategyCallRequest;
+    const requiredFields = [
+      body.firstName,
+      body.lastName,
+      body.email,
+      body.businessModel,
+      body.pains,
+      body.goals,
+      body.timeline,
+    ];
 
-    const {
-      firstName,
-      lastName,
-      email,
-      phone,
-      businessModel,
-      pains,
-      goals,
-      timeline,
-    } = body;
-
-    // 🔐 Make sure your env variable exists
-    const HUBSPOT_ACCESS_TOKEN = process.env.HUBSPOT_ACCESS_TOKEN;
-
-    if (!HUBSPOT_ACCESS_TOKEN) {
+    if (requiredFields.some((field) => !field?.trim())) {
       return NextResponse.json(
-        { error: "Missing HubSpot access token" },
-        { status: 500 }
-      );
-    }
-
-    // 🚀 Send to HubSpot
-    const hubspotRes = await fetch(
-      "https://api.hubapi.com/crm/v3/objects/contacts",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${HUBSPOT_ACCESS_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          properties: {
-            firstname: firstName,
-            lastname: lastName,
-            email: email,
-            phone: phone,
-            business_model: businessModel || "",
-            operational_pains: pains || "",
-            desired_results: goals || "",
-            implementation_timeline: timeline || "",
-          },
-        }),
-      }
-    );
-
-    const data = await hubspotRes.json();
-
-    if (!hubspotRes.ok) {
-      console.error("HubSpot error:", data);
-      return NextResponse.json(
-        { error: "HubSpot API failed", details: data },
+        { error: "Please complete all required fields." },
         { status: 400 }
       );
     }
 
-    return NextResponse.json(
-      { success: true, contact: data },
-      { status: 200 }
-    );
+    const webhookUrl = process.env.ZAPIER_STRATEGY_CALL_WEBHOOK_URL;
+    if (!webhookUrl) {
+      return NextResponse.json(
+        { error: "Consultation submission is not configured yet." },
+        { status: 500 }
+      );
+    }
+
+    const zapierResponse = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...body,
+        source: "flowbridgedigital.org strategy consultation",
+        submittedAt: new Date().toISOString(),
+      }),
+      cache: "no-store",
+    });
+
+    if (!zapierResponse.ok) {
+      return NextResponse.json(
+        { error: "Unable to submit your consultation request right now." },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("ENV TOKEN:", process.env.HUBSPOT_ACCESS_TOKEN);
-    console.error("Server error:", error);
+    console.error("Strategy call submission error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: "Unable to submit your consultation request right now." },
       { status: 500 }
     );
   }

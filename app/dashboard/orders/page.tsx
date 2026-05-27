@@ -9,12 +9,17 @@ type Related<T> = T | T[] | null;
 type Order = {
   id: string;
   status: string;
+  revision_request: string | null;
+  amount_cents: number | null;
+  currency: string | null;
   created_at: string;
-  gigs: Related<{ title: string | null }>;
+  gigs: Related<{ title: string | null; delivery_days: number | null }>;
 };
 
 const statusLabel = (status: string) => {
   if (status === "complete") return "Completed";
+  if (status === "delivered") return "Delivered";
+  if (status === "revision_requested") return "Revision requested";
   if (status === "in_progress") return "In progress";
   if (status === "cancelled") return "Cancelled";
   return "New";
@@ -30,16 +35,30 @@ export default function DashboardOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
+  const [revisionReason, setRevisionReason] = useState("");
+  const [acting, setActing] = useState(false);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     const load = async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("id,status,created_at,gigs(title)")
-        .order("created_at", { ascending: false });
+      const [{ data }, { data: reviews }] = await Promise.all([
+        supabase
+          .from("orders")
+          .select("id,status,revision_request,amount_cents,currency,created_at,gigs(title,delivery_days)")
+          .order("created_at", { ascending: false }),
+        supabase.from("reviews").select("order_id"),
+      ]);
       if (isMounted) {
         setOrders(data ?? []);
+        setReviewedOrders(
+          new Set(
+            (reviews ?? [])
+              .map((review) => review.order_id as string | null)
+              .filter((id): id is string => Boolean(id))
+          )
+        );
         setSelectedId((prev) => prev ?? data?.[0]?.id ?? null);
         setLoading(false);
       }
@@ -62,6 +81,66 @@ export default function DashboardOrdersPage() {
       : selectedOrder.gigs;
   }, [selectedOrder]);
 
+  const amountLabel = selectedOrder?.amount_cents
+    ? new Intl.NumberFormat(undefined, {
+        style: "currency",
+        currency: (selectedOrder.currency || "usd").toUpperCase(),
+      }).format(selectedOrder.amount_cents / 100)
+    : "To be confirmed";
+
+  const expectedDelivery = selectedOrder
+    ? addDays(
+        new Date(selectedOrder.created_at),
+        selectedGig?.delivery_days || 7
+      ).toLocaleDateString()
+    : "";
+
+  const updateDeliveryStatus = async (nextStatus: "revision_requested" | "complete") => {
+    if (!selectedOrder) return;
+    if (nextStatus === "revision_requested" && !revisionReason.trim()) {
+      setActionMessage("Please tell us what needs revision before submitting.");
+      return;
+    }
+
+    setActing(true);
+    setActionMessage(null);
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: nextStatus,
+        revision_request:
+          nextStatus === "revision_requested" ? revisionReason.trim() : null,
+      })
+      .eq("id", selectedOrder.id)
+      .eq("status", "delivered");
+
+    if (error) {
+      setActionMessage(error.message);
+      setActing(false);
+      return;
+    }
+
+    setOrders((current) =>
+      current.map((order) =>
+        order.id === selectedOrder.id
+          ? {
+              ...order,
+              status: nextStatus,
+              revision_request:
+                nextStatus === "revision_requested" ? revisionReason.trim() : null,
+            }
+          : order
+      )
+    );
+    setRevisionReason("");
+    setActionMessage(
+      nextStatus === "complete"
+        ? "Delivery accepted. You can now leave a review."
+        : "Revision request sent to Flowbridge."
+    );
+    setActing(false);
+  };
+
   return (
     <section>
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -78,14 +157,9 @@ export default function DashboardOrdersPage() {
 
       <div className="mt-8 border border-[var(--dash-border)] rounded-2xl overflow-hidden">
         <div className="flex flex-wrap items-center gap-4 px-6 py-4 border-b border-[var(--dash-border)] bg-[var(--dash-surface)]">
-          <div className="flex gap-4 text-sm font-medium text-[var(--dash-muted)]">
-            <button className="text-[var(--dash-strong)] border-b-2 border-[var(--dash-strong)] pb-2">
-              Activity
-            </button>
-            <button className="hover:text-[var(--dash-strong)]">Details</button>
-            <button className="hover:text-[var(--dash-strong)]">Requirements</button>
-            <button className="hover:text-[var(--dash-strong)]">Delivery</button>
-          </div>
+          <p className="text-sm font-semibold text-[var(--dash-strong)]">
+            Order timeline and delivery actions
+          </p>
           {orders.length > 1 ? (
             <select
               value={selectedId ?? ""}
@@ -119,33 +193,38 @@ export default function DashboardOrdersPage() {
                   {[
                     {
                       title: "You placed the order",
-                      date: new Date(selectedOrder.created_at),
-                    },
-                    {
-                      title: "Requirements submitted",
-                      date: addDays(new Date(selectedOrder.created_at), 1),
+                      active: true,
                     },
                     {
                       title: "Work in progress",
-                      date: addDays(new Date(selectedOrder.created_at), 2),
+                      active: selectedOrder.status !== "new",
                     },
                     {
-                      title: "Delivery review",
-                      date: addDays(new Date(selectedOrder.created_at), 5),
+                      title:
+                        selectedOrder.status === "revision_requested"
+                          ? "Revision requested"
+                          : "Delivery submitted",
+                      active: ["delivered", "revision_requested", "complete"].includes(
+                        selectedOrder.status
+                      ),
+                    },
+                    {
+                      title: "Order completed",
+                      active: selectedOrder.status === "complete",
                     },
                   ].map((item, index) => (
                     <div key={item.title} className="flex items-start gap-3">
-                      <div className="mt-1 h-8 w-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs">
+                      <div className={`mt-1 flex h-8 w-8 items-center justify-center rounded-full text-xs ${
+                        item.active
+                          ? "bg-slate-900 text-white"
+                          : "bg-slate-100 text-slate-400"
+                      }`}>
                         {index + 1}
                       </div>
                       <div>
                         <p className="text-sm font-medium">{item.title}</p>
-                        <p className="text-xs text-[var(--dash-muted)] mt-1">
-                          {item.date.toLocaleDateString()} ·{" "}
-                          {item.date.toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <p className="mt-1 text-xs text-[var(--dash-muted)]">
+                          {item.active ? "Reached" : "Pending"}
                         </p>
                       </div>
                     </div>
@@ -153,18 +232,70 @@ export default function DashboardOrdersPage() {
                 </div>
               </div>
 
-              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6">
-                <h3 className="text-lg font-semibold">
-                  Keep working together
-                </h3>
-                <p className="text-[var(--dash-muted)] mt-2">
-                  Start a long-term project with Flowbridge and keep momentum
-                  strong across automation, CRM, and growth.
-                </p>
-                <button className="mt-5 px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition">
-                  Request follow-up →
-                </button>
-              </div>
+              {selectedOrder.status === "delivered" ? (
+                <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6">
+                  <h3 className="text-lg font-semibold">Review delivery</h3>
+                  <p className="mt-2 text-[var(--dash-muted)]">
+                    Accept the delivered work, or request a revision with the
+                    changes needed.
+                  </p>
+                  <textarea
+                    value={revisionReason}
+                    onChange={(event) => setRevisionReason(event.target.value)}
+                    rows={3}
+                    className="mt-5 w-full rounded-xl border border-[var(--dash-border)] bg-transparent px-4 py-3"
+                    placeholder="Describe any revision needed..."
+                  />
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <button
+                      type="button"
+                      disabled={acting}
+                      onClick={() => updateDeliveryStatus("revision_requested")}
+                      className="rounded-xl border border-[var(--dash-border)] px-4 py-3 text-sm font-semibold"
+                    >
+                      Request revision
+                    </button>
+                    <button
+                      type="button"
+                      disabled={acting}
+                      onClick={() => updateDeliveryStatus("complete")}
+                      className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+                    >
+                      Accept delivery
+                    </button>
+                  </div>
+                </div>
+              ) : selectedOrder.status === "revision_requested" ? (
+                <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6">
+                  <h3 className="text-lg font-semibold">Revision requested</h3>
+                  <p className="mt-2 text-[var(--dash-muted)]">
+                    Your requested changes have been shared with Flowbridge.
+                  </p>
+                  {selectedOrder.revision_request ? (
+                    <p className="mt-4 rounded-xl bg-[var(--dash-surface-2)] p-4 text-sm">
+                      {selectedOrder.revision_request}
+                    </p>
+                  ) : null}
+                </div>
+              ) : selectedOrder.status === "complete" &&
+                !reviewedOrders.has(selectedOrder.id) ? (
+                <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-6">
+                  <h3 className="text-lg font-semibold">Share your experience</h3>
+                  <p className="mt-2 text-[var(--dash-muted)]">
+                    This order is complete. Your feedback helps us improve the
+                    work and helps others make informed decisions.
+                  </p>
+                  <Link
+                    href={`/dashboard/reviews?order=${selectedOrder.id}`}
+                    className="mt-5 inline-flex rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+                  >
+                    Leave a review
+                  </Link>
+                </div>
+              ) : null}
+              {actionMessage ? (
+                <p className="text-sm text-[var(--dash-muted)]">{actionMessage}</p>
+              ) : null}
             </div>
 
             <aside className="space-y-6">
@@ -189,14 +320,16 @@ export default function DashboardOrdersPage() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span>Delivery date</span>
+                    <span>Expected delivery</span>
                     <span className="font-medium text-[var(--dash-strong)]">
-                      {addDays(new Date(selectedOrder.created_at), 7).toLocaleDateString()}
+                      {expectedDelivery}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Total price</span>
-                    <span className="font-medium text-[var(--dash-strong)]">—</span>
+                    <span className="font-medium text-[var(--dash-strong)]">
+                      {amountLabel}
+                    </span>
                   </div>
                 </div>
                 <Link
@@ -211,11 +344,19 @@ export default function DashboardOrdersPage() {
                 <h4 className="text-sm font-semibold">Track order</h4>
                 <div className="mt-4 space-y-3 text-sm text-[var(--dash-muted)]">
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                    Delivery reviewed
+                    <span className={`h-2 w-2 rounded-full ${
+                      ["delivered", "revision_requested", "complete"].includes(selectedOrder.status)
+                        ? "bg-emerald-500"
+                        : "bg-slate-300"
+                    }`} />
+                    Delivery submitted
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="h-2 w-2 rounded-full bg-slate-300" />
+                    <span className={`h-2 w-2 rounded-full ${
+                      selectedOrder.status === "complete"
+                        ? "bg-emerald-500"
+                        : "bg-slate-300"
+                    }`} />
                     Order completed
                   </div>
                 </div>

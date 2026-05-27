@@ -2,8 +2,41 @@
 import Link from "next/link"
 import FAQSection from "./components/FAQSection";
 import ReviewsPreview from "./components/ReviewsPreview";
+import { supabasePublic } from "./lib/supabasePublic";
+import type { ReviewItem } from "./lib/reviewContent";
 
-export default function Home() {
+export const revalidate = 0;
+
+type Related<T> = T | T[] | null;
+
+type PublishedReview = {
+  id: string;
+  rating: number | null;
+  summary: string | null;
+  body: string | null;
+  profiles: Related<{ username: string | null }>;
+};
+
+export default async function Home() {
+  const { data: publishedReviews } = await supabasePublic
+    .from("reviews")
+    .select("id,rating,summary,body,profiles(username)")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  const previewReviews: ReviewItem[] | undefined = publishedReviews?.length
+    ? (publishedReviews as PublishedReview[]).map((review) => ({
+        id: review.id,
+        name:
+          (Array.isArray(review.profiles)
+            ? review.profiles[0]?.username
+            : review.profiles?.username) || "Flowbridge customer",
+        company: "Verified review",
+        rating: review.rating || 5,
+        summary: review.summary || "Great experience",
+        body: review.body || "",
+      }))
+    : undefined;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -177,6 +210,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <ReviewsPreview reviews={previewReviews} />
 
       {/* ================= PROBLEM SECTION ================= */}
       <section className="py-24 bg-white border-b border-slate-100">
@@ -364,8 +398,6 @@ export default function Home() {
     </div>
   </div>
 </section>
-<ReviewsPreview />
-
 <FAQSection />
         
 <div className="bg-gradient-to-b from-slate-50 to-white text-slate-900">

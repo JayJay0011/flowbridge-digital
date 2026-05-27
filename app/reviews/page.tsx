@@ -17,6 +17,7 @@ type Review = {
   summary: string | null;
   body: string | null;
   video_url: string | null;
+  seller_response: string | null;
   created_at: string;
   profiles: Related<{ username: string | null }>;
 };
@@ -24,7 +25,7 @@ type Review = {
 export default async function ReviewsPage() {
   const { data } = await supabasePublic
     .from("reviews")
-    .select("id,rating,summary,body,video_url,created_at,profiles(username)")
+    .select("id,rating,summary,body,video_url,seller_response,created_at,profiles(username)")
     .order("created_at", { ascending: false });
   const dbReviews = (data ?? []) as Review[];
   const reviews: ReviewItem[] = dbReviews.length
@@ -39,6 +40,7 @@ export default async function ReviewsPage() {
         summary: review.summary || "Great experience",
         body: review.body || "",
         videoUrl: review.video_url,
+        response: review.seller_response,
       }))
     : fallbackReviews;
 
@@ -87,22 +89,18 @@ export default async function ReviewsPage() {
                 </div>
                 <h3 className="mt-5 text-xl font-semibold">{review.summary}</h3>
                 <p className="mt-3 leading-7 text-slate-600">{review.body}</p>
+                {review.response ? (
+                  <div className="mt-5 rounded-xl bg-slate-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                      Response from Flowbridge
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      {review.response}
+                    </p>
+                  </div>
+                ) : null}
               </article>
             ))}
-          </div>
-
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8">
-            <h2 className="text-2xl font-semibold">Want to share your review?</h2>
-            <p className="mt-3 max-w-2xl text-slate-600">
-              If you have worked with Flowbridge, you can submit written feedback
-              or add a video review link from your dashboard.
-            </p>
-            <a
-              href="/dashboard/reviews"
-              className="mt-6 inline-flex rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-            >
-              Write a review
-            </a>
           </div>
         </div>
       </section>

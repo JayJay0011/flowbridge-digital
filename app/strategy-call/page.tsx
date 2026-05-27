@@ -7,6 +7,8 @@ export default function StrategyCallPage() {
   const [businessModel, setBusinessModel] = useState("");
   const [otherModel, setOtherModel] = useState("");
   const [phone, setPhone] = useState<string | undefined>();
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     firstName: "",
@@ -25,6 +27,8 @@ export default function StrategyCallPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
 
     const finalBusinessModel =
       businessModel === "Other" ? otherModel : businessModel;
@@ -50,14 +54,37 @@ export default function StrategyCallPage() {
       const data = await response.json();
 
       if (response.ok) {
-        window.location.href = "/thank-you";
+        const bookingUrl = new URL(
+          "https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+        );
+        bookingUrl.searchParams.set(
+          "name",
+          `${form.firstName} ${form.lastName}`.trim()
+        );
+        bookingUrl.searchParams.set("email", form.email);
+        if (phone) {
+          bookingUrl.searchParams.set("attendeePhoneNumber", phone);
+        }
+        bookingUrl.searchParams.set(
+          "notes",
+          [
+            `Business model: ${finalBusinessModel}`,
+            `Challenge: ${form.pain}`,
+            `Desired result: ${form.desiredResult}`,
+            `Timeline: ${form.timeline}`,
+          ].join("\n")
+        );
+        window.location.assign(bookingUrl.toString());
       } else {
-        alert("Something went wrong.");
-        console.log(data);
+        setSubmitError(
+          data.error || "Unable to submit your request. Please try again."
+        );
+        setSubmitting(false);
       }
     } catch (error) {
       console.error("Submission error:", error);
-      alert("Something went wrong.");
+      setSubmitError("Unable to submit your request. Please try again.");
+      setSubmitting(false);
     }
   };
 
@@ -215,10 +242,16 @@ export default function StrategyCallPage() {
 
             <button
               type="submit"
-              className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition"
+              disabled={submitting}
+              className="w-full bg-slate-900 text-white py-4 rounded-xl font-medium hover:bg-slate-800 transition disabled:opacity-60"
             >
-              Submit Consultation Request
+              {submitting ? "Submitting..." : "Submit and Book Consultation"}
             </button>
+            {submitError ? (
+              <p className="text-sm text-red-700" role="alert">
+                {submitError}
+              </p>
+            ) : null}
           </form>
         </div>
       </section>

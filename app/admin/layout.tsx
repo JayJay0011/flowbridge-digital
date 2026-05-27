@@ -15,6 +15,7 @@ const navItems = [
   { href: "/admin/services", label: "Services", module: "services" },
   { href: "/admin/blog", label: "Blog", module: "blog" },
   { href: "/admin/orders", label: "Orders", module: "orders" },
+  { href: "/admin/reviews", label: "Reviews", module: "reviews" },
   { href: "/admin/messages", label: "Messages", module: "messages" },
   { href: "/admin/settings", label: "Settings", module: "settings" },
 ];
@@ -96,6 +97,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     if (path.startsWith("/admin/services")) return "services";
     if (path.startsWith("/admin/blog")) return "blog";
     if (path.startsWith("/admin/orders")) return "orders";
+    if (path.startsWith("/admin/reviews")) return "reviews";
     if (path.startsWith("/admin/messages")) return "messages";
     if (path.startsWith("/admin/settings")) return "settings";
     return null;

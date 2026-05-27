@@ -93,10 +93,10 @@ export default function PrivacyPolicyPage() {
             <p className="text-slate-600 leading-relaxed">
               For privacy questions, email{" "}
               <a
-                href="mailto:hello@flowbridgedigital.com"
+                href="mailto:support@flowbridgedigital.org"
                 className="underline"
               >
-                hello@flowbridgedigital.com
+                support@flowbridgedigital.org
               </a>
               .
             </p>

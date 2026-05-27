@@ -27,10 +27,10 @@ export default function DashboardSupportPage() {
             Prefer email? Reach us directly.
           </p>
           <a
-            href="mailto:hello@flowbridgedigital.com"
+            href="mailto:support@flowbridgedigital.org"
             className="mt-6 inline-flex items-center justify-center px-5 py-3 rounded-xl border border-[var(--dash-border)] font-semibold hover:bg-[var(--dash-surface)] transition"
           >
-            Email support
+            support@flowbridgedigital.org
           </a>
         </div>
       </div>

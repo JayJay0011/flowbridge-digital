@@ -164,12 +164,13 @@ create table if not exists public.orders (
   id uuid primary key default gen_random_uuid(),
   client_id uuid references public.profiles(id) on delete set null,
   gig_id uuid references public.gigs(id) on delete set null,
-  status text not null default 'new' check (status in ('new', 'in_progress', 'complete', 'cancelled')),
+  status text not null default 'new' check (status in ('new', 'in_progress', 'delivered', 'revision_requested', 'complete', 'cancelled')),
   package_tier text,
   amount_cents int,
   currency text default 'usd',
   stripe_session_id text,
   payment_status text default 'unpaid' check (payment_status in ('unpaid', 'paid', 'failed')),
+  revision_request text,
   created_at timestamptz not null default now()
 );
 
@@ -192,6 +193,9 @@ create table if not exists public.reviews (
   expertise int,
   summary text,
   body text,
+  video_url text,
+  status text not null default 'published' check (status in ('pending', 'published', 'hidden')),
+  improvement_feedback text,
   seller_response text,
   created_at timestamptz not null default now()
 );
@@ -324,13 +328,37 @@ create policy "Messages: admin read"
 on public.messages for select
 using (public.is_admin() and public.has_admin_permission('messages', 'read'));
 
+create unique index if not exists reviews_one_per_order_idx
+on public.reviews (order_id)
+where order_id is not null;
+
+create policy "Orders: account delivery action"
+on public.orders for update
+using (auth.uid() = client_id and status = 'delivered')
+with check (auth.uid() = client_id and status in ('revision_requested', 'complete'));
+
 create policy "Reviews: public read"
 on public.reviews for select
-using (true);
+using (status = 'published');
+
+create policy "Reviews: author read own"
+on public.reviews for select
+using (auth.uid() = client_id);
 
 create policy "Reviews: client create"
 on public.reviews for insert
-with check (auth.uid() = client_id);
+with check (
+  auth.uid() = client_id
+  and order_id is not null
+  and status = 'pending'
+  and exists (
+    select 1
+    from public.orders
+    where orders.id = order_id
+      and orders.client_id = auth.uid()
+      and orders.status = 'complete'
+  )
+);
 
 create policy "Reviews: admin manage"
 on public.reviews for all

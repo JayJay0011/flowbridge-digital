@@ -9,12 +9,12 @@ export default function DashboardReferralsPage() {
       <div className="mt-8 border border-[var(--dash-border)] rounded-2xl p-6 bg-[var(--dash-surface-2)]">
         <h3 className="text-lg font-semibold">Your referral link</h3>
         <p className="text-sm text-[var(--dash-muted)] mt-2">
-          Invite new clients and earn service credits.
+          Invite businesses in your network and earn service credits.
         </p>
         <div className="mt-4 flex flex-col md:flex-row md:items-center gap-3">
           <input
             type="text"
-            value="https://flowbridgedigital.com/referral/your-link"
+            value="https://flowbridgedigital.org/referral/your-link"
             readOnly
             className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 text-sm"
           />

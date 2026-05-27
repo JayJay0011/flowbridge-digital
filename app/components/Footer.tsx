@@ -22,9 +22,12 @@ export default function Footer() {
             We design structured automation systems and CRM frameworks 
             that help operators regain control and scale with clarity.
           </p>
-          <p className="text-sm text-slate-400">
-            hello@flowbridgedigital.com
-          </p>
+          <a
+            href="mailto:support@flowbridgedigital.org"
+            className="text-sm text-slate-400 hover:text-white transition-colors duration-300"
+          >
+            support@flowbridgedigital.org
+          </a>
         </div>
 
         {/* Services */}

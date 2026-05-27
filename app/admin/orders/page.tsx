@@ -8,6 +8,7 @@ type Related<T> = T | T[] | null;
 type Order = {
   id: string;
   status: string;
+  revision_request: string | null;
   created_at: string;
   gigs: Related<{ title: string | null }>;
   profiles: Related<{ email: string | null }>;
@@ -16,6 +17,7 @@ type Order = {
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,7 +25,7 @@ export default function AdminOrdersPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id,status,created_at,gigs(title),profiles(email)")
+        .select("id,status,revision_request,created_at,gigs(title),profiles(email)")
         .order("created_at", { ascending: false });
 
       if (isMounted) {
@@ -39,14 +41,35 @@ export default function AdminOrdersPage() {
     };
   }, []);
 
+  const updateStatus = async (orderId: string, status: string) => {
+    setMessage(null);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status })
+      .eq("id", orderId);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setOrders((current) =>
+      current.map((order) =>
+        order.id === orderId ? { ...order, status } : order
+      )
+    );
+    setMessage("Order status updated.");
+  };
+
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl font-semibold">Orders</h1>
           <p className="text-slate-600 mt-2">
-            Track incoming client requests and order status.
+            Track orders, submit delivery, and manage completion status.
           </p>
+          {message ? <p className="mt-4 text-sm text-slate-600">{message}</p> : null}
         </div>
       </section>
 
@@ -57,22 +80,23 @@ export default function AdminOrdersPage() {
               <thead className="bg-slate-50 text-slate-600">
                 <tr>
                   <th className="px-6 py-4 font-medium">Order</th>
-                  <th className="px-6 py-4 font-medium">Client</th>
+                  <th className="px-6 py-4 font-medium">Account</th>
                   <th className="px-6 py-4 font-medium">Gig</th>
                   <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium">Revision note</th>
                   <th className="px-6 py-4 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr className="border-t border-slate-200">
-                    <td className="px-6 py-6 text-slate-500" colSpan={5}>
+                    <td className="px-6 py-6 text-slate-500" colSpan={6}>
                       Loading orders...
                     </td>
                   </tr>
                 ) : orders.length === 0 ? (
                   <tr className="border-t border-slate-200">
-                    <td className="px-6 py-6 text-slate-500" colSpan={5}>
+                    <td className="px-6 py-6 text-slate-500" colSpan={6}>
                       No orders yet.
                     </td>
                   </tr>
@@ -94,14 +118,28 @@ export default function AdminOrdersPage() {
                         <td className="px-6 py-4">
                           {gig?.title || "—"}
                         </td>
-                      <td className="px-6 py-4">
-                        <span className="px-3 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {new Date(order.created_at).toLocaleDateString()}
-                      </td>
+                        <td className="px-6 py-4">
+                          <select
+                            value={order.status}
+                            onChange={(event) =>
+                              updateStatus(order.id, event.target.value)
+                            }
+                            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                          >
+                            <option value="new">New</option>
+                            <option value="in_progress">In progress</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="revision_requested">Revision requested</option>
+                            <option value="complete">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+                        </td>
+                        <td className="max-w-xs px-6 py-4 text-slate-600">
+                          {order.revision_request || "—"}
+                        </td>
+                        <td className="px-6 py-4">
+                          {new Date(order.created_at).toLocaleDateString()}
+                        </td>
                       </tr>
                     );
                   })

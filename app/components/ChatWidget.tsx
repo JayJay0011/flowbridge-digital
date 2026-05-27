@@ -499,11 +499,25 @@ export default function ChatWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="mt-4 ml-auto flex items-center gap-3 rounded-full bg-slate-900 text-white px-5 py-3 shadow-lg hover:bg-slate-800 transition"
+          className="mt-4 ml-auto flex h-12 w-12 items-center justify-center gap-3 rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-800 md:h-auto md:w-auto md:px-5 md:py-3"
           aria-label="Open chat widget"
         >
-          <span className="text-sm font-semibold">Message Flowbridge</span>
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-5 w-5 md:hidden"
+            aria-hidden="true"
+          >
+            <path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z" />
+          </svg>
+          <span className="hidden text-sm font-semibold md:inline">
+            Message Flowbridge
+          </span>
+          <span className="hidden h-2 w-2 rounded-full bg-emerald-400 md:inline-block" />
         </button>
       )}
     </div>
