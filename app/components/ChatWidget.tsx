@@ -271,21 +271,29 @@ export default function ChatWidget() {
 
       const body = [draft.trim(), ...attachmentLines].join("\n\n");
 
-      const { data, error: insertError } = await supabase
-        .from("messages")
-        .insert({
-          client_id: userId,
-          subject: "Chat widget",
-          body,
-          status: "new",
-        })
-        .select("id,body,status,created_at");
-
-      if (insertError) {
-        throw new Error(insertError.message);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) {
+        throw new Error("Please sign in again to send a message.");
       }
 
-      (data ?? []).forEach((item) => upsertMessage(item));
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ subject: "Chat widget", body }),
+      });
+      const payload = (await response.json()) as {
+        message?: Message;
+        error?: string;
+      };
+      if (!response.ok || !payload.message) {
+        throw new Error(payload.error || "Failed to send message.");
+      }
+
+      upsertMessage(payload.message);
       setDraft("");
       setUploads([]);
     } catch (err) {

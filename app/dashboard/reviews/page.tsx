@@ -29,6 +29,10 @@ export default function DashboardReviewsPage() {
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [tipAmount, setTipAmount] = useState("15");
+  const [customTip, setCustomTip] = useState("");
+  const [tipping, setTipping] = useState(false);
+  const [tipMessage, setTipMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -70,6 +74,10 @@ export default function DashboardReviewsPage() {
         typeof window !== "undefined"
           ? new URLSearchParams(window.location.search).get("order")
           : null;
+      const tipStatus =
+        typeof window !== "undefined"
+          ? new URLSearchParams(window.location.search).get("tip")
+          : null;
 
       setOrders(availableOrders);
       setSubmittedReviews(reviewRows);
@@ -78,6 +86,11 @@ export default function DashboardReviewsPage() {
           ? requestedOrderId || ""
           : availableOrders[0]?.id || ""
       );
+      if (tipStatus === "success") {
+        setTipMessage("Thank you for your tip.");
+      } else if (tipStatus === "canceled") {
+        setTipMessage("Tip payment was canceled. Your review can still be submitted.");
+      }
       setLoading(false);
     };
 
@@ -155,6 +168,44 @@ export default function DashboardReviewsPage() {
     setSaving(false);
   };
 
+  const startTipCheckout = async () => {
+    if (!selectedOrderId) return;
+    const dollars =
+      tipAmount === "custom" ? Number.parseFloat(customTip) : Number(tipAmount);
+    const amountCents = Math.round(dollars * 100);
+    if (!Number.isFinite(amountCents) || amountCents < 100) {
+      setTipMessage("Enter a tip amount of at least $1.");
+      return;
+    }
+
+    setTipping(true);
+    setTipMessage(null);
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setTipMessage("Please sign in again to leave a tip.");
+      setTipping(false);
+      return;
+    }
+
+    const response = await fetch("/api/stripe/tip", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ orderId: selectedOrderId, amountCents }),
+    });
+    const payload = (await response.json()) as { url?: string; error?: string };
+    if (!response.ok || !payload.url) {
+      setTipMessage(payload.error || "Unable to start tip checkout.");
+      setTipping(false);
+      return;
+    }
+
+    window.location.assign(payload.url);
+  };
+
   if (loading) {
     return <div className="text-[var(--dash-muted)]">Loading reviews...</div>;
   }
@@ -164,7 +215,7 @@ export default function DashboardReviewsPage() {
       <div>
         <h2 className="text-2xl font-semibold">Reviews</h2>
         <p className="mt-2 text-[var(--dash-muted)]">
-          After an order is completed, you can share a rating and feedback here.
+          After you accept a delivery, you can share a rating and feedback here.
         </p>
       </div>
 
@@ -178,7 +229,7 @@ export default function DashboardReviewsPage() {
         <div className="max-w-2xl rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface-2)] p-6">
           <h3 className="text-lg font-semibold">No review request available</h3>
           <p className="mt-2 text-sm leading-6 text-[var(--dash-muted)]">
-            A review option appears after your order has been marked completed.
+            A review option appears immediately after you accept a delivery.
             {submittedReviews.length
               ? " Your submitted feedback is already recorded."
               : ""}
@@ -186,8 +237,55 @@ export default function DashboardReviewsPage() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="grid max-w-2xl gap-6">
+          <div className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface-2)] p-5">
+            <h3 className="text-lg font-semibold">Enjoyed working with us?</h3>
+            <p className="mt-2 text-sm leading-6 text-[var(--dash-muted)]">
+              Leave an optional tip to show your appreciation. Your review does
+              not depend on leaving a tip.
+            </p>
+            <div className="mt-4 grid grid-cols-4 gap-2">
+              {["5", "15", "30", "custom"].map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTipAmount(value)}
+                  className={`rounded-xl border px-3 py-3 text-sm font-semibold ${
+                    tipAmount === value
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-[var(--dash-border)] bg-[var(--dash-surface)]"
+                  }`}
+                >
+                  {value === "custom" ? "Custom" : `$${value}`}
+                </button>
+              ))}
+            </div>
+            {tipAmount === "custom" ? (
+              <input
+                type="number"
+                min="1"
+                max="1000"
+                step="0.01"
+                value={customTip}
+                onChange={(event) => setCustomTip(event.target.value)}
+                placeholder="Enter amount"
+                className="mt-3 w-full rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] px-4 py-3"
+              />
+            ) : null}
+            <button
+              type="button"
+              onClick={startTipCheckout}
+              disabled={tipping}
+              className="mt-4 rounded-xl border border-[var(--dash-border)] bg-[var(--dash-surface)] px-5 py-3 text-sm font-semibold disabled:opacity-60"
+            >
+              {tipping ? "Opening checkout..." : "Leave a tip"}
+            </button>
+            {tipMessage ? (
+              <p className="mt-3 text-sm text-[var(--dash-muted)]">{tipMessage}</p>
+            ) : null}
+          </div>
+
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Completed order</label>
+            <label className="text-sm font-medium">Accepted order</label>
             <select
               value={selectedOrderId}
               onChange={(event) => setSelectedOrderId(event.target.value)}

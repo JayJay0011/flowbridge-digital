@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
 type Related<T> = T | T[] | null;
@@ -32,6 +33,7 @@ const addDays = (date: Date, days: number) => {
 };
 
 export default function DashboardOrdersPage() {
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -139,6 +141,9 @@ export default function DashboardOrdersPage() {
         : "Revision request sent to Flowbridge."
     );
     setActing(false);
+    if (nextStatus === "complete") {
+      router.push(`/dashboard/reviews?order=${selectedOrder.id}`);
+    }
   };
 
   return (

@@ -195,23 +195,37 @@ export default function DashboardMessagesPage() {
       ? `Replying to: ${replyTo.author}: "${replyTo.excerpt}"\n---\n`
       : "";
 
-    const { data, error: insertError } = await supabase
-      .from("messages")
-      .insert({
-        client_id: userId,
-        subject: "Chat",
-        body: `${replyPrefix}${draft.trim()}`,
-        status: "new",
-      })
-      .select("id,subject,body,status,created_at");
-
-    if (insertError) {
-      setError(insertError.message);
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
+    if (!token) {
+      setError("Please sign in again to send a message.");
       setSending(false);
       return;
     }
 
-    (data ?? []).forEach((item) => upsertMessage(item));
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        subject: "Chat",
+        body: `${replyPrefix}${draft.trim()}`,
+      }),
+    });
+    const payload = (await response.json()) as {
+      message?: Message;
+      error?: string;
+    };
+
+    if (!response.ok || !payload.message) {
+      setError(payload.error || "Unable to send message.");
+      setSending(false);
+      return;
+    }
+
+    upsertMessage(payload.message);
     setDraft("");
     setReplyTo(null);
     setSending(false);

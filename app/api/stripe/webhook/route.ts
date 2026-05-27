@@ -41,6 +41,30 @@ export async function POST(request: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = session.metadata || {};
+    if (metadata.payment_type === "tip") {
+      const orderId = metadata.order_id;
+      const userId = metadata.user_id;
+      const amountCents = metadata.amount_cents
+        ? Number.parseInt(metadata.amount_cents, 10)
+        : null;
+
+      if (orderId && userId && amountCents) {
+        await supabaseAdmin.from("tips").upsert(
+          {
+            order_id: orderId,
+            client_id: userId,
+            amount_cents: amountCents,
+            currency: session.currency || "usd",
+            stripe_session_id: session.id,
+            status: "paid",
+          },
+          { onConflict: "stripe_session_id" }
+        );
+      }
+
+      return NextResponse.json({ received: true });
+    }
+
     const gigId = metadata.gig_id;
     const userId = metadata.user_id;
     const packageTier = metadata.package_tier;

@@ -183,6 +183,17 @@ create table if not exists public.messages (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.tips (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  client_id uuid not null references public.profiles(id) on delete cascade,
+  amount_cents int not null check (amount_cents between 100 and 100000),
+  currency text not null default 'usd',
+  stripe_session_id text not null unique,
+  status text not null default 'paid' check (status in ('paid', 'refunded')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.reviews (
   id uuid primary key default gen_random_uuid(),
   client_id uuid references public.profiles(id) on delete set null,
@@ -209,6 +220,7 @@ alter table public.admin_permissions enable row level security;
 alter table public.case_studies enable row level security;
 alter table public.orders enable row level security;
 alter table public.messages enable row level security;
+alter table public.tips enable row level security;
 alter table public.reviews enable row level security;
 
 create policy "Profiles: select own or admin"
@@ -311,10 +323,6 @@ create policy "Orders: admin read"
 on public.orders for select
 using (public.is_admin() and public.has_admin_permission('orders', 'read'));
 
-create policy "Messages: client create"
-on public.messages for insert
-with check (auth.uid() = client_id);
-
 create policy "Messages: client read own"
 on public.messages for select
 using (auth.uid() = client_id);
@@ -327,6 +335,14 @@ with check (public.is_admin() and public.has_admin_permission('messages', 'write
 create policy "Messages: admin read"
 on public.messages for select
 using (public.is_admin() and public.has_admin_permission('messages', 'read'));
+
+create policy "Tips: account read own"
+on public.tips for select
+using (auth.uid() = client_id);
+
+create policy "Tips: admin read"
+on public.tips for select
+using (public.is_admin());
 
 create unique index if not exists reviews_one_per_order_idx
 on public.reviews (order_id)

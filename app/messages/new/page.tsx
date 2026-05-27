@@ -50,22 +50,25 @@ export default function NewMessagePage() {
     setError(null);
 
     const { data } = await supabase.auth.getSession();
-    const userId = data.session?.user.id;
+    const session = data.session;
 
-    if (!userId) {
+    if (!session) {
       router.push("/login?mode=signup");
       return;
     }
 
-    const { error: insertError } = await supabase.from("messages").insert({
-      client_id: userId,
-      subject,
-      body,
-      status: "new",
+    const response = await fetch("/api/messages", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ subject, body }),
     });
+    const payload = (await response.json()) as { error?: string };
 
-    if (insertError) {
-      setError(insertError.message);
+    if (!response.ok) {
+      setError(payload.error || "Unable to send message.");
       setSending(false);
       return;
     }

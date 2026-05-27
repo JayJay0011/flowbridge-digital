@@ -27,10 +27,17 @@ STRIPE_SECRET_KEY=
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 ZAPIER_STRATEGY_CALL_WEBHOOK_URL=
+RESEND_API_KEY=
+ADMIN_EMAIL=admin@flowbridgedigital.org
+NOTIFICATION_FROM_EMAIL=Flowbridge Digital <noreply@flowbridgedigital.org>
 ```
 
 `ZAPIER_STRATEGY_CALL_WEBHOOK_URL` receives consultation submissions before
 the visitor is sent to the prefilled Cal.com booking page.
+
+`RESEND_API_KEY` enables immediate inbox alerts to `ADMIN_EMAIL` when a
+signed-in account sends a new website message. Set `NOTIFICATION_FROM_EMAIL`
+to an address on a domain verified in Resend.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
