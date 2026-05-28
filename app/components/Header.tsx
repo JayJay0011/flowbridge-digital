@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
+import TranslateControl from "./TranslateControl";
 
 export default function Header() {
   const pathname = usePathname();
@@ -52,12 +53,12 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 md:px-6 py-5 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="text-3xl md:text-xl font-semibold tracking-tight whitespace-nowrap"
+          className="text-xl font-semibold tracking-tight whitespace-nowrap"
         >
           Flowbridge Digital
         </Link>
 
-        <nav className="hidden md:flex items-center gap-5 text-[15px] font-medium text-slate-600 whitespace-nowrap">
+        <nav className="hidden xl:flex items-center gap-5 text-[15px] font-medium text-slate-600 whitespace-nowrap">
           <Link href="/services" className="transition whitespace-nowrap">
             Services
           </Link>
@@ -95,16 +96,19 @@ export default function Header() {
           </Link>
         </nav>
 
-        <a
-          href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
-          target="_blank"
-          rel="noreferrer"
-          className="hidden md:inline-flex px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-slate-100 text-slate-900 hover:bg-slate-200 whitespace-nowrap"
-        >
-          Book Call
-        </a>
+        <div className="hidden xl:flex items-center gap-3">
+          <TranslateControl />
+          <a
+            href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-slate-100 text-slate-900 hover:bg-slate-200 whitespace-nowrap"
+          >
+            Book Call
+          </a>
+        </div>
 
-        <div className="flex items-center gap-3 md:hidden">
+        <div className="flex items-center gap-3 xl:hidden">
           <button
             type="button"
             onClick={() => setMobileOpen((prev) => !prev)}
@@ -117,8 +121,11 @@ export default function Header() {
         </div>
       </div>
       {mobileOpen ? (
-        <div id="mobile-menu" className="md:hidden border-t border-slate-200">
+        <div id="mobile-menu" className="xl:hidden border-t border-slate-200">
           <nav className="px-4 py-4 flex flex-col gap-4 text-sm font-medium text-slate-600">
+            <div className="pb-2">
+              <TranslateControl />
+            </div>
             <Link href="/services" onClick={() => setMobileOpen(false)}>
               Services
             </Link>
