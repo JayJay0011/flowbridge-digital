@@ -31,6 +31,7 @@ RESEND_API_KEY=
 ADMIN_EMAIL=admin@flowbridgedigital.org
 NOTIFICATION_FROM_EMAIL=Flowbridge Digital <noreply@flowbridgedigital.org>
 CRON_SECRET=
+USER_MESSAGE_NOTIFICATIONS_START_AT=
 OPENAI_API_KEY=
 OPENAI_SUPPORT_MODEL=gpt-4.1-mini
 ```
@@ -47,6 +48,8 @@ Flowbridge replies and emails the account holder. Vercel Hobby only supports
 daily cron jobs, so run this endpoint every five minutes from Zapier,
 cron-job.org, or another external scheduler. Send this header:
 `Authorization: Bearer YOUR_CRON_SECRET`.
+Set `USER_MESSAGE_NOTIFICATIONS_START_AT` to an ISO timestamp when enabling this
+feature so old replies are ignored, for example `2026-05-28T06:30:00+01:00`.
 
 `OPENAI_API_KEY` enables the AI help mode inside the site support widget.
 

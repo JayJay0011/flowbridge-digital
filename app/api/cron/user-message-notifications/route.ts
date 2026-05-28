@@ -26,6 +26,18 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
+function getNotificationStartAt() {
+  const configuredStart = process.env.USER_MESSAGE_NOTIFICATIONS_START_AT;
+  if (!configuredStart) return null;
+
+  const parsedStart = new Date(configuredStart);
+  if (Number.isNaN(parsedStart.getTime())) {
+    return null;
+  }
+
+  return parsedStart.toISOString();
+}
+
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret) {
@@ -44,14 +56,20 @@ export async function GET(request: Request) {
   }
 
   const cutoff = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data, error } = await supabaseAdmin
+  const startAt = getNotificationStartAt();
+  let query = supabaseAdmin
     .from("messages")
     .select("id,client_id,subject,body,created_at,profiles(email,username,company_name)")
     .eq("status", "replied")
     .is("user_seen_at", null)
     .is("user_notified_at", null)
-    .lte("created_at", cutoff)
-    .limit(20);
+    .lte("created_at", cutoff);
+
+  if (startAt) {
+    query = query.gte("created_at", startAt);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: true }).limit(20);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -101,5 +119,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ checked: dueMessages.length, sent });
+  return NextResponse.json({ checked: dueMessages.length, sent, startAt });
 }
