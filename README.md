@@ -42,8 +42,11 @@ the visitor is sent to the prefilled Cal.com booking page.
 signed-in account sends a new website message. Set `NOTIFICATION_FROM_EMAIL`
 to an address on a domain verified in Resend.
 
-The Vercel cron job checks every five minutes for unseen Flowbridge replies and
-emails the account holder. Set `CRON_SECRET` in Vercel to protect the cron route.
+The `/api/cron/user-message-notifications` endpoint checks for unseen
+Flowbridge replies and emails the account holder. Vercel Hobby only supports
+daily cron jobs, so run this endpoint every five minutes from Zapier,
+cron-job.org, or another external scheduler. Send this header:
+`Authorization: Bearer YOUR_CRON_SECRET`.
 
 `OPENAI_API_KEY` enables the AI help mode inside the site support widget.
 
