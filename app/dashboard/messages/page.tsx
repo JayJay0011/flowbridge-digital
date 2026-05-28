@@ -47,6 +47,16 @@ export default function DashboardMessagesPage() {
     setLoading(false);
   };
 
+  const markRepliesSeen = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) return;
+    await fetch("/api/messages/seen", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  };
+
   const upsertMessage = (incoming: Message) => {
     setMessages((prev) => {
       if (prev.some((message) => message.id === incoming.id)) {
@@ -72,6 +82,7 @@ export default function DashboardMessagesPage() {
         setUserId(user.id);
       }
       await loadMessages(user.id);
+      await markRepliesSeen();
     };
     load();
     return () => {

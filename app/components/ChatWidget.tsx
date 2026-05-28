@@ -13,6 +13,11 @@ type Message = {
   created_at: string;
 };
 
+type AiMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 type UploadEntry = {
   file: File;
   type: "file" | "voice";
@@ -32,6 +37,17 @@ export default function ChatWidget() {
   const [uploads, setUploads] = useState<UploadEntry[]>([]);
   const [recording, setRecording] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
+  const [supportMode, setSupportMode] = useState<"ai" | "team">("ai");
+  const [aiMessages, setAiMessages] = useState<AiMessage[]>([
+    {
+      role: "assistant",
+      content:
+        "Hi, I can help with Flowbridge services, systems, CRM, orders, and next steps. What do you need help with?",
+    },
+  ]);
+  const [aiDraft, setAiDraft] = useState("");
+  const [aiSending, setAiSending] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -124,6 +140,17 @@ export default function ChatWidget() {
 
   useEffect(() => {
     if (!userId || !open) return;
+    const markRepliesSeen = async () => {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return;
+      await fetch("/api/messages/seen", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    };
+    markRepliesSeen();
+
     const presenceChannel = supabase.channel(`presence-${userId}`, {
       config: { presence: { key: presenceKeyRef.current } },
     });
@@ -303,6 +330,43 @@ export default function ChatWidget() {
     }
   };
 
+  const handleAiSend = async () => {
+    if (!aiDraft.trim()) return;
+    const nextMessages: AiMessage[] = [
+      ...aiMessages,
+      { role: "user", content: aiDraft.trim() },
+    ];
+    setAiMessages(nextMessages);
+    setAiDraft("");
+    setAiSending(true);
+    setAiError(null);
+
+    try {
+      const response = await fetch("/api/ai-support", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: nextMessages }),
+      });
+      const payload = (await response.json()) as {
+        reply?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.reply) {
+        throw new Error(payload.error || "AI support is unavailable.");
+      }
+
+      setAiMessages((current) => [
+        ...current,
+        { role: "assistant", content: payload.reply || "" },
+      ]);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : "AI support is unavailable.");
+    } finally {
+      setAiSending(false);
+    }
+  };
+
   const renderMessageBody = (body: string) => {
     if (body.startsWith(offerPrefix)) {
       try {
@@ -389,66 +453,152 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          <div className="px-4 py-3 bg-slate-50 text-xs text-slate-500">
-            {userId
-              ? "Your messages sync to your dashboard."
-              : "Log in to start chatting with Flowbridge."}
+          <div className="grid grid-cols-2 gap-2 border-b border-slate-200 bg-white p-3">
+            <button
+              type="button"
+              onClick={() => setSupportMode("ai")}
+              className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                supportMode === "ai"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              AI help
+            </button>
+            <button
+              type="button"
+              onClick={() => setSupportMode("team")}
+              className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                supportMode === "team"
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              Message team
+            </button>
           </div>
 
-          <div className="max-h-[280px] overflow-y-auto px-4 py-3 space-y-3 bg-white">
-            {loading ? (
-              <div className="text-sm text-slate-400">Loading chat...</div>
-            ) : messages.length === 0 ? (
-              <div className="text-sm text-slate-500">{latestPreview}</div>
-            ) : (
-              <>
-                {messages.slice(-6).map((message) => {
-                  const isAgent = message.status === "replied";
-                  return (
+          {supportMode === "ai" ? (
+            <>
+              <div className="max-h-[320px] space-y-3 overflow-y-auto bg-white px-4 py-3">
+                {aiMessages.map((message, index) => (
+                  <div
+                    key={`${message.role}-${index}`}
+                    className={`flex ${
+                      message.role === "assistant" ? "justify-start" : "justify-end"
+                    }`}
+                  >
                     <div
-                      key={message.id}
-                      className={`flex ${isAgent ? "justify-start" : "justify-end"}`}
+                      className={`max-w-[82%] rounded-2xl px-3 py-2 text-xs whitespace-pre-wrap ${
+                        message.role === "assistant"
+                          ? "bg-slate-100 text-slate-900"
+                          : "bg-slate-900 text-white"
+                      }`}
                     >
-                      <div
-                        className={`max-w-[75%] rounded-2xl px-3 py-2 text-xs whitespace-pre-wrap ${
-                          isAgent
-                            ? "bg-slate-100 text-slate-900"
-                            : "bg-slate-900 text-white"
-                        }`}
-                      >
-                        {renderMessageBody(message.body)}
-                      </div>
-                    </div>
-                  );
-                })}
-                {agentTyping ? (
-                  <div className="flex justify-start">
-                    <div className="rounded-2xl px-3 py-2 text-xs bg-slate-100 text-slate-600">
-                      <div className="typing-indicator">
-                        <span className="typing-dot" />
-                        <span className="typing-dot" />
-                        <span className="typing-dot" />
-                      </div>
+                      {message.content}
                     </div>
                   </div>
+                ))}
+                {aiSending ? (
+                  <div className="text-xs text-slate-500">Thinking...</div>
                 ) : null}
-              </>
-            )}
-          </div>
-
-          <div className="border-t border-slate-200 px-4 py-4 bg-white">
-            {userId ? (
-              <div className="space-y-3">
+                {aiError ? <div className="text-xs text-red-600">{aiError}</div> : null}
+              </div>
+              <div className="border-t border-slate-200 bg-white px-4 py-4">
                 <textarea
                   rows={2}
-                  value={draft}
-                  onChange={(event) => {
-                    setDraft(event.target.value);
-                    sendTyping();
+                  value={aiDraft}
+                  onChange={(event) => setAiDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !event.shiftKey) {
+                      event.preventDefault();
+                      handleAiSend();
+                    }
                   }}
-                  placeholder="Type a message..."
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  placeholder="Ask about services, systems, or next steps..."
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
                 />
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSupportMode("team")}
+                    className="text-xs font-semibold text-slate-600"
+                  >
+                    Contact team
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAiSend}
+                    disabled={aiSending || !aiDraft.trim()}
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                  >
+                    {aiSending ? "Sending..." : "Ask AI"}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="px-4 py-3 bg-slate-50 text-xs text-slate-500">
+                {userId
+                  ? "Your messages sync to your dashboard."
+                  : "Log in to start chatting with Flowbridge."}
+              </div>
+
+              <div className="max-h-[280px] overflow-y-auto px-4 py-3 space-y-3 bg-white">
+                {loading ? (
+                  <div className="text-sm text-slate-400">Loading chat...</div>
+                ) : messages.length === 0 ? (
+                  <div className="text-sm text-slate-500">{latestPreview}</div>
+                ) : (
+                  <>
+                    {messages.slice(-6).map((message) => {
+                      const isAgent = message.status === "replied";
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${isAgent ? "justify-start" : "justify-end"}`}
+                        >
+                          <div
+                            className={`max-w-[75%] rounded-2xl px-3 py-2 text-xs whitespace-pre-wrap ${
+                              isAgent
+                                ? "bg-slate-100 text-slate-900"
+                                : "bg-slate-900 text-white"
+                            }`}
+                          >
+                            {renderMessageBody(message.body)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {agentTyping ? (
+                      <div className="flex justify-start">
+                        <div className="rounded-2xl px-3 py-2 text-xs bg-slate-100 text-slate-600">
+                          <div className="typing-indicator">
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                            <span className="typing-dot" />
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
+                  </>
+                )}
+              </div>
+
+              <div className="border-t border-slate-200 px-4 py-4 bg-white">
+                {userId ? (
+                  <div className="space-y-3">
+                    <textarea
+                      rows={2}
+                      value={draft}
+                      onChange={(event) => {
+                        setDraft(event.target.value);
+                        sendTyping();
+                      }}
+                      placeholder="Type a message..."
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                    />
 
                 {uploads.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -493,15 +643,17 @@ export default function ChatWidget() {
                   </button>
                 </div>
               </div>
-            ) : (
-              <div className="text-xs text-slate-600">
-                <Link href="/login" className="text-slate-900 font-semibold">
-                  Log in
-                </Link>{" "}
-                to start messaging Flowbridge.
+                ) : (
+                  <div className="text-xs text-slate-600">
+                    <Link href="/login" className="text-slate-900 font-semibold">
+                      Log in
+                    </Link>{" "}
+                    to start messaging Flowbridge.
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       ) : (
         <button

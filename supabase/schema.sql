@@ -180,6 +180,8 @@ create table if not exists public.messages (
   subject text,
   body text not null,
   status text not null default 'new' check (status in ('new', 'replied', 'closed')),
+  user_seen_at timestamptz,
+  user_notified_at timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -335,6 +337,10 @@ with check (public.is_admin() and public.has_admin_permission('messages', 'write
 create policy "Messages: admin read"
 on public.messages for select
 using (public.is_admin() and public.has_admin_permission('messages', 'read'));
+
+create index if not exists messages_unseen_replies_idx
+on public.messages (created_at)
+where status = 'replied' and user_seen_at is null and user_notified_at is null;
 
 create policy "Tips: account read own"
 on public.tips for select

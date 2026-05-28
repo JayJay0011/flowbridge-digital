@@ -30,6 +30,9 @@ ZAPIER_STRATEGY_CALL_WEBHOOK_URL=
 RESEND_API_KEY=
 ADMIN_EMAIL=admin@flowbridgedigital.org
 NOTIFICATION_FROM_EMAIL=Flowbridge Digital <noreply@flowbridgedigital.org>
+CRON_SECRET=
+OPENAI_API_KEY=
+OPENAI_SUPPORT_MODEL=gpt-4.1-mini
 ```
 
 `ZAPIER_STRATEGY_CALL_WEBHOOK_URL` receives consultation submissions before
@@ -38,6 +41,11 @@ the visitor is sent to the prefilled Cal.com booking page.
 `RESEND_API_KEY` enables immediate inbox alerts to `ADMIN_EMAIL` when a
 signed-in account sends a new website message. Set `NOTIFICATION_FROM_EMAIL`
 to an address on a domain verified in Resend.
+
+The Vercel cron job checks every five minutes for unseen Flowbridge replies and
+emails the account holder. Set `CRON_SECRET` in Vercel to protect the cron route.
+
+`OPENAI_API_KEY` enables the AI help mode inside the site support widget.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
