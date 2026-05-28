@@ -17,6 +17,14 @@ type DueMessage = {
   }>;
 };
 
+type NotificationCandidate = DueMessage & {
+  profile: {
+    email: string | null;
+    username: string | null;
+    company_name: string | null;
+  } | null;
+};
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -82,16 +90,34 @@ export async function GET(request: Request) {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL || "https://flowbridgedigital.org";
   const dueMessages = (data ?? []) as DueMessage[];
-  let sent = 0;
+  const latestByClient = new Map<string, NotificationCandidate>();
 
-  for (const message of dueMessages) {
+  dueMessages.forEach((message) => {
     const profile = Array.isArray(message.profiles)
       ? message.profiles[0]
       : message.profiles;
-    const email = profile?.email;
+    const existing = latestByClient.get(message.client_id);
+
+    if (
+      !existing ||
+      new Date(message.created_at).getTime() >
+        new Date(existing.created_at).getTime()
+    ) {
+      latestByClient.set(message.client_id, {
+        ...message,
+        profile,
+      });
+    }
+  });
+
+  let sent = 0;
+
+  for (const message of latestByClient.values()) {
+    const email = message.profile?.email;
     if (!email) continue;
 
-    const name = profile.company_name || profile.username || "there";
+    const name =
+      message.profile?.company_name || message.profile?.username || "there";
     const preview = message.body.replace(/\s+/g, " ").slice(0, 220);
     const { error: sendError } = await resend.emails.send({
       from: sender,
@@ -109,15 +135,30 @@ export async function GET(request: Request) {
     });
 
     if (!sendError) {
-      await supabaseAdmin
+      let updateQuery = supabaseAdmin
         .from("messages")
         .update({ user_notified_at: new Date().toISOString() })
-        .eq("id", message.id);
+        .eq("client_id", message.client_id)
+        .eq("status", "replied")
+        .is("user_seen_at", null)
+        .is("user_notified_at", null)
+        .lte("created_at", message.created_at);
+
+      if (startAt) {
+        updateQuery = updateQuery.gte("created_at", startAt);
+      }
+
+      await updateQuery;
       sent += 1;
     } else {
       console.error("User reply notification failed:", sendError);
     }
   }
 
-  return NextResponse.json({ checked: dueMessages.length, sent, startAt });
+  return NextResponse.json({
+    checked: dueMessages.length,
+    conversations: latestByClient.size,
+    sent,
+    startAt,
+  });
 }
