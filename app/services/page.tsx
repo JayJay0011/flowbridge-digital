@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const revalidate = 0;
@@ -15,37 +16,42 @@ const fallbackServices = [
     description:
       "Business process automation, workflow engineering, and backend operational structuring.",
     slug: "automation-systems-architecture",
+    cover_url: null,
   },
   {
     title: "CRM & Pipeline Engineering",
     description:
       "Structured CRM design, lifecycle workflows, and revenue visibility systems.",
     slug: "crm-pipeline",
+    cover_url: null,
   },
   {
     title: "Growth Infrastructure",
     description:
       "Email marketing systems, lead nurturing automation, and conversion infrastructure.",
     slug: "growth-infrastructure",
+    cover_url: null,
   },
   {
     title: "Platform Development",
     description:
       "Modern web applications and internal tools built for operational scalability.",
     slug: "platform-development",
+    cover_url: null,
   },
   {
     title: "Operational Support",
     description:
       "Structured VA systems, backend documentation, and execution support frameworks.",
     slug: "operational-support",
+    cover_url: null,
   },
 ];
 
 export default async function ServicesPage() {
   const { data } = await supabasePublic
     .from("services")
-    .select("title,slug,description")
+    .select("title,slug,description,cover_url")
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
@@ -96,6 +102,7 @@ export default async function ServicesPage() {
                 key={service.slug}
                 title={service.title}
                 desc={service.description || ""}
+                coverUrl={service.cover_url}
                 href={`/services/${service.slug}`}
               />
             ))}
@@ -150,19 +157,33 @@ export default async function ServicesPage() {
 type ServiceCardProps = {
   title: string;
   desc: string;
+  coverUrl?: string | null;
   href: string;
 };
 
-function ServiceCard({ title, desc, href }: ServiceCardProps) {
+function ServiceCard({ title, desc, coverUrl, href }: ServiceCardProps) {
   return (
     <Link
       href={href}
-      className="p-8 bg-white border border-slate-200 rounded-2xl hover:shadow-md transition block"
+      className="overflow-hidden bg-white border border-slate-200 rounded-2xl hover:shadow-md transition block"
     >
-      <h3 className="text-xl font-semibold mb-4">{title}</h3>
-      <p className="text-slate-600">{desc}</p>
-      <div className="mt-6 text-sm font-medium text-slate-900">
-        Learn More →
+      {coverUrl ? (
+        <div className="relative aspect-[16/10] bg-slate-100">
+          <Image
+            src={coverUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 33vw"
+          />
+        </div>
+      ) : null}
+      <div className="p-8">
+        <h3 className="text-xl font-semibold mb-4">{title}</h3>
+        <p className="text-slate-600">{desc}</p>
+        <div className="mt-6 text-sm font-medium text-slate-900">
+          Learn More →
+        </div>
       </div>
     </Link>
   )

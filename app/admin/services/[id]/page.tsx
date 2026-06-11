@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type ServiceItem = {
   id: string;
   title: string;
   slug: string;
   description: string | null;
+  cover_url: string | null;
   status: "draft" | "published";
 };
 
@@ -21,11 +23,27 @@ export default function AdminServiceEditPage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("services")
-        .select("id,title,slug,description,status")
+        .select("id,title,slug,description,cover_url,status")
         .eq("id", params.id)
         .single();
+
+      if (error?.message.includes("cover_url")) {
+        const { data: fallbackData } = await supabase
+          .from("services")
+          .select("id,title,slug,description,status")
+          .eq("id", params.id)
+          .single();
+
+        setService(
+          fallbackData
+            ? ({ ...fallbackData, cover_url: null } as ServiceItem)
+            : null
+        );
+        return;
+      }
+
       setService(data as ServiceItem);
     };
     load();
@@ -35,17 +53,40 @@ export default function AdminServiceEditPage() {
     if (!service) return;
     setSaving(true);
     setMessage(null);
+    const payload = {
+      title: service.title.trim(),
+      slug: service.slug.trim(),
+      description: service.description?.trim() || null,
+      cover_url: service.cover_url?.trim() || null,
+      status: service.status,
+    };
+
     const { error } = await supabase
       .from("services")
-      .update({
-        title: service.title.trim(),
-        slug: service.slug.trim(),
-        description: service.description?.trim() || null,
-        status: service.status,
-      })
+      .update(payload)
       .eq("id", service.id);
 
     if (error) {
+      if (error.message.includes("cover_url")) {
+        const payloadWithoutCover = {
+          title: payload.title,
+          slug: payload.slug,
+          description: payload.description,
+          status: payload.status,
+        };
+        const { error: fallbackError } = await supabase
+          .from("services")
+          .update(payloadWithoutCover)
+          .eq("id", service.id);
+
+        if (!fallbackError) {
+          setMessage(
+            "Changes saved. Run the service image migration before saving service images."
+          );
+          setSaving(false);
+          return;
+        }
+      }
       setMessage(error.message);
     } else {
       setMessage("Changes saved.");
@@ -105,6 +146,20 @@ export default function AdminServiceEditPage() {
             }
             rows={4}
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+          />
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Service image"
+            section="services/covers"
+            value={service.cover_url}
+            helperText="Upload a JPG, PNG, or WebP image instead of pasting a URL."
+            onUploaded={(urls) =>
+              setService({
+                ...service,
+                cover_url: urls[0] ?? service.cover_url,
+              })
+            }
           />
         </div>
         <div>

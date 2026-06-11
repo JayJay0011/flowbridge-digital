@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type BlogPost = {
   id: string;
@@ -164,13 +165,14 @@ export default function AdminBlogEditPage() {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">Cover image URL</label>
-          <input
+          <AdminImageUpload
+            label="Cover image"
+            section="blog/covers"
             value={post.cover_url ?? ""}
-            onChange={(event) =>
-              setPost({ ...post, cover_url: event.target.value })
+            helperText="Upload a JPG, PNG, or WebP image instead of pasting a URL."
+            onUploaded={(urls) =>
+              setPost({ ...post, cover_url: urls[0] ?? post.cover_url })
             }
-            className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
         <div>

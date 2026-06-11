@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 export default function AdminBlogNewPage() {
   const router = useRouter();
@@ -91,12 +92,14 @@ export default function AdminBlogNewPage() {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">Cover image URL</label>
-          <input
+          <AdminImageUpload
+            label="Cover image"
+            section="blog/covers"
             value={form.cover_url}
-            onChange={(event) => setForm({ ...form, cover_url: event.target.value })}
-            className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-            placeholder="https://..."
+            helperText="Upload a JPG, PNG, or WebP image instead of pasting a URL."
+            onUploaded={(urls) =>
+              setForm({ ...form, cover_url: urls[0] ?? "" })
+            }
           />
         </div>
         <div>

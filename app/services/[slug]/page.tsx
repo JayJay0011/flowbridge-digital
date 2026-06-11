@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabasePublic } from "../../lib/supabasePublic";
 
 export const revalidate = 0;
@@ -33,14 +34,30 @@ export async function generateMetadata({ params }: Params) {
 export default async function ServiceDetailPage({ params }: Params) {
   const { slug: rawSlug } = await params;
   const slug = decodeURIComponent(rawSlug).trim();
-  const { data: service } = await supabasePublic
+  const { data: service, error } = await supabasePublic
     .from("services")
-    .select("title,description")
+    .select("title,description,cover_url")
     .eq("slug", slug)
     .limit(1)
     .maybeSingle();
+  const serviceRecord = error?.message.includes("cover_url")
+    ? (
+        await supabasePublic
+          .from("services")
+          .select("title,description")
+          .eq("slug", slug)
+          .limit(1)
+          .maybeSingle()
+      ).data
+    : service;
+  const coverUrl =
+    serviceRecord &&
+    "cover_url" in serviceRecord &&
+    typeof serviceRecord.cover_url === "string"
+      ? serviceRecord.cover_url
+      : null;
 
-  if (!service) {
+  if (!serviceRecord) {
     return (
       <main className="bg-white text-slate-900 py-24">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
@@ -67,12 +84,24 @@ export default async function ServiceDetailPage({ params }: Params) {
             Service
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold mt-6">
-            {service.title}
+            {serviceRecord.title}
           </h1>
-          {service.description ? (
+          {serviceRecord.description ? (
             <p className="text-xl text-slate-200 max-w-3xl mt-6">
-              {service.description}
+              {serviceRecord.description}
             </p>
+          ) : null}
+          {coverUrl ? (
+            <div className="relative mt-10 aspect-[16/7] overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
+              <Image
+                src={coverUrl}
+                alt=""
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 960px"
+              />
+            </div>
           ) : null}
         </div>
       </section>

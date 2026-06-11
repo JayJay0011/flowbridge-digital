@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 export default function AdminCaseStudyNewPage() {
   const router = useRouter();
@@ -108,16 +109,16 @@ export default function AdminCaseStudyNewPage() {
               className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
             />
           </div>
-          <div>
-            <label className="text-sm font-semibold">Cover image URL</label>
-            <input
+          <AdminImageUpload
+            label="Cover image"
+            section="case-studies/covers"
+            watermark
               value={form.cover_url}
-              onChange={(event) =>
-                setForm({ ...form, cover_url: event.target.value })
-              }
-              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-            />
-          </div>
+            helperText="A Flowbridge watermark is added before upload."
+            onUploaded={(urls) =>
+              setForm({ ...form, cover_url: urls[0] ?? "" })
+            }
+          />
         </div>
         <div>
           <label className="text-sm font-semibold">Key results (comma)</label>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type PackageInput = {
   title: string;
@@ -55,7 +56,6 @@ export default function AdminGigEditPage() {
   const [standard, setStandard] = useState<PackageInput>(toPackageInput(null));
   const [premium, setPremium] = useState<PackageInput>(toPackageInput(null));
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -81,61 +81,6 @@ export default function AdminGigEditPage() {
     () => (gig?.highlights?.join(", ") || ""),
     [gig?.highlights]
   );
-
-  const uploadFile = async (file: File, folder: string) => {
-    const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
-    const path = `gigs/${folder}/${Date.now()}-${safeName}`;
-    const { error: uploadError } = await supabase.storage
-      .from("public-assets")
-      .upload(path, file, { upsert: true });
-    if (uploadError) {
-      throw new Error(uploadError.message);
-    }
-    const { data } = supabase.storage.from("public-assets").getPublicUrl(path);
-    return data.publicUrl;
-  };
-
-  const handleCoverUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0];
-    if (!file || !gig) return;
-    setUploading(true);
-    setMessage(null);
-    try {
-      const url = await uploadFile(file, "covers");
-      setGig({ ...gig, cover_url: url });
-    } catch (uploadError) {
-      setMessage(
-        uploadError instanceof Error ? uploadError.message : "Upload failed."
-      );
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
-  };
-
-  const handleGalleryUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const files = event.target.files ? Array.from(event.target.files) : [];
-    if (!files.length) return;
-    setUploading(true);
-    setMessage(null);
-    try {
-      const urls = await Promise.all(
-        files.map((file) => uploadFile(file, "gallery"))
-      );
-      setGalleryUrls((prev) => [...prev, ...urls]);
-    } catch (uploadError) {
-      setMessage(
-        uploadError instanceof Error ? uploadError.message : "Upload failed."
-      );
-    } finally {
-      setUploading(false);
-      event.target.value = "";
-    }
-  };
 
   const packagePayload = (pkg: PackageInput) => ({
     title: pkg.title.trim() || null,
@@ -253,36 +198,32 @@ export default function AdminGigEditPage() {
             />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
-            <div>
-              <label className="text-sm font-semibold">Cover image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverUpload}
-                className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-              />
-              {gig.cover_url ? (
-                <p className="text-xs text-slate-500 mt-2">
-                  Cover uploaded ✓
-                </p>
-              ) : null}
-            </div>
-            <div>
-              <label className="text-sm font-semibold">Gallery images</label>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleGalleryUpload}
-                className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-              />
-              {galleryUrls.length ? (
-                <p className="text-xs text-slate-500 mt-2">
-                  {galleryUrls.length} gallery image
-                  {galleryUrls.length > 1 ? "s" : ""} uploaded ✓
-                </p>
-              ) : null}
-            </div>
+            <AdminImageUpload
+              label="Cover image"
+              section="gigs/covers"
+              value={gig.cover_url}
+              watermark
+              helperText="JPG, PNG, or WebP. A Flowbridge watermark is added before upload."
+              onUploaded={(urls) =>
+                setGig({ ...gig, cover_url: urls[0] ?? gig.cover_url })
+              }
+            />
+            <AdminImageUpload
+              label="Gallery images"
+              section="gigs/gallery"
+              multiple
+              watermark
+              helperText={
+                galleryUrls.length
+                  ? `${galleryUrls.length} gallery image${
+                      galleryUrls.length > 1 ? "s" : ""
+                    } uploaded.`
+                  : "Upload one or more gallery images."
+              }
+              onUploaded={(urls) =>
+                setGalleryUrls((previousUrls) => [...previousUrls, ...urls])
+              }
+            />
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div>
@@ -372,10 +313,6 @@ export default function AdminGigEditPage() {
           ))}
         </div>
       </div>
-
-      {uploading ? (
-        <p className="text-sm text-slate-500">Uploading media...</p>
-      ) : null}
 
       <div className="flex items-center gap-3">
         <button

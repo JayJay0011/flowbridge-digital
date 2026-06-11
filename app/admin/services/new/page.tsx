@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 export default function AdminServiceNewPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function AdminServiceNewPage() {
     title: "",
     slug: "",
     description: "",
+    cover_url: "",
     status: "draft",
   });
 
@@ -28,18 +30,39 @@ export default function AdminServiceNewPage() {
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/(^-|-$)+/g, "");
 
+    const payload = {
+      title: form.title.trim(),
+      slug,
+      description: form.description.trim() || null,
+      cover_url: form.cover_url.trim() || null,
+      status: form.status,
+    };
+
     const { data, error } = await supabase
       .from("services")
-      .insert({
-        title: form.title.trim(),
-        slug,
-        description: form.description.trim() || null,
-        status: form.status,
-      })
+      .insert(payload)
       .select("id")
       .single();
 
     if (error) {
+      if (error.message.includes("cover_url")) {
+        const payloadWithoutCover = {
+          title: payload.title,
+          slug: payload.slug,
+          description: payload.description,
+          status: payload.status,
+        };
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from("services")
+          .insert(payloadWithoutCover)
+          .select("id")
+          .single();
+
+        if (!fallbackError) {
+          router.push(`/admin/services/${fallbackData.id}`);
+          return;
+        }
+      }
       setMessage(error.message);
       setSaving(false);
       return;
@@ -85,6 +108,17 @@ export default function AdminServiceNewPage() {
             }
             rows={4}
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+          />
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Service image"
+            section="services/covers"
+            value={form.cover_url}
+            helperText="Upload a JPG, PNG, or WebP image instead of pasting a URL."
+            onUploaded={(urls) =>
+              setForm({ ...form, cover_url: urls[0] ?? "" })
+            }
           />
         </div>
         <div>

@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type CaseStudyOption = {
   id: string;
@@ -115,13 +116,15 @@ export default function AdminPortfolioNewPage() {
           />
         </div>
         <div>
-          <label className="text-sm font-semibold">Cover image URL</label>
-          <input
+          <AdminImageUpload
+            label="Cover image"
+            section="portfolio/covers"
+            watermark
             value={form.cover_url}
-            onChange={(event) =>
-              setForm({ ...form, cover_url: event.target.value })
+            helperText="A Flowbridge watermark is added before upload."
+            onUploaded={(urls) =>
+              setForm({ ...form, cover_url: urls[0] ?? "" })
             }
-            className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
         <div>

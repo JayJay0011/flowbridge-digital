@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type CaseStudy = {
   id: string;
@@ -126,16 +127,16 @@ export default function AdminCaseStudyEditPage() {
               className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
             />
           </div>
-          <div>
-            <label className="text-sm font-semibold">Cover image URL</label>
-            <input
+          <AdminImageUpload
+            label="Cover image"
+            section="case-studies/covers"
+            watermark
               value={study.cover_url ?? ""}
-              onChange={(event) =>
-                setStudy({ ...study, cover_url: event.target.value })
-              }
-              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-            />
-          </div>
+            helperText="A Flowbridge watermark is added before upload."
+            onUploaded={(urls) =>
+              setStudy({ ...study, cover_url: urls[0] ?? study.cover_url })
+            }
+          />
         </div>
         <div>
           <label className="text-sm font-semibold">Results (comma)</label>

@@ -48,6 +48,7 @@ create table if not exists public.services (
   title text not null,
   slug text not null unique,
   description text,
+  cover_url text,
   status text not null default 'draft' check (status in ('draft', 'published')),
   created_at timestamptz not null default now()
 );
