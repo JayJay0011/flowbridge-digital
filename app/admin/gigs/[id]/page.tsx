@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import { gigCategories } from "../../../lib/gigCategories";
 import AdminImageUpload from "../../_components/AdminImageUpload";
 
 type PackageInput = {
@@ -31,6 +32,7 @@ type GigRecord = {
   order_fiverr_url: string | null;
   cover_url: string | null;
   gallery_urls: string[] | null;
+  category_slugs?: string[] | null;
   delivery_days: number | null;
   status: "draft" | "published";
   package_basic: PackageData;
@@ -56,22 +58,44 @@ export default function AdminGigEditPage() {
   const [standard, setStandard] = useState<PackageInput>(toPackageInput(null));
   const [premium, setPremium] = useState<PackageInput>(toPackageInput(null));
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [categorySlugs, setCategorySlugs] = useState<string[]>([]);
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("gigs")
         .select(
-          "id,title,slug,summary,highlights,price_text,order_fiverr_url,cover_url,gallery_urls,delivery_days,status,package_basic,package_standard,package_premium"
+          "id,title,slug,summary,highlights,price_text,order_fiverr_url,cover_url,gallery_urls,category_slugs,delivery_days,status,package_basic,package_standard,package_premium"
         )
         .eq("id", params.id)
         .single();
+      if (error?.message.includes("category_slugs")) {
+        const { data: fallbackData } = await supabase
+          .from("gigs")
+          .select(
+            "id,title,slug,summary,highlights,price_text,order_fiverr_url,cover_url,gallery_urls,delivery_days,status,package_basic,package_standard,package_premium"
+          )
+          .eq("id", params.id)
+          .single();
+        if (fallbackData) {
+          setGig(fallbackData as GigRecord);
+          setBasic(toPackageInput((fallbackData as GigRecord).package_basic));
+          setStandard(
+            toPackageInput((fallbackData as GigRecord).package_standard)
+          );
+          setPremium(toPackageInput((fallbackData as GigRecord).package_premium));
+          setGalleryUrls((fallbackData as GigRecord).gallery_urls ?? []);
+          setCategorySlugs([]);
+        }
+        return;
+      }
       if (data) {
         setGig(data as GigRecord);
         setBasic(toPackageInput((data as GigRecord).package_basic));
         setStandard(toPackageInput((data as GigRecord).package_standard));
         setPremium(toPackageInput((data as GigRecord).package_premium));
         setGalleryUrls((data as GigRecord).gallery_urls ?? []);
+        setCategorySlugs((data as GigRecord).category_slugs ?? []);
       }
     };
     load();
@@ -97,31 +121,63 @@ export default function AdminGigEditPage() {
     if (!gig) return;
     setSaving(true);
     setMessage(null);
+    const payload = {
+      title: gig.title.trim(),
+      slug: gig.slug.trim(),
+      summary: gig.summary?.trim() || null,
+      price_text: gig.price_text?.trim() || null,
+      order_fiverr_url: gig.order_fiverr_url?.trim() || null,
+      cover_url: gig.cover_url?.trim() || null,
+      gallery_urls: galleryUrls.length ? galleryUrls : null,
+      category_slugs: categorySlugs,
+      delivery_days: gig.delivery_days ?? null,
+      highlights: highlightText
+        ? highlightText
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : null,
+      status: gig.status,
+      package_basic: packagePayload(basic),
+      package_standard: packagePayload(standard),
+      package_premium: packagePayload(premium),
+    };
+
     const { error } = await supabase
       .from("gigs")
-      .update({
-        title: gig.title.trim(),
-        slug: gig.slug.trim(),
-        summary: gig.summary?.trim() || null,
-        price_text: gig.price_text?.trim() || null,
-        order_fiverr_url: gig.order_fiverr_url?.trim() || null,
-        cover_url: gig.cover_url?.trim() || null,
-        gallery_urls: galleryUrls.length ? galleryUrls : null,
-        delivery_days: gig.delivery_days ?? null,
-        highlights: highlightText
-          ? highlightText
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : null,
-        status: gig.status,
-        package_basic: packagePayload(basic),
-        package_standard: packagePayload(standard),
-        package_premium: packagePayload(premium),
-      })
+      .update(payload)
       .eq("id", gig.id);
 
     if (error) {
+      if (error.message.includes("category_slugs")) {
+        const payloadWithoutCategories = {
+          title: payload.title,
+          slug: payload.slug,
+          summary: payload.summary,
+          price_text: payload.price_text,
+          order_fiverr_url: payload.order_fiverr_url,
+          cover_url: payload.cover_url,
+          gallery_urls: payload.gallery_urls,
+          delivery_days: payload.delivery_days,
+          highlights: payload.highlights,
+          status: payload.status,
+          package_basic: payload.package_basic,
+          package_standard: payload.package_standard,
+          package_premium: payload.package_premium,
+        };
+        const { error: fallbackError } = await supabase
+          .from("gigs")
+          .update(payloadWithoutCategories)
+          .eq("id", gig.id);
+
+        if (!fallbackError) {
+          setMessage(
+            "Changes saved. Run the gig category migration before saving categories."
+          );
+          setSaving(false);
+          return;
+        }
+      }
       setMessage(error.message);
     } else {
       setMessage("Changes saved.");
@@ -196,6 +252,34 @@ export default function AdminGigEditPage() {
               }
               className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
             />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">Categories</label>
+            <p className="mt-1 text-xs text-slate-500">
+              Assign one or more categories for public filtering.
+            </p>
+            <div className="mt-3 grid sm:grid-cols-2 gap-3">
+              {gigCategories.map((category) => (
+                <label
+                  key={category.slug}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                >
+                  <input
+                    type="checkbox"
+                    checked={categorySlugs.includes(category.slug)}
+                    onChange={(event) =>
+                      setCategorySlugs((current) =>
+                        event.target.checked
+                          ? [...current, category.slug]
+                          : current.filter((slug) => slug !== category.slug)
+                      )
+                    }
+                    className="h-4 w-4"
+                  />
+                  {category.label}
+                </label>
+              ))}
+            </div>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <AdminImageUpload

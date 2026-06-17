@@ -64,6 +64,7 @@ create table if not exists public.gigs (
   order_fiverr_url text,
   cover_url text,
   gallery_urls text[],
+  category_slugs text[] not null default '{}',
   seller_name text,
   seller_title text,
   delivery_days int,

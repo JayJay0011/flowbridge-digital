@@ -34,6 +34,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [hasPermissionRows, setHasPermissionRows] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -110,6 +111,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     if (!entry) return false;
     return action === "read" ? entry.can_read : entry.can_write;
   };
+  const canReadMessages =
+    !hasPermissionRows ||
+    permissions.some((item) => item.module === "messages" && item.can_read);
 
   useEffect(() => {
     if (!permissionsLoaded || !currentModule) return;
@@ -124,6 +128,40 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     router.replace("/");
   };
+
+  useEffect(() => {
+    if (checking || !permissionsLoaded || !canReadMessages) return;
+    let isMounted = true;
+
+    const loadUnreadMessages = async () => {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "new");
+
+      if (isMounted) {
+        setUnreadMessages(count ?? 0);
+      }
+    };
+
+    loadUnreadMessages();
+
+    const channel = supabase
+      .channel("admin-unread-message-count")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "messages" },
+        () => {
+          void loadUnreadMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      void supabase.removeChannel(channel);
+    };
+  }, [canReadMessages, checking, permissionsLoaded]);
 
   if (checking || !permissionsLoaded) {
     return (
@@ -160,7 +198,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                         : "text-slate-700 hover:bg-slate-100"
                     }`}
                   >
-                    {item.label}
+                    <span className="flex items-center gap-2">
+                      {item.label}
+                      {item.module === "messages" && unreadMessages > 0 ? (
+                        <span
+                          aria-label={`${unreadMessages} unread messages`}
+                          className="h-2.5 w-2.5 rounded-full bg-red-500"
+                        />
+                      ) : null}
+                    </span>
                   </Link>
                 );
               })}
@@ -232,7 +278,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                             : "bg-slate-100 text-slate-700"
                         }`}
                       >
-                        {item.label}
+                        <span className="flex items-center gap-1.5">
+                          {item.label}
+                          {item.module === "messages" && unreadMessages > 0 ? (
+                            <span
+                              aria-label={`${unreadMessages} unread messages`}
+                              className="h-2 w-2 rounded-full bg-red-500"
+                            />
+                          ) : null}
+                        </span>
                       </Link>
                     );
                   })}

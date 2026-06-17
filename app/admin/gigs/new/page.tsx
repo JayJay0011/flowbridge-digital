@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
+import { gigCategories } from "../../../lib/gigCategories";
 import AdminImageUpload from "../../_components/AdminImageUpload";
 
 function slugify(value: string) {
@@ -21,6 +22,7 @@ export default function NewGigPage() {
   const [status, setStatus] = useState("draft");
   const [orderFiverrUrl, setOrderFiverrUrl] = useState("");
   const [highlights, setHighlights] = useState("");
+  const [categorySlugs, setCategorySlugs] = useState<string[]>([]);
   const [coverUrl, setCoverUrl] = useState("");
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [deliveryDays, setDeliveryDays] = useState("");
@@ -85,7 +87,7 @@ export default function NewGigPage() {
         .filter(Boolean),
     };
 
-    const { error: insertError } = await supabase.from("gigs").insert({
+    const payload = {
       title,
       slug,
       summary,
@@ -95,13 +97,41 @@ export default function NewGigPage() {
       highlights: highlightList.length ? highlightList : null,
       cover_url: coverUrl || null,
       gallery_urls: galleryUrls.length ? galleryUrls : null,
+      category_slugs: categorySlugs,
       delivery_days: deliveryDays ? Number(deliveryDays) : null,
       package_basic: packageBasic,
       package_standard: packageStandard,
       package_premium: packagePremium,
-    });
+    };
+
+    const { error: insertError } = await supabase.from("gigs").insert(payload);
 
     if (insertError) {
+      if (insertError.message.includes("category_slugs")) {
+        const payloadWithoutCategories = {
+          title: payload.title,
+          slug: payload.slug,
+          summary: payload.summary,
+          price_text: payload.price_text,
+          status: payload.status,
+          order_fiverr_url: payload.order_fiverr_url,
+          highlights: payload.highlights,
+          cover_url: payload.cover_url,
+          gallery_urls: payload.gallery_urls,
+          delivery_days: payload.delivery_days,
+          package_basic: payload.package_basic,
+          package_standard: payload.package_standard,
+          package_premium: payload.package_premium,
+        };
+        const { error: fallbackError } = await supabase
+          .from("gigs")
+          .insert(payloadWithoutCategories);
+
+        if (!fallbackError) {
+          router.push("/admin/gigs");
+          return;
+        }
+      }
       setError(insertError.message);
       setSaving(false);
       return;
@@ -202,6 +232,37 @@ export default function NewGigPage() {
                 value={highlights}
                 onChange={(event) => setHighlights(event.target.value)}
               />
+            </div>
+
+            <div className="grid gap-4">
+              <div>
+                <label className="text-sm font-medium">Categories</label>
+                <p className="mt-1 text-xs text-slate-500">
+                  Assign one or more categories so buyers can filter gigs on the website.
+                </p>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-3">
+                {gigCategories.map((category) => (
+                  <label
+                    key={category.slug}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={categorySlugs.includes(category.slug)}
+                      onChange={(event) =>
+                        setCategorySlugs((current) =>
+                          event.target.checked
+                            ? [...current, category.slug]
+                            : current.filter((slug) => slug !== category.slug)
+                        )
+                      }
+                      className="h-4 w-4"
+                    />
+                    {category.label}
+                  </label>
+                ))}
+              </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">

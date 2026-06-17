@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabasePublic } from "../lib/supabasePublic";
+import { gigCategories, getGigCategoryLabel } from "../lib/gigCategories";
 
 export const revalidate = 0;
 export const metadata = {
@@ -9,25 +10,76 @@ export const metadata = {
 };
 
 type PageProps = {
-  searchParams?: { q?: string };
+  searchParams?: { q?: string; category?: string };
 };
 
 export default async function GigsPage({ searchParams }: PageProps) {
   const query = searchParams?.q?.trim() || "";
+  const selectedCategory = searchParams?.category?.trim() || "";
 
-  let request = supabasePublic
+  const baseColumns =
+    "id,title,slug,summary,price_text,package_basic,cover_url,status";
+  const { data, error } = await supabasePublic
     .from("gigs")
-    .select("id,title,slug,summary,price_text,package_basic,cover_url,status")
+    .select(`${baseColumns},category_slugs`)
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  if (query) {
-    request = request.or(
-      `title.ilike.%${query}%,summary.ilike.%${query}%`
-    );
-  }
+  const { data: fallbackData } = error?.message.includes("category_slugs")
+    ? await supabasePublic
+        .from("gigs")
+        .select(baseColumns)
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+    : { data: null };
 
-  const { data: gigs } = await request;
+  const rawGigs = data ?? fallbackData ?? [];
+  const normalizedQuery = query.toLowerCase();
+  const selectedCategoryConfig = gigCategories.find(
+    (category) => category.slug === selectedCategory
+  );
+  const gigs = rawGigs.filter((gig) => {
+    const categorySlugs =
+      "category_slugs" in gig && Array.isArray(gig.category_slugs)
+        ? gig.category_slugs
+        : [];
+    const matchesCategory =
+      !selectedCategory || categorySlugs.includes(selectedCategory);
+
+    if (!matchesCategory) return false;
+    if (!normalizedQuery) return true;
+
+    const packageBasic = gig.package_basic as
+      | { title?: string; description?: string; features?: string[] }
+      | null;
+    const categoryKeywords = categorySlugs
+      .flatMap(
+        (slug) =>
+          gigCategories.find((category) => category.slug === slug)?.keywords ??
+          []
+      )
+      .join(" ");
+    const searchText = [
+      gig.title,
+      gig.summary,
+      gig.price_text,
+      packageBasic?.title,
+      packageBasic?.description,
+      ...(packageBasic?.features ?? []),
+      categorySlugs.map(getGigCategoryLabel).join(" "),
+      categoryKeywords,
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+    return (
+      searchText.includes(normalizedQuery) ||
+      selectedCategoryConfig?.keywords.some((keyword) =>
+        keyword.includes(normalizedQuery)
+      )
+    );
+  });
 
   return (
     <main className="bg-white text-slate-900">
@@ -53,9 +105,21 @@ export default async function GigsPage({ searchParams }: PageProps) {
               type="text"
               name="q"
               defaultValue={query}
-              placeholder="Search for a service or keyword..."
+              placeholder="Search by keyword, platform, or service..."
               className="flex-1 border border-slate-300 rounded-xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900"
             />
+            <select
+              name="category"
+              defaultValue={selectedCategory}
+              className="md:w-64 border border-slate-300 rounded-xl px-5 py-3 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
+            >
+              <option value="">All categories</option>
+              {gigCategories.map((category) => (
+                <option key={category.slug} value={category.slug}>
+                  {category.label}
+                </option>
+              ))}
+            </select>
             <button
               type="submit"
               className="px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition"
@@ -68,6 +132,36 @@ export default async function GigsPage({ searchParams }: PageProps) {
               Showing results for “{query}”
             </p>
           ) : null}
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href={query ? `/gigs?q=${encodeURIComponent(query)}` : "/gigs"}
+              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                selectedCategory
+                  ? "border-slate-200 text-slate-600 hover:border-slate-400"
+                  : "border-slate-900 bg-slate-900 text-white"
+              }`}
+            >
+              All
+            </Link>
+            {gigCategories.map((category) => {
+              const params = new URLSearchParams();
+              if (query) params.set("q", query);
+              params.set("category", category.slug);
+              return (
+                <Link
+                  key={category.slug}
+                  href={`/gigs?${params.toString()}`}
+                  className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+                    selectedCategory === category.slug
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-200 text-slate-600 hover:border-slate-400"
+                  }`}
+                >
+                  {category.label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
 
