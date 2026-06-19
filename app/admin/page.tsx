@@ -1,4 +1,5 @@
 import Link from "next/link";
+import UnreadMessageBadge from "./_components/UnreadMessageBadge";
 
 const cards = [
   {
@@ -81,7 +82,12 @@ export default function AdminHomePage() {
               key={card.title}
               className="border border-slate-200 rounded-2xl p-6 bg-white"
             >
-              <h2 className="text-xl font-semibold">{card.title}</h2>
+              <div className="flex items-center gap-3">
+                <h2 className="text-xl font-semibold">{card.title}</h2>
+                {card.title === "Messages" ? (
+                  <UnreadMessageBadge className="h-6 min-w-6 text-xs" />
+                ) : null}
+              </div>
               <p className="mt-3 text-slate-600">{card.desc}</p>
               {card.disabled ? (
                 <div className="mt-6 text-sm text-slate-400">

@@ -6,7 +6,7 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const GIG_DETAIL_COLUMNS = `
+const BASE_GIG_DETAIL_COLUMNS = `
   id,
   title,
   slug,
@@ -21,6 +21,27 @@ const GIG_DETAIL_COLUMNS = `
   package_basic,
   package_standard,
   package_premium
+`;
+const GIG_DETAIL_COLUMNS = `${BASE_GIG_DETAIL_COLUMNS}, category_slugs`;
+
+const RELATED_GIG_COLUMNS = `
+  id,
+  title,
+  slug,
+  summary,
+  price_text,
+  cover_url,
+  package_basic,
+  category_slugs
+`;
+const BASE_RELATED_GIG_COLUMNS = `
+  id,
+  title,
+  slug,
+  summary,
+  price_text,
+  cover_url,
+  package_basic
 `;
 
 type Params = {
@@ -38,6 +59,7 @@ type GigRecord = {
   highlights: string[] | null;
   cover_url: string | null;
   gallery_urls: string[] | null;
+  category_slugs?: string[] | null;
   delivery_days: number | null;
   order_fiverr_url: string | null;
   package_basic: {
@@ -60,6 +82,19 @@ type GigRecord = {
     description?: string | null;
     delivery_days?: number | null;
     features?: string[] | null;
+  } | null;
+};
+
+type RelatedGig = {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string | null;
+  price_text: string | null;
+  cover_url: string | null;
+  category_slugs?: string[] | null;
+  package_basic: {
+    price?: string | null;
   } | null;
 };
 
@@ -119,19 +154,30 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
   let gig: GigRecord | null = null;
 
   if (gigId) {
-    const { data: idMatch } = await supabasePublic
+    const { data: idMatch, error: idError } = await supabasePublic
       .from("gigs")
       .select(GIG_DETAIL_COLUMNS)
       .eq("id", gigId)
       .eq("status", "published")
       .limit(1)
       .maybeSingle();
-    if (idMatch) {
+    if (idError?.message.includes("category_slugs")) {
+      const { data: fallbackIdMatch } = await supabasePublic
+        .from("gigs")
+        .select(BASE_GIG_DETAIL_COLUMNS)
+        .eq("id", gigId)
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle();
+      if (fallbackIdMatch) {
+        gig = fallbackIdMatch;
+      }
+    } else if (idMatch) {
       gig = idMatch;
     }
   }
 
-  const { data: exactGig, error: exactError } = gig
+  const exactResult = gig
     ? { data: gig, error: null }
     : await supabasePublic
         .from("gigs")
@@ -140,15 +186,39 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
         .eq("status", "published")
         .limit(1)
         .maybeSingle();
+  const fallbackExactResult = exactResult.error?.message.includes(
+    "category_slugs"
+  )
+    ? await supabasePublic
+        .from("gigs")
+        .select(BASE_GIG_DETAIL_COLUMNS)
+        .eq("slug", slug)
+        .eq("status", "published")
+        .limit(1)
+        .maybeSingle()
+    : null;
+  const exactGig = fallbackExactResult?.data ?? exactResult.data;
+  const exactError = fallbackExactResult?.error ?? exactResult.error;
 
   gig = exactGig;
 
   if (!gig) {
-    const { data: publishedGigs, error: listError } = await supabasePublic
+    const listResult = await supabasePublic
       .from("gigs")
       .select(GIG_DETAIL_COLUMNS)
       .eq("status", "published")
       .limit(200);
+    const fallbackListResult = listResult.error?.message.includes(
+      "category_slugs"
+    )
+      ? await supabasePublic
+          .from("gigs")
+          .select(BASE_GIG_DETAIL_COLUMNS)
+          .eq("status", "published")
+          .limit(200)
+      : null;
+    const publishedGigs = fallbackListResult?.data ?? listResult.data;
+    const listError = fallbackListResult?.error ?? listResult.error;
 
     gig =
       (publishedGigs as GigRecord[] | null)?.find((item: GigRecord) => {
@@ -204,6 +274,38 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
 
   const images = [gig.cover_url, ...(gig.gallery_urls ?? [])].filter(Boolean);
   const summaryParagraphs = summaryToParagraphs(gig.summary);
+  const relatedResult = await supabasePublic
+    .from("gigs")
+    .select(RELATED_GIG_COLUMNS)
+    .eq("status", "published")
+    .neq("id", gig.id)
+    .limit(24);
+  const fallbackRelatedResult = relatedResult.error?.message.includes(
+    "category_slugs"
+  )
+    ? await supabasePublic
+        .from("gigs")
+        .select(BASE_RELATED_GIG_COLUMNS)
+        .eq("status", "published")
+        .neq("id", gig.id)
+        .limit(24)
+    : null;
+  const currentCategories = gig.category_slugs ?? [];
+  const relatedGigs = ((
+    fallbackRelatedResult?.data ??
+    relatedResult.data ??
+    []
+  ) as RelatedGig[])
+    .sort((a, b) => {
+      const aScore = (a.category_slugs ?? []).filter((category) =>
+        currentCategories.includes(category)
+      ).length;
+      const bScore = (b.category_slugs ?? []).filter((category) =>
+        currentCategories.includes(category)
+      ).length;
+      return bScore - aScore;
+    })
+    .slice(0, 4);
 
   return (
     <main className="bg-white text-slate-900">
@@ -358,6 +460,72 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
           </aside>
         </div>
       </section>
+      {relatedGigs.length ? (
+        <section className="border-t border-slate-100 bg-slate-50 py-16">
+          <div className="max-w-6xl mx-auto px-4 md:px-6">
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
+                  Recommended Next
+                </p>
+                <h2 className="mt-3 text-2xl md:text-3xl font-semibold">
+                  Services that pair well with this gig
+                </h2>
+              </div>
+              <Link
+                href="/gigs"
+                className="text-sm font-semibold text-slate-700 hover:text-slate-950"
+              >
+                View all gigs →
+              </Link>
+            </div>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedGigs.map((item) => {
+                const rawPrice =
+                  item.package_basic?.price || item.price_text || "Custom scope";
+                const startingPrice =
+                  typeof rawPrice === "string" &&
+                  rawPrice.toLowerCase().includes("starting")
+                    ? rawPrice
+                    : `Starting at ${rawPrice}`;
+                return (
+                  <Link
+                    key={item.id}
+                    href={`/gigs/${item.slug}?id=${item.id}`}
+                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:shadow-md"
+                  >
+                    <div className="aspect-[16/10] bg-slate-100">
+                      {item.cover_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.cover_url}
+                          alt={item.title}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-sm text-slate-400">
+                          Gig cover
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5">
+                      <h3 className="text-base font-semibold">{item.title}</h3>
+                      {item.summary ? (
+                        <p className="mt-2 text-sm text-slate-600 line-clamp-3">
+                          {item.summary}
+                        </p>
+                      ) : null}
+                      <p className="mt-4 text-sm font-semibold text-slate-900">
+                        {startingPrice}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

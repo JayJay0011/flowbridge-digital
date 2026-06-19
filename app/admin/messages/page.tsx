@@ -10,6 +10,7 @@ type Message = {
   client_id: string;
   body: string;
   status: string | null;
+  admin_seen_at?: string | null;
   created_at: string;
 };
 
@@ -116,13 +117,21 @@ export default function AdminMessagesPage() {
     let isMounted = true;
 
     const load = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("messages")
-        .select("id,client_id,body,status,created_at")
+        .select("id,client_id,body,status,admin_seen_at,created_at")
         .order("created_at", { ascending: true });
+      const rows = error?.message.includes("admin_seen_at")
+        ? (
+            await supabase
+              .from("messages")
+              .select("id,client_id,body,status,created_at")
+              .order("created_at", { ascending: true })
+          ).data
+        : data;
 
       const clientIds = Array.from(
-        new Set((data ?? []).map((item) => item.client_id))
+        new Set((rows ?? []).map((item) => item.client_id))
       );
 
       let profileMap: Record<string, Profile> = {};
@@ -145,7 +154,7 @@ export default function AdminMessagesPage() {
         .eq("status", "published");
 
       if (isMounted) {
-        setMessages(data ?? []);
+        setMessages(rows ?? []);
         setProfiles(profileMap);
         setSelectedClientId((prev) => prev ?? clientIds[0] ?? null);
         setGigs(gigRows ?? []);
@@ -227,9 +236,45 @@ export default function AdminMessagesPage() {
     return name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const selectedMessages = messages.filter(
-    (message) => message.client_id === selectedClientId
+  const selectedMessages = useMemo(
+    () => messages.filter((message) => message.client_id === selectedClientId),
+    [messages, selectedClientId]
   );
+
+  useEffect(() => {
+    if (!selectedClientId) return;
+    const unreadIds = selectedMessages
+      .filter(
+        (message) => message.status === "new" && message.admin_seen_at == null
+      )
+      .map((message) => message.id);
+
+    if (!unreadIds.length) return;
+
+    const seenAt = new Date().toISOString();
+    setMessages((current) =>
+      current.map((message) =>
+        unreadIds.includes(message.id)
+          ? { ...message, admin_seen_at: seenAt }
+          : message
+      )
+    );
+
+    supabase
+      .from("messages")
+      .update({ admin_seen_at: seenAt })
+      .in("id", unreadIds)
+      .then(({ error }) => {
+        if (!error || !error.message.includes("admin_seen_at")) return;
+        setMessages((current) =>
+          current.map((message) =>
+            unreadIds.includes(message.id)
+              ? { ...message, admin_seen_at: null }
+              : message
+          )
+        );
+      });
+  }, [selectedClientId, selectedMessages]);
 
   const lastClientMessage = useMemo(
     () =>

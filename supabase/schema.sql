@@ -182,6 +182,7 @@ create table if not exists public.messages (
   subject text,
   body text not null,
   status text not null default 'new' check (status in ('new', 'replied', 'closed')),
+  admin_seen_at timestamptz,
   user_seen_at timestamptz,
   user_notified_at timestamptz,
   created_at timestamptz not null default now()

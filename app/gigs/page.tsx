@@ -10,12 +10,15 @@ export const metadata = {
 };
 
 type PageProps = {
-  searchParams?: { q?: string; category?: string };
+  searchParams?: { q?: string; category?: string; page?: string };
 };
+
+const GIGS_PER_PAGE = 9;
 
 export default async function GigsPage({ searchParams }: PageProps) {
   const query = searchParams?.q?.trim() || "";
   const selectedCategory = searchParams?.category?.trim() || "";
+  const requestedPage = Number(searchParams?.page ?? "1");
 
   const baseColumns =
     "id,title,slug,summary,price_text,package_basic,cover_url,status";
@@ -80,6 +83,20 @@ export default async function GigsPage({ searchParams }: PageProps) {
       )
     );
   });
+  const totalPages = Math.max(1, Math.ceil(gigs.length / GIGS_PER_PAGE));
+  const currentPage = Number.isFinite(requestedPage)
+    ? Math.min(Math.max(1, requestedPage), totalPages)
+    : 1;
+  const pageStart = (currentPage - 1) * GIGS_PER_PAGE;
+  const visibleGigs = gigs.slice(pageStart, pageStart + GIGS_PER_PAGE);
+  const createPageHref = (page: number) => {
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    if (selectedCategory) params.set("category", selectedCategory);
+    if (page > 1) params.set("page", String(page));
+    const queryString = params.toString();
+    return queryString ? `/gigs?${queryString}` : "/gigs";
+  };
 
   return (
     <main className="bg-white text-slate-900">
@@ -167,8 +184,8 @@ export default async function GigsPage({ searchParams }: PageProps) {
 
       <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-6">
-          {gigs?.length ? (
-            gigs.map((gig) => {
+          {visibleGigs.length ? (
+            visibleGigs.map((gig) => {
               const description = gig.summary
                 ? gig.summary.length > 180
                   ? `${gig.summary.slice(0, 180)}...`
@@ -218,6 +235,47 @@ export default async function GigsPage({ searchParams }: PageProps) {
             </div>
           )}
         </div>
+        {gigs.length > GIGS_PER_PAGE ? (
+          <div className="max-w-5xl mx-auto px-4 md:px-6 mt-10 flex items-center justify-center gap-2">
+            <Link
+              href={createPageHref(Math.max(1, currentPage - 1))}
+              aria-disabled={currentPage === 1}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold ${
+                currentPage === 1
+                  ? "pointer-events-none border-slate-200 text-slate-300"
+                  : "border-slate-300 text-slate-700 hover:border-slate-900"
+              }`}
+            >
+              ←
+            </Link>
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <Link
+                  key={page}
+                  href={createPageHref(page)}
+                  className={`inline-flex h-10 min-w-10 items-center justify-center rounded-full border px-3 text-sm font-semibold ${
+                    page === currentPage
+                      ? "border-slate-900 bg-slate-900 text-white"
+                      : "border-slate-300 text-slate-700 hover:border-slate-900"
+                  }`}
+                >
+                  {page}
+                </Link>
+              )
+            )}
+            <Link
+              href={createPageHref(Math.min(totalPages, currentPage + 1))}
+              aria-disabled={currentPage === totalPages}
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-full border text-sm font-semibold ${
+                currentPage === totalPages
+                  ? "pointer-events-none border-slate-200 text-slate-300"
+                  : "border-slate-300 text-slate-700 hover:border-slate-900"
+              }`}
+            >
+              →
+            </Link>
+          </div>
+        ) : null}
       </section>
     </main>
   );

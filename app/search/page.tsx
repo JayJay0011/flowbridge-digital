@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const metadata = {
@@ -16,23 +17,34 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
   let gigsRequest = supabasePublic
     .from("gigs")
-    .select("id,title,slug,summary,price_text");
+    .select("id,title,slug,summary,price_text,cover_url")
+    .eq("status", "published");
   let servicesRequest = supabasePublic
     .from("services")
-    .select("id,title,slug,description");
+    .select("id,title,slug,description")
+    .eq("status", "published");
   let portfolioRequest = supabasePublic
     .from("portfolio")
-    .select("id,title,slug,summary,cover_url");
+    .select("id,title,slug,summary,cover_url")
+    .eq("status", "published");
   let caseStudiesRequest = supabasePublic
     .from("case_studies")
-    .select("id,title,slug,summary");
+    .select("id,title,slug,summary,cover_url")
+    .eq("status", "published");
 
   if (query) {
-    const filter = `title.ilike.%${query}%,summary.ilike.%${query}%,description.ilike.%${query}%`;
-    gigsRequest = gigsRequest.or(filter);
-    servicesRequest = servicesRequest.or(filter);
-    portfolioRequest = portfolioRequest.or(filter);
-    caseStudiesRequest = caseStudiesRequest.or(filter);
+    gigsRequest = gigsRequest.or(
+      `title.ilike.%${query}%,summary.ilike.%${query}%,price_text.ilike.%${query}%`
+    );
+    servicesRequest = servicesRequest.or(
+      `title.ilike.%${query}%,description.ilike.%${query}%`
+    );
+    portfolioRequest = portfolioRequest.or(
+      `title.ilike.%${query}%,summary.ilike.%${query}%`
+    );
+    caseStudiesRequest = caseStudiesRequest.or(
+      `title.ilike.%${query}%,summary.ilike.%${query}%,industry.ilike.%${query}%`
+    );
   }
 
   const [
@@ -85,6 +97,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   description={gig.summary}
                   href={`/gigs/${gig.slug}`}
                   meta={gig.price_text || "Custom scope"}
+                  imageUrl={gig.cover_url}
                 />
               ))
             ) : (
@@ -115,6 +128,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   title={item.title}
                   description={item.summary}
                   href={`/portfolio/${item.slug}`}
+                  imageUrl={item.cover_url}
                 />
               ))
             ) : (
@@ -130,6 +144,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   title={item.title}
                   description={item.summary}
                   href={`/case-studies/${item.slug}`}
+                  imageUrl={item.cover_url}
                 />
               ))
             ) : (
@@ -162,24 +177,41 @@ function ResultCard({
   description,
   href,
   meta,
+  imageUrl,
 }: {
   title: string;
   description?: string | null;
   href: string;
   meta?: string;
+  imageUrl?: string | null;
 }) {
   return (
     <Link
       href={href}
-      className="border border-slate-200 rounded-2xl p-6 bg-white hover:shadow-md transition"
+      className="overflow-hidden border border-slate-200 rounded-2xl bg-white hover:shadow-md transition"
     >
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {description ? <p className="text-slate-600 mt-2">{description}</p> : null}
-      {meta ? (
-        <p className="text-sm font-medium text-slate-900 mt-4">{meta}</p>
+      {imageUrl ? (
+        <div className="relative aspect-[16/9] bg-slate-100">
+          <Image
+            src={imageUrl}
+            alt=""
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
       ) : null}
-      <div className="mt-4 text-sm font-semibold text-slate-900">
-        View details →
+      <div className="p-6">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        {description ? (
+          <p className="text-slate-600 mt-2 line-clamp-3">{description}</p>
+        ) : null}
+        {meta ? (
+          <p className="text-sm font-medium text-slate-900 mt-4">{meta}</p>
+        ) : null}
+        <div className="mt-4 text-sm font-semibold text-slate-900">
+          View details →
+        </div>
       </div>
     </Link>
   );
