@@ -10,15 +10,16 @@ export const metadata = {
 };
 
 type PageProps = {
-  searchParams?: { q?: string; category?: string; page?: string };
+  searchParams?: Promise<{ q?: string; category?: string; page?: string }>;
 };
 
 const GIGS_PER_PAGE = 9;
 
 export default async function GigsPage({ searchParams }: PageProps) {
-  const query = searchParams?.q?.trim() || "";
-  const selectedCategory = searchParams?.category?.trim() || "";
-  const requestedPage = Number(searchParams?.page ?? "1");
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const query = resolvedSearchParams?.q?.trim() || "";
+  const selectedCategory = resolvedSearchParams?.category?.trim() || "";
+  const requestedPage = Number(resolvedSearchParams?.page ?? "1");
 
   const baseColumns =
     "id,title,slug,summary,price_text,package_basic,cover_url,status";

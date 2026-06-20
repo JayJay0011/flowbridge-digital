@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const metadata = {
@@ -9,11 +8,12 @@ export const metadata = {
 };
 
 type PageProps = {
-  searchParams?: { q?: string };
+  searchParams?: Promise<{ q?: string }>;
 };
 
 export default async function SearchPage({ searchParams }: PageProps) {
-  const query = searchParams?.q?.trim() || "";
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const query = resolvedSearchParams?.q?.trim() || "";
 
   let gigsRequest = supabasePublic
     .from("gigs")
@@ -191,13 +191,12 @@ function ResultCard({
       className="overflow-hidden border border-slate-200 rounded-2xl bg-white hover:shadow-md transition"
     >
       {imageUrl ? (
-        <div className="relative aspect-[16/9] bg-slate-100">
-          <Image
+        <div className="aspect-[16/9] bg-slate-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={imageUrl}
             alt=""
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 50vw"
+            className="h-full w-full object-cover"
           />
         </div>
       ) : null}

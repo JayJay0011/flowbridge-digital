@@ -10,7 +10,7 @@ export const metadata = {
 export const revalidate = 0;
 
 type PageProps = {
-  searchParams?: { page?: string };
+  searchParams?: Promise<{ page?: string }>;
 };
 
 const POSTS_PER_PAGE = 6;
@@ -20,7 +20,8 @@ function createBlogPageHref(page: number) {
 }
 
 export default async function BlogPage({ searchParams }: PageProps) {
-  const requestedPage = Number(searchParams?.page ?? "1");
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const requestedPage = Number(resolvedSearchParams?.page ?? "1");
   const { data: posts } = await supabasePublic
     .from("blog_posts")
     .select("id,title,slug,excerpt,cover_url,published_at")

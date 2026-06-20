@@ -3,7 +3,7 @@ import { supabasePublic } from "../lib/supabasePublic";
 
 export const revalidate = 0;
 type PageProps = {
-  searchParams?: { page?: string };
+  searchParams?: Promise<{ page?: string }>;
 };
 
 const CASES_PER_PAGE = 6;
@@ -37,7 +37,8 @@ function createCasePageHref(page: number) {
 }
 
 export default async function CaseStudiesPage({ searchParams }: PageProps) {
-  const requestedPage = Number(searchParams?.page ?? "1");
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const requestedPage = Number(resolvedSearchParams?.page ?? "1");
   const { data } = await supabasePublic
     .from("case_studies")
     .select("id,title,slug,summary,cover_url")
