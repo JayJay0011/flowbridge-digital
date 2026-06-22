@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MediaGallery from "../../components/MediaGallery";
 import { supabasePublic } from "../../lib/supabasePublic";
 
 type Params = {
@@ -186,14 +187,10 @@ export default async function BlogPostPage({ params }: Params) {
       <section className="py-12 md:py-16">
         <article className="mx-auto max-w-3xl px-4 md:px-6">
           {post.cover_url ? (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={post.cover_url}
-                alt={post.title}
-                className="aspect-[16/9] w-full object-cover"
-              />
-            </div>
+            <MediaGallery
+              items={[{ url: post.cover_url, type: "image", alt: post.title }]}
+              title={post.title}
+            />
           ) : null}
 
           {post.excerpt ? (

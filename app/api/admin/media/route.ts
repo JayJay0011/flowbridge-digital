@@ -4,7 +4,13 @@ import { supabaseAdmin } from "../../../lib/supabaseAdmin";
 
 const BUCKET = "public-assets";
 const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_VIDEO_SIZE = 80 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const ALLOWED_TYPES = new Set([
+  ...Array.from(ALLOWED_IMAGE_TYPES),
+  ...Array.from(ALLOWED_VIDEO_TYPES),
+]);
 
 function getSupabaseAuthClient(token: string) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -18,6 +24,9 @@ function getSupabaseAuthClient(token: string) {
 function getExtension(file: File) {
   if (file.type === "image/png") return "png";
   if (file.type === "image/webp") return "webp";
+  if (file.type === "video/mp4") return "mp4";
+  if (file.type === "video/webm") return "webm";
+  if (file.type === "video/quicktime") return "mov";
   return "jpg";
 }
 
@@ -70,21 +79,29 @@ export async function POST(request: Request) {
 
     if (!ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json(
-        { error: "Upload a JPG, PNG, or WebP image." },
+        { error: "Upload a JPG, PNG, WebP, MP4, WebM, or MOV file." },
         { status: 400 }
       );
     }
 
-    if (file.size > MAX_IMAGE_SIZE) {
+    const maxFileSize = file.type.startsWith("video/")
+      ? MAX_VIDEO_SIZE
+      : MAX_IMAGE_SIZE;
+
+    if (file.size > maxFileSize) {
       return NextResponse.json(
-        { error: "Image must be 8MB or smaller." },
+        {
+          error: file.type.startsWith("video/")
+            ? "Video must be 80MB or smaller."
+            : "Image must be 8MB or smaller.",
+        },
         { status: 400 }
       );
     }
 
     const bucketOptions = {
       public: true,
-      fileSizeLimit: MAX_IMAGE_SIZE,
+      fileSizeLimit: MAX_VIDEO_SIZE,
       allowedMimeTypes: Array.from(ALLOWED_TYPES),
     };
 

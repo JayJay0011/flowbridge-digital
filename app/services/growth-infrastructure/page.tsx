@@ -1,4 +1,12 @@
+import ServiceDetailPage from "../[slug]/page";
+
 export default function GrowthInfrastructurePage() {
+  return (
+    <ServiceDetailPage
+      params={Promise.resolve({ slug: "growth-infrastructure" })}
+    />
+  );
+
   return (
     <main className="bg-white text-slate-900">
 

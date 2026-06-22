@@ -10,11 +10,17 @@ type AdminImageUploadProps = {
   value?: string | null;
   multiple?: boolean;
   watermark?: boolean;
+  accept?: "image" | "video" | "media";
   helperText?: string;
   onUploaded: (urls: string[]) => void;
 };
 
 const MAX_CANVAS_WIDTH = 2200;
+const ACCEPT_MAP = {
+  image: "image/jpeg,image/png,image/webp",
+  video: "video/mp4,video/webm,video/quicktime",
+  media: "image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime",
+};
 
 async function loadImage(file: File) {
   const objectUrl = URL.createObjectURL(file);
@@ -78,6 +84,7 @@ export default function AdminImageUpload({
   value,
   multiple = false,
   watermark = false,
+  accept = "image",
   helperText,
   onUploaded,
 }: AdminImageUploadProps) {
@@ -104,7 +111,10 @@ export default function AdminImageUpload({
 
       const urls: string[] = [];
       for (const selectedFile of selectedFiles) {
-        const file = watermark ? await addWatermark(selectedFile) : selectedFile;
+        const file =
+          watermark && selectedFile.type.startsWith("image/")
+            ? await addWatermark(selectedFile)
+            : selectedFile;
         const formData = new FormData();
         formData.append("file", file);
         formData.append("section", section);
@@ -142,18 +152,22 @@ export default function AdminImageUpload({
       <label className="text-sm font-semibold">{label}</label>
       {value ? (
         <div className="relative aspect-[16/9] overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-          <Image
-            src={value}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 480px"
-          />
+          {/\.(mp4|webm|mov)(\?|#|$)/i.test(value) ? (
+            <video src={value} controls className="h-full w-full object-cover" />
+          ) : (
+            <Image
+              src={value}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, 480px"
+            />
+          )}
         </div>
       ) : null}
       <input
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept={ACCEPT_MAP[accept]}
         multiple={multiple}
         onChange={handleChange}
         disabled={uploading}

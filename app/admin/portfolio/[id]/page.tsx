@@ -17,6 +17,8 @@ type PortfolioRecord = {
   slug: string;
   summary: string | null;
   cover_url: string | null;
+  gallery_urls: string[] | null;
+  video_urls: string[] | null;
   outcomes: string[] | null;
   case_study_slug: string | null;
   status: "draft" | "published";
@@ -34,7 +36,7 @@ export default function AdminPortfolioEditPage() {
     const load = async () => {
       const { data } = await supabase
         .from("portfolio")
-        .select("id,title,slug,summary,cover_url,outcomes,case_study_slug,status")
+        .select("id,title,slug,summary,cover_url,gallery_urls,video_urls,outcomes,case_study_slug,status")
         .eq("id", params.id)
         .single();
       setItem(data as PortfolioRecord);
@@ -63,6 +65,8 @@ export default function AdminPortfolioEditPage() {
       slug: item.slug.trim(),
       summary: item.summary?.trim() || null,
       cover_url: item.cover_url?.trim() || null,
+      gallery_urls: item.gallery_urls?.length ? item.gallery_urls : null,
+      video_urls: item.video_urls?.length ? item.video_urls : null,
       outcomes: outcomesText
         ? outcomesText
             .split(",")
@@ -160,6 +164,91 @@ export default function AdminPortfolioEditPage() {
               setItem({ ...item, cover_url: urls[0] ?? item.cover_url })
             }
           />
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Gallery images"
+            section="portfolio/gallery"
+            multiple
+            watermark
+            accept="image"
+            helperText={
+              item.gallery_urls?.length
+                ? `${item.gallery_urls.length} gallery image${
+                    item.gallery_urls.length > 1 ? "s" : ""
+                  } uploaded. New uploads are added to the existing gallery.`
+                : "Upload extra portfolio images. A Flowbridge watermark is added before upload."
+            }
+            onUploaded={(urls) =>
+              setItem({
+                ...item,
+                gallery_urls: [...(item.gallery_urls ?? []), ...urls],
+              })
+            }
+          />
+          {item.gallery_urls?.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {item.gallery_urls.map((url, index) => (
+                <button
+                  key={`${url}-${index}`}
+                  type="button"
+                  onClick={() =>
+                    setItem({
+                      ...item,
+                      gallery_urls:
+                        item.gallery_urls?.filter((entry) => entry !== url) ??
+                        [],
+                    })
+                  }
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
+                >
+                  Remove image {index + 1}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Portfolio videos"
+            section="portfolio/videos"
+            multiple
+            accept="video"
+            helperText={
+              item.video_urls?.length
+                ? `${item.video_urls.length} video file${
+                    item.video_urls.length > 1 ? "s" : ""
+                  } uploaded. Public playback includes a Flowbridge overlay.`
+                : "Upload MP4, WebM, or MOV portfolio videos. Public playback includes a Flowbridge overlay."
+            }
+            onUploaded={(urls) =>
+              setItem({
+                ...item,
+                video_urls: [...(item.video_urls ?? []), ...urls],
+              })
+            }
+          />
+          {item.video_urls?.length ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {item.video_urls.map((url, index) => (
+                <button
+                  key={`${url}-${index}`}
+                  type="button"
+                  onClick={() =>
+                    setItem({
+                      ...item,
+                      video_urls:
+                        item.video_urls?.filter((entry) => entry !== url) ??
+                        [],
+                    })
+                  }
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold text-slate-600"
+                >
+                  Remove video {index + 1}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div>
           <label className="text-sm font-semibold">Key outcomes (comma)</label>

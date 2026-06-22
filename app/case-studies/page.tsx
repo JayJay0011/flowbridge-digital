@@ -8,30 +8,6 @@ type PageProps = {
 
 const CASES_PER_PAGE = 6;
 
-const fallbackCases = [
-  {
-    title: "CRM Rebuild for Medspa Clinic",
-    summary:
-      "Replacing fragmented lead management with structured pipeline automation.",
-    href: "/case-studies/medspa-crm-rebuild",
-    cover_url: null,
-  },
-  {
-    title: "Ecommerce Automation Infrastructure",
-    summary:
-      "Designing backend automation systems to improve operational visibility.",
-    href: "/case-studies/ecommerce-automation",
-    cover_url: null,
-  },
-  {
-    title: "Internal Operations Dashboard for Agency",
-    summary:
-      "Building a structured admin portal to centralize reporting and delivery.",
-    href: "/case-studies/internal-operations",
-    cover_url: null,
-  },
-];
-
 function createCasePageHref(page: number) {
   return page > 1 ? `/case-studies?page=${page}` : "/case-studies";
 }
@@ -45,15 +21,12 @@ export default async function CaseStudiesPage({ searchParams }: PageProps) {
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  const cases =
-    data?.length
-      ? data.map((item) => ({
-          title: item.title,
-          summary: item.summary,
-          href: `/case-studies/${item.slug}`,
-          cover_url: item.cover_url,
-        }))
-      : fallbackCases;
+  const cases = (data ?? []).map((item) => ({
+    title: item.title,
+    summary: item.summary,
+    href: `/case-studies/${item.slug}`,
+    cover_url: item.cover_url,
+  }));
   const totalPages = Math.max(1, Math.ceil(cases.length / CASES_PER_PAGE));
   const currentPage = Number.isFinite(requestedPage)
     ? Math.min(Math.max(1, requestedPage), totalPages)
@@ -101,7 +74,8 @@ export default async function CaseStudiesPage({ searchParams }: PageProps) {
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <div className="grid md:grid-cols-3 gap-8">
 
-            {visibleCases.map((item) => (
+            {visibleCases.length ? (
+              visibleCases.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -133,7 +107,12 @@ export default async function CaseStudiesPage({ searchParams }: PageProps) {
                   </span>
                 </div>
               </Link>
-            ))}
+              ))
+            ) : (
+              <div className="md:col-span-3 rounded-2xl border border-slate-200 bg-white p-8 text-slate-600">
+                Case studies will appear here once published from the admin center.
+              </div>
+            )}
 
           </div>
           {cases.length > CASES_PER_PAGE ? (

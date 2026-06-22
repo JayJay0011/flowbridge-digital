@@ -1,7 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
+import CaseStudyDetailPage from "../[slug]/page";
 
 export default function MedspaCaseStudy() {
+  return (
+    <CaseStudyDetailPage
+      params={Promise.resolve({ slug: "medspa-crm-rebuild" })}
+    />
+  );
+
   return (
     <main className="bg-white text-slate-900">
 

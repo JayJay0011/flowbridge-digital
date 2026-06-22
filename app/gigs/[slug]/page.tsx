@@ -1,4 +1,5 @@
 import Link from "next/link";
+import MediaGallery from "../../components/MediaGallery";
 import { supabasePublic } from "../../lib/supabasePublic";
 import PackageTabs from "./PackageTabs";
 
@@ -272,7 +273,13 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
     );
   }
 
-  const images = [gig.cover_url, ...(gig.gallery_urls ?? [])].filter(Boolean);
+  const images = [gig.cover_url, ...(gig.gallery_urls ?? [])]
+    .filter(Boolean)
+    .map((url) => ({
+      url: url as string,
+      type: "image" as const,
+      alt: gig.title,
+    }));
   const summaryParagraphs = summaryToParagraphs(gig.summary);
   const relatedResult = await supabasePublic
     .from("gigs")
@@ -333,20 +340,11 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
               </div>
             </div>
 
-            <div className="border border-slate-200 rounded-2xl overflow-hidden">
-              {images.length ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={images[0] as string}
-                  alt={gig.title}
-                  className="w-full h-[360px] object-cover"
-                />
-              ) : (
-                <div className="h-[360px] bg-slate-100 flex items-center justify-center text-slate-400">
-                  Gig cover
-                </div>
-              )}
-            </div>
+            <MediaGallery
+              items={images}
+              title={gig.title}
+              emptyLabel="Gig cover"
+            />
 
             <section className="space-y-4">
               <h2 className="text-xl font-semibold">Service overview</h2>

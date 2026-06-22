@@ -29,6 +29,8 @@ export default function AdminPortfolioNewPage() {
     slug: "",
     summary: "",
     cover_url: "",
+    gallery_urls: [] as string[],
+    video_urls: [] as string[],
     outcomes: "",
     case_study_slug: "",
     status: "draft",
@@ -63,6 +65,8 @@ export default function AdminPortfolioNewPage() {
         slug,
         summary: form.summary.trim() || null,
         cover_url: form.cover_url.trim() || null,
+        gallery_urls: form.gallery_urls.length ? form.gallery_urls : null,
+        video_urls: form.video_urls.length ? form.video_urls : null,
         outcomes: outcomesList.length ? outcomesList : null,
         case_study_slug: form.case_study_slug.trim() || null,
         status: form.status,
@@ -124,6 +128,49 @@ export default function AdminPortfolioNewPage() {
             helperText="A Flowbridge watermark is added before upload."
             onUploaded={(urls) =>
               setForm({ ...form, cover_url: urls[0] ?? "" })
+            }
+          />
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Gallery images"
+            section="portfolio/gallery"
+            multiple
+            watermark
+            accept="image"
+            helperText={
+              form.gallery_urls.length
+                ? `${form.gallery_urls.length} gallery image${
+                    form.gallery_urls.length > 1 ? "s" : ""
+                  } uploaded.`
+                : "Upload extra portfolio images. A Flowbridge watermark is added before upload."
+            }
+            onUploaded={(urls) =>
+              setForm({
+                ...form,
+                gallery_urls: [...form.gallery_urls, ...urls],
+              })
+            }
+          />
+        </div>
+        <div>
+          <AdminImageUpload
+            label="Portfolio videos"
+            section="portfolio/videos"
+            multiple
+            accept="video"
+            helperText={
+              form.video_urls.length
+                ? `${form.video_urls.length} video file${
+                    form.video_urls.length > 1 ? "s" : ""
+                  } uploaded.`
+                : "Upload MP4, WebM, or MOV portfolio videos. Public playback includes a Flowbridge overlay."
+            }
+            onUploaded={(urls) =>
+              setForm({
+                ...form,
+                video_urls: [...form.video_urls, ...urls],
+              })
             }
           />
         </div>

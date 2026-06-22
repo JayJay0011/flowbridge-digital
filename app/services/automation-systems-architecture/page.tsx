@@ -1,4 +1,12 @@
+import ServiceDetailPage from "../[slug]/page";
+
 export default function AutomationPage() {
+  return (
+    <ServiceDetailPage
+      params={Promise.resolve({ slug: "automation-systems-architecture" })}
+    />
+  );
+
   return (
     <main className="bg-white text-slate-900">
 
