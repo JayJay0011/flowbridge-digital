@@ -1,12 +1,4 @@
-import ServiceDetailPage from "../[slug]/page";
-
 export default function PlatformDevelopmentPage() {
-  return (
-    <ServiceDetailPage
-      params={Promise.resolve({ slug: "platform-development" })}
-    />
-  );
-
   return (
     <main className="bg-white text-slate-900">
 

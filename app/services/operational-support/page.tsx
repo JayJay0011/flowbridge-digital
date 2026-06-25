@@ -1,12 +1,4 @@
-import ServiceDetailPage from "../[slug]/page";
-
 export default function OperationalSupportPage() {
-  return (
-    <ServiceDetailPage
-      params={Promise.resolve({ slug: "operational-support" })}
-    />
-  );
-
   return (
     <main className="bg-white text-slate-900">
 

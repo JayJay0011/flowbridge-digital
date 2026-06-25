@@ -13,7 +13,6 @@ type ServiceItem = {
   cover_url: string | null;
   cta_label: string | null;
   cta_url: string | null;
-  content_sections: unknown[] | null;
   status: "draft" | "published";
 };
 
@@ -21,7 +20,6 @@ export default function AdminServiceEditPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [service, setService] = useState<ServiceItem | null>(null);
-  const [sectionsText, setSectionsText] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -29,7 +27,7 @@ export default function AdminServiceEditPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("services")
-        .select("id,title,slug,description,cover_url,cta_label,cta_url,content_sections,status")
+        .select("id,title,slug,description,cover_url,cta_label,cta_url,status")
         .eq("id", params.id)
         .single();
 
@@ -46,18 +44,13 @@ export default function AdminServiceEditPage() {
               cover_url: null,
               cta_label: null,
               cta_url: null,
-              content_sections: null,
             } as ServiceItem)
           : null;
         setService(fallbackService);
-        setSectionsText("[]");
         return;
       }
 
       setService(data as ServiceItem);
-      setSectionsText(
-        JSON.stringify((data as ServiceItem | null)?.content_sections ?? [], null, 2)
-      );
     };
     load();
   }, [params.id]);
@@ -66,22 +59,6 @@ export default function AdminServiceEditPage() {
     if (!service) return;
     setSaving(true);
     setMessage(null);
-    let parsedSections: unknown[] | null = null;
-    try {
-      const parsed = JSON.parse(sectionsText || "[]");
-      if (!Array.isArray(parsed)) {
-        throw new Error("Service sections must be a JSON array.");
-      }
-      parsedSections = parsed.length ? parsed : null;
-    } catch (parseError) {
-      setMessage(
-        parseError instanceof Error
-          ? parseError.message
-          : "Service sections must be valid JSON."
-      );
-      setSaving(false);
-      return;
-    }
 
     const payload = {
       title: service.title.trim(),
@@ -90,7 +67,6 @@ export default function AdminServiceEditPage() {
       cover_url: service.cover_url?.trim() || null,
       cta_label: service.cta_label?.trim() || null,
       cta_url: service.cta_url?.trim() || null,
-      content_sections: parsedSections,
       status: service.status,
     };
 
@@ -218,21 +194,6 @@ export default function AdminServiceEditPage() {
               })
             }
           />
-        </div>
-        <div>
-          <label className="text-sm font-semibold">
-            Detail sections JSON
-          </label>
-          <textarea
-            value={sectionsText}
-            onChange={(event) => setSectionsText(event.target.value)}
-            rows={16}
-            className="w-full mt-2 font-mono text-sm border border-slate-200 rounded-xl px-4 py-3"
-          />
-          <p className="mt-2 text-xs text-slate-500">
-            These sections power the detailed public service page. Keep it as a
-            JSON array with title, variant, columns, body, and items.
-          </p>
         </div>
         <div>
           <label className="text-sm font-semibold">Status</label>

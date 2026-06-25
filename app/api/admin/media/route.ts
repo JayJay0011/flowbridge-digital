@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../../../lib/supabaseAdmin";
 
 const BUCKET = "public-assets";
-const MAX_IMAGE_SIZE = 8 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 20 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 80 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
@@ -93,7 +93,7 @@ export async function POST(request: Request) {
         {
           error: file.type.startsWith("video/")
             ? "Video must be 80MB or smaller."
-            : "Image must be 8MB or smaller.",
+            : "Image must be 20MB or smaller.",
         },
         { status: 400 }
       );

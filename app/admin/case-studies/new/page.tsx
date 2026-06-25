@@ -16,7 +16,6 @@ export default function AdminCaseStudyNewPage() {
     industry: "",
     cover_url: "",
     gallery_urls: [] as string[],
-    content_sections: "[]",
     results: "",
     body: "",
     status: "draft",
@@ -39,22 +38,6 @@ export default function AdminCaseStudyNewPage() {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    let parsedSections: unknown[] | null = null;
-    try {
-      const parsed = JSON.parse(form.content_sections || "[]");
-      if (!Array.isArray(parsed)) {
-        throw new Error("Case-study sections must be a JSON array.");
-      }
-      parsedSections = parsed.length ? parsed : null;
-    } catch (parseError) {
-      setMessage(
-        parseError instanceof Error
-          ? parseError.message
-          : "Case-study sections must be valid JSON."
-      );
-      setSaving(false);
-      return;
-    }
 
     const { data, error } = await supabase
       .from("case_studies")
@@ -65,7 +48,6 @@ export default function AdminCaseStudyNewPage() {
         industry: form.industry.trim() || null,
         cover_url: form.cover_url.trim() || null,
         gallery_urls: form.gallery_urls.length ? form.gallery_urls : null,
-        content_sections: parsedSections,
         results: resultsList.length ? resultsList : null,
         body: form.body.trim() || null,
         status: form.status,
@@ -176,17 +158,6 @@ export default function AdminCaseStudyNewPage() {
             onChange={(event) => setForm({ ...form, body: event.target.value })}
             rows={10}
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
-          />
-        </div>
-        <div>
-          <label className="text-sm font-semibold">Detail sections JSON</label>
-          <textarea
-            value={form.content_sections}
-            onChange={(event) =>
-              setForm({ ...form, content_sections: event.target.value })
-            }
-            rows={12}
-            className="w-full mt-2 font-mono text-sm border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
         <div>

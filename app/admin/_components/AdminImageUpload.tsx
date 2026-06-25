@@ -15,7 +15,7 @@ type AdminImageUploadProps = {
   onUploaded: (urls: string[]) => void;
 };
 
-const MAX_CANVAS_WIDTH = 2200;
+const MAX_CANVAS_WIDTH = 1600;
 const ACCEPT_MAP = {
   image: "image/jpeg,image/png,image/webp",
   video: "video/mp4,video/webm,video/quicktime",
@@ -53,10 +53,10 @@ async function addWatermark(file: File) {
   context.rotate((-28 * Math.PI) / 180);
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = "600 28px Arial, sans-serif";
+  context.font = "600 24px Arial, sans-serif";
 
-  const spacingX = 310;
-  const spacingY = 180;
+  const spacingX = 290;
+  const spacingY = 170;
   for (let y = -height; y <= height; y += spacingY) {
     for (let x = -width; x <= width; x += spacingX) {
       context.strokeStyle = "rgba(15, 23, 42, 0.2)";
@@ -69,7 +69,7 @@ async function addWatermark(file: File) {
   context.restore();
 
   const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", 0.92)
+    canvas.toBlob(resolve, "image/webp", 0.82)
   );
 
   if (!blob) return file;

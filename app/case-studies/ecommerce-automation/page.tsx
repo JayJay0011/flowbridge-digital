@@ -1,14 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import CaseStudyDetailPage from "../[slug]/page";
 
 export default function EcommerceAutomationCaseStudy() {
-  return (
-    <CaseStudyDetailPage
-      params={Promise.resolve({ slug: "ecommerce-automation" })}
-    />
-  );
-
   return (
     <main className="bg-white text-slate-900">
 

@@ -1,10 +1,4 @@
-import ServiceDetailPage from "../[slug]/page";
-
 export default function CRMPipelinePage() {
-  return (
-    <ServiceDetailPage params={Promise.resolve({ slug: "crm-pipeline" })} />
-  );
-
   return (
     <main className="bg-white text-slate-900">
 

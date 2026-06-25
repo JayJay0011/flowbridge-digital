@@ -13,7 +13,6 @@ type CaseStudy = {
   industry: string | null;
   cover_url: string | null;
   gallery_urls: string[] | null;
-  content_sections: unknown[] | null;
   results: string[] | null;
   body: string | null;
   status: "draft" | "published";
@@ -23,7 +22,6 @@ export default function AdminCaseStudyEditPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const [study, setStudy] = useState<CaseStudy | null>(null);
-  const [sectionsText, setSectionsText] = useState("[]");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -31,13 +29,10 @@ export default function AdminCaseStudyEditPage() {
     const load = async () => {
       const { data } = await supabase
         .from("case_studies")
-        .select("id,title,slug,summary,industry,cover_url,gallery_urls,content_sections,results,body,status")
+        .select("id,title,slug,summary,industry,cover_url,gallery_urls,results,body,status")
         .eq("id", params.id)
         .single();
       setStudy(data as CaseStudy);
-      setSectionsText(
-        JSON.stringify((data as CaseStudy | null)?.content_sections ?? [], null, 2)
-      );
     };
     load();
   }, [params.id]);
@@ -46,22 +41,6 @@ export default function AdminCaseStudyEditPage() {
     if (!study) return;
     setSaving(true);
     setMessage(null);
-    let parsedSections: unknown[] | null = null;
-    try {
-      const parsed = JSON.parse(sectionsText || "[]");
-      if (!Array.isArray(parsed)) {
-        throw new Error("Case-study sections must be a JSON array.");
-      }
-      parsedSections = parsed.length ? parsed : null;
-    } catch (parseError) {
-      setMessage(
-        parseError instanceof Error
-          ? parseError.message
-          : "Case-study sections must be valid JSON."
-      );
-      setSaving(false);
-      return;
-    }
     const { error } = await supabase
       .from("case_studies")
       .update({
@@ -71,7 +50,6 @@ export default function AdminCaseStudyEditPage() {
         industry: study.industry?.trim() || null,
         cover_url: study.cover_url?.trim() || null,
         gallery_urls: study.gallery_urls?.length ? study.gallery_urls : null,
-        content_sections: parsedSections,
         results: study.results ?? null,
         body: study.body?.trim() || null,
         status: study.status,
@@ -231,18 +209,6 @@ export default function AdminCaseStudyEditPage() {
             rows={10}
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
-        </div>
-        <div>
-          <label className="text-sm font-semibold">Detail sections JSON</label>
-          <textarea
-            value={sectionsText}
-            onChange={(event) => setSectionsText(event.target.value)}
-            rows={14}
-            className="w-full mt-2 font-mono text-sm border border-slate-200 rounded-xl px-4 py-3"
-          />
-          <p className="mt-2 text-xs text-slate-500">
-            These sections power the detailed public case-study page.
-          </p>
         </div>
         <div>
           <label className="text-sm font-semibold">Status</label>
