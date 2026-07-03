@@ -15,8 +15,9 @@ type AdminImageUploadProps = {
   onUploaded: (urls: string[]) => void;
 };
 
-const MAX_CANVAS_WIDTH = 1400;
-const TARGET_IMAGE_SIZE = 1.8 * 1024 * 1024;
+const IMAGE_WIDTH_STEPS = [1400, 1100, 900, 700];
+const IMAGE_QUALITY_STEPS = [0.76, 0.66, 0.56, 0.46, 0.36];
+const TARGET_IMAGE_SIZE = 850 * 1024;
 const ACCEPT_MAP = {
   image: "image/jpeg,image/png,image/webp",
   video: "video/mp4,video/webm,video/quicktime",
@@ -52,9 +53,12 @@ async function canvasToFile(
   });
 }
 
-async function addWatermark(file: File) {
-  const image = await loadImage(file);
-  const scale = Math.min(1, MAX_CANVAS_WIDTH / image.naturalWidth);
+function drawImageToCanvas(
+  image: HTMLImageElement,
+  maxWidth: number,
+  watermark: boolean
+) {
+  const scale = Math.min(1, maxWidth / image.naturalWidth);
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
   const canvas = document.createElement("canvas");
@@ -62,9 +66,12 @@ async function addWatermark(file: File) {
   canvas.height = height;
 
   const context = canvas.getContext("2d");
-  if (!context) return file;
+  if (!context) return null;
 
   context.drawImage(image, 0, 0, width, height);
+
+  if (!watermark) return canvas;
+
   context.save();
   context.translate(width / 2, height / 2);
   context.rotate((-28 * Math.PI) / 180);
@@ -85,15 +92,38 @@ async function addWatermark(file: File) {
   }
   context.restore();
 
-  for (const quality of [0.78, 0.68, 0.58, 0.48]) {
-    const compressedFile = await canvasToFile(canvas, file.name, quality);
-    if (!compressedFile) continue;
-    if (compressedFile.size <= TARGET_IMAGE_SIZE || quality === 0.48) {
-      return compressedFile;
+  return canvas;
+}
+
+async function prepareImage(file: File, watermark: boolean) {
+  const image = await loadImage(file);
+
+  let smallestFile: File | null = null;
+  for (const width of IMAGE_WIDTH_STEPS) {
+    const canvas = drawImageToCanvas(image, width, watermark);
+    if (!canvas) return file;
+
+    for (const quality of IMAGE_QUALITY_STEPS) {
+      const compressedFile = await canvasToFile(canvas, file.name, quality);
+      if (!compressedFile) continue;
+
+      if (!smallestFile || compressedFile.size < smallestFile.size) {
+        smallestFile = compressedFile;
+      }
+
+      if (compressedFile.size <= TARGET_IMAGE_SIZE) {
+        return compressedFile;
+      }
     }
   }
 
-  return file;
+  if (smallestFile) {
+    if (smallestFile.size <= file.size || file.size > TARGET_IMAGE_SIZE) {
+      return smallestFile;
+    }
+  }
+
+  return file.size <= TARGET_IMAGE_SIZE ? file : smallestFile ?? file;
 }
 
 export default function AdminImageUpload({
@@ -129,10 +159,9 @@ export default function AdminImageUpload({
 
       const urls: string[] = [];
       for (const selectedFile of selectedFiles) {
-        const file =
-          watermark && selectedFile.type.startsWith("image/")
-            ? await addWatermark(selectedFile)
-            : selectedFile;
+        const file = selectedFile.type.startsWith("image/")
+          ? await prepareImage(selectedFile, watermark)
+          : selectedFile;
         const formData = new FormData();
         formData.append("file", file);
         formData.append("section", section);

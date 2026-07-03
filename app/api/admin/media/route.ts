@@ -139,7 +139,11 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      const message = uploadError.message.toLowerCase().includes("maximum")
+      const normalizedError = uploadError.message.toLowerCase();
+      const message =
+        normalizedError.includes("maximum") ||
+        normalizedError.includes("exceeded") ||
+        normalizedError.includes("file size")
         ? "Upload is still above the storage bucket limit after processing. Try a smaller image, or increase the public-assets bucket file size limit in Supabase Storage settings."
         : uploadError.message;
       return NextResponse.json({ error: message }, { status: 500 });
