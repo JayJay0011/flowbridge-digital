@@ -117,8 +117,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: bucketError.message }, { status: 500 });
     }
 
-    if (bucketError) {
-      await supabaseAdmin.storage.updateBucket(BUCKET, bucketOptions);
+    const { error: updateBucketError } = await supabaseAdmin.storage.updateBucket(
+      BUCKET,
+      bucketOptions
+    );
+
+    if (updateBucketError) {
+      return NextResponse.json({ error: updateBucketError.message }, { status: 500 });
     }
 
     const section = cleanSection(formData.get("section"));
@@ -134,7 +139,10 @@ export async function POST(request: Request) {
       });
 
     if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 500 });
+      const message = uploadError.message.toLowerCase().includes("maximum")
+        ? "Upload is still above the storage bucket limit after processing. Try a smaller image, or increase the public-assets bucket file size limit in Supabase Storage settings."
+        : uploadError.message;
+      return NextResponse.json({ error: message }, { status: 500 });
     }
 
     const { data: publicUrl } = supabaseAdmin.storage

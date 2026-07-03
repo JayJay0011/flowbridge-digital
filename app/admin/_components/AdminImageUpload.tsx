@@ -15,7 +15,8 @@ type AdminImageUploadProps = {
   onUploaded: (urls: string[]) => void;
 };
 
-const MAX_CANVAS_WIDTH = 1600;
+const MAX_CANVAS_WIDTH = 1400;
+const TARGET_IMAGE_SIZE = 1.8 * 1024 * 1024;
 const ACCEPT_MAP = {
   image: "image/jpeg,image/png,image/webp",
   video: "video/mp4,video/webm,video/quicktime",
@@ -33,6 +34,22 @@ async function loadImage(file: File) {
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+async function canvasToFile(
+  canvas: HTMLCanvasElement,
+  originalName: string,
+  quality: number
+) {
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, "image/webp", quality)
+  );
+
+  if (!blob) return null;
+
+  return new File([blob], originalName.replace(/\.[^.]+$/, ".webp"), {
+    type: "image/webp",
+  });
 }
 
 async function addWatermark(file: File) {
@@ -53,10 +70,10 @@ async function addWatermark(file: File) {
   context.rotate((-28 * Math.PI) / 180);
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.font = "600 24px Arial, sans-serif";
+  context.font = "600 22px Arial, sans-serif";
 
-  const spacingX = 290;
-  const spacingY = 170;
+  const spacingX = 300;
+  const spacingY = 190;
   for (let y = -height; y <= height; y += spacingY) {
     for (let x = -width; x <= width; x += spacingX) {
       context.strokeStyle = "rgba(15, 23, 42, 0.2)";
@@ -68,14 +85,15 @@ async function addWatermark(file: File) {
   }
   context.restore();
 
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/webp", 0.82)
-  );
+  for (const quality of [0.78, 0.68, 0.58, 0.48]) {
+    const compressedFile = await canvasToFile(canvas, file.name, quality);
+    if (!compressedFile) continue;
+    if (compressedFile.size <= TARGET_IMAGE_SIZE || quality === 0.48) {
+      return compressedFile;
+    }
+  }
 
-  if (!blob) return file;
-  return new File([blob], file.name.replace(/\.[^.]+$/, ".webp"), {
-    type: "image/webp",
-  });
+  return file;
 }
 
 export default function AdminImageUpload({
