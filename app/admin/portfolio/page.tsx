@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import AdminDeleteButton from "../_components/AdminDeleteButton";
 
 type PortfolioItem = {
   id: string;
@@ -117,6 +118,16 @@ export default function AdminPortfolioPage() {
                   >
                     {item.status === "published" ? "Unpublish" : "Publish"}
                   </button>
+                  <AdminDeleteButton
+                    table="portfolio"
+                    id={item.id}
+                    label={item.title}
+                    onDeleted={() =>
+                      setItems((prev) =>
+                        prev.filter((row) => row.id !== item.id)
+                      )
+                    }
+                  />
                 </div>
               </div>
             ))

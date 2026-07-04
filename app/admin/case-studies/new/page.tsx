@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import { useAdminDraft } from "../../_components/useAdminDraft";
 
 export default function AdminCaseStudyNewPage() {
   const router = useRouter();
@@ -19,6 +20,11 @@ export default function AdminCaseStudyNewPage() {
     results: "",
     body: "",
     status: "draft",
+  });
+  const { clearDraft, status: draftStatus } = useAdminDraft({
+    storageKey: "flowbridge-admin-draft-case-study-new",
+    value: form,
+    onRestore: setForm,
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -61,6 +67,7 @@ export default function AdminCaseStudyNewPage() {
       return;
     }
 
+    clearDraft();
     router.push(`/admin/case-studies/${data.id}`);
   };
 
@@ -71,6 +78,11 @@ export default function AdminCaseStudyNewPage() {
           Case Studies
         </p>
         <h2 className="text-3xl font-semibold mt-2">New case study</h2>
+        {draftStatus !== "idle" ? (
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {draftStatus === "restored" ? "Autosaved draft restored." : "Draft autosaved."}
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

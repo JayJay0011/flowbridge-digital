@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import AdminDeleteButton from "../_components/AdminDeleteButton";
 
 type Gig = {
   id: string;
@@ -127,6 +128,16 @@ export default function AdminGigsPage() {
                         >
                           {gig.status === "published" ? "Unpublish" : "Publish"}
                         </button>
+                        <AdminDeleteButton
+                          table="gigs"
+                          id={gig.id}
+                          label={gig.title}
+                          onDeleted={() =>
+                            setGigs((prev) =>
+                              prev.filter((item) => item.id !== gig.id)
+                            )
+                          }
+                        />
                       </div>
                     </td>
                   </tr>

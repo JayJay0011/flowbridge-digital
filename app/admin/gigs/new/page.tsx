@@ -5,6 +5,35 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import { gigCategories } from "../../../lib/gigCategories";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import { useAdminDraft } from "../../_components/useAdminDraft";
+
+type GigDraft = {
+  title: string;
+  summary: string;
+  priceText: string;
+  status: string;
+  orderFiverrUrl: string;
+  highlights: string;
+  categorySlugs: string[];
+  coverUrl: string;
+  galleryUrls: string[];
+  deliveryDays: string;
+  basicTitle: string;
+  basicPrice: string;
+  basicDescription: string;
+  basicDelivery: string;
+  basicFeatures: string;
+  standardTitle: string;
+  standardPrice: string;
+  standardDescription: string;
+  standardDelivery: string;
+  standardFeatures: string;
+  premiumTitle: string;
+  premiumPrice: string;
+  premiumDescription: string;
+  premiumDelivery: string;
+  premiumFeatures: string;
+};
 
 function slugify(value: string) {
   return value
@@ -43,6 +72,64 @@ export default function NewGigPage() {
   const [premiumFeatures, setPremiumFeatures] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const draft: GigDraft = {
+    title,
+    summary,
+    priceText,
+    status,
+    orderFiverrUrl,
+    highlights,
+    categorySlugs,
+    coverUrl,
+    galleryUrls,
+    deliveryDays,
+    basicTitle,
+    basicPrice,
+    basicDescription,
+    basicDelivery,
+    basicFeatures,
+    standardTitle,
+    standardPrice,
+    standardDescription,
+    standardDelivery,
+    standardFeatures,
+    premiumTitle,
+    premiumPrice,
+    premiumDescription,
+    premiumDelivery,
+    premiumFeatures,
+  };
+  const { clearDraft, status: draftStatus } = useAdminDraft<GigDraft>({
+    storageKey: "flowbridge-admin-draft-gig-new",
+    value: draft,
+    onRestore: (savedDraft) => {
+      setTitle(savedDraft.title ?? "");
+      setSummary(savedDraft.summary ?? "");
+      setPriceText(savedDraft.priceText ?? "");
+      setStatus(savedDraft.status ?? "draft");
+      setOrderFiverrUrl(savedDraft.orderFiverrUrl ?? "");
+      setHighlights(savedDraft.highlights ?? "");
+      setCategorySlugs(savedDraft.categorySlugs ?? []);
+      setCoverUrl(savedDraft.coverUrl ?? "");
+      setGalleryUrls(savedDraft.galleryUrls ?? []);
+      setDeliveryDays(savedDraft.deliveryDays ?? "");
+      setBasicTitle(savedDraft.basicTitle ?? "");
+      setBasicPrice(savedDraft.basicPrice ?? "");
+      setBasicDescription(savedDraft.basicDescription ?? "");
+      setBasicDelivery(savedDraft.basicDelivery ?? "");
+      setBasicFeatures(savedDraft.basicFeatures ?? "");
+      setStandardTitle(savedDraft.standardTitle ?? "");
+      setStandardPrice(savedDraft.standardPrice ?? "");
+      setStandardDescription(savedDraft.standardDescription ?? "");
+      setStandardDelivery(savedDraft.standardDelivery ?? "");
+      setStandardFeatures(savedDraft.standardFeatures ?? "");
+      setPremiumTitle(savedDraft.premiumTitle ?? "");
+      setPremiumPrice(savedDraft.premiumPrice ?? "");
+      setPremiumDescription(savedDraft.premiumDescription ?? "");
+      setPremiumDelivery(savedDraft.premiumDelivery ?? "");
+      setPremiumFeatures(savedDraft.premiumFeatures ?? "");
+    },
+  });
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -128,6 +215,7 @@ export default function NewGigPage() {
           .insert(payloadWithoutCategories);
 
         if (!fallbackError) {
+          clearDraft();
           router.push("/admin/gigs");
           return;
         }
@@ -137,6 +225,7 @@ export default function NewGigPage() {
       return;
     }
 
+    clearDraft();
     router.push("/admin/gigs");
   };
 
@@ -148,6 +237,11 @@ export default function NewGigPage() {
           <p className="text-slate-600 mt-2">
             Draft a listing and choose where the order should route.
           </p>
+          {draftStatus !== "idle" ? (
+            <p className="mt-2 text-xs font-semibold text-slate-500">
+              {draftStatus === "restored" ? "Autosaved draft restored." : "Draft autosaved."}
+            </p>
+          ) : null}
         </div>
       </section>
 

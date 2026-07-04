@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
+import AdminDeleteButton from "../_components/AdminDeleteButton";
 
 type ServiceItem = {
   id: string;
@@ -164,6 +165,16 @@ export default function AdminServicesPage() {
                     >
                       {service.status === "published" ? "Unpublish" : "Publish"}
                     </button>
+                    <AdminDeleteButton
+                      table="services"
+                      id={service.id}
+                      label={service.title}
+                      onDeleted={() =>
+                        setServices((prev) =>
+                          prev.filter((row) => row.id !== service.id)
+                        )
+                      }
+                    />
                   </div>
                 </div>
               </div>

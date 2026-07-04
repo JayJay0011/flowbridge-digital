@@ -8,6 +8,7 @@ import ServiceSectionBuilder, {
   sanitizeServiceSections,
   type EditableServiceSection,
 } from "../ServiceSectionBuilder";
+import { useAdminDraft } from "../../_components/useAdminDraft";
 
 export default function AdminServiceNewPage() {
   const router = useRouter();
@@ -22,6 +23,11 @@ export default function AdminServiceNewPage() {
     cta_url: "",
     status: "draft",
     content_sections: [] as EditableServiceSection[],
+  });
+  const { clearDraft, status: draftStatus } = useAdminDraft({
+    storageKey: "flowbridge-admin-draft-service-new",
+    value: form,
+    onRestore: setForm,
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -73,6 +79,7 @@ export default function AdminServiceNewPage() {
           .single();
 
         if (!fallbackError) {
+          clearDraft();
           router.push(`/admin/services/${fallbackData.id}`);
           return;
         }
@@ -82,6 +89,7 @@ export default function AdminServiceNewPage() {
       return;
     }
 
+    clearDraft();
     router.push(`/admin/services/${data.id}`);
   };
 
@@ -92,6 +100,11 @@ export default function AdminServiceNewPage() {
           Services
         </p>
         <h2 className="text-3xl font-semibold mt-2">New service</h2>
+        {draftStatus !== "idle" ? (
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {draftStatus === "restored" ? "Autosaved draft restored." : "Draft autosaved."}
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
+import AdminDeleteButton from "../_components/AdminDeleteButton";
 
 type BlogPost = {
   id: string;
@@ -130,6 +131,16 @@ export default function AdminBlogPage() {
                   >
                     {post.status === "published" ? "Unpublish" : "Publish"}
                   </button>
+                  <AdminDeleteButton
+                    table="blog_posts"
+                    id={post.id}
+                    label={post.title}
+                    onDeleted={() =>
+                      setPosts((prev) =>
+                        prev.filter((item) => item.id !== post.id)
+                      )
+                    }
+                  />
                 </div>
               </div>
             ))}

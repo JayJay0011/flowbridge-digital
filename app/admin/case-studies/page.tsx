@@ -5,6 +5,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
+import AdminDeleteButton from "../_components/AdminDeleteButton";
 
 type CaseStudy = {
   id: string;
@@ -106,6 +107,16 @@ export default function AdminCaseStudiesPage() {
                   >
                     Preview
                   </Link>
+                  <AdminDeleteButton
+                    table="case_studies"
+                    id={item.id}
+                    label={item.title}
+                    onDeleted={() =>
+                      setItems((prev) =>
+                        prev.filter((row) => row.id !== item.id)
+                      )
+                    }
+                  />
                 </div>
               </div>
             ))}

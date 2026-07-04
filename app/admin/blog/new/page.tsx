@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import { useAdminDraft } from "../../_components/useAdminDraft";
 
 export default function AdminBlogNewPage() {
   const router = useRouter();
@@ -16,6 +17,11 @@ export default function AdminBlogNewPage() {
     cover_url: "",
     body: "",
     status: "draft",
+  });
+  const { clearDraft, status: draftStatus } = useAdminDraft({
+    storageKey: "flowbridge-admin-draft-blog-new",
+    value: form,
+    onRestore: setForm,
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -51,6 +57,7 @@ export default function AdminBlogNewPage() {
       return;
     }
 
+    clearDraft();
     router.push(`/admin/blog/${data.id}`);
   };
 
@@ -61,6 +68,11 @@ export default function AdminBlogNewPage() {
           Blog
         </p>
         <h2 className="text-3xl font-semibold mt-2">New post</h2>
+        {draftStatus !== "idle" ? (
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {draftStatus === "restored" ? "Autosaved draft restored." : "Draft autosaved."}
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

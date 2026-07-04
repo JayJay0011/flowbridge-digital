@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import { useAdminDraft } from "../../_components/useAdminDraft";
 
 type CaseStudyOption = {
   id: string;
@@ -34,6 +35,11 @@ export default function AdminPortfolioNewPage() {
     outcomes: "",
     case_study_slug: "",
     status: "draft",
+  });
+  const { clearDraft, status: draftStatus } = useAdminDraft({
+    storageKey: "flowbridge-admin-draft-portfolio-new",
+    value: form,
+    onRestore: setForm,
   });
 
   useEffect(() => {
@@ -80,6 +86,7 @@ export default function AdminPortfolioNewPage() {
       return;
     }
 
+    clearDraft();
     router.push(`/admin/portfolio/${data.id}`);
   };
 
@@ -90,6 +97,11 @@ export default function AdminPortfolioNewPage() {
           Portfolio
         </p>
         <h2 className="text-3xl font-semibold mt-2">New portfolio item</h2>
+        {draftStatus !== "idle" ? (
+          <p className="mt-2 text-xs font-semibold text-slate-500">
+            {draftStatus === "restored" ? "Autosaved draft restored." : "Draft autosaved."}
+          </p>
+        ) : null}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
