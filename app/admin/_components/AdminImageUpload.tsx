@@ -178,8 +178,14 @@ export default function AdminImageUpload({
         };
 
         if (!response.ok || !payload.url) {
+          const baseError = payload.error || "Upload failed.";
+          const hasProcessedSize = /processed (file|upload) size/i.test(
+            baseError
+          );
           throw new Error(
-            `${payload.error || "Upload failed."} Processed file size: ${processedSizeKb}KB.`
+            hasProcessedSize
+              ? baseError
+              : `${baseError} Processed file size: ${processedSizeKb}KB.`
           );
         }
 
