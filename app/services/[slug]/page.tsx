@@ -1,6 +1,6 @@
 import Link from "next/link";
-import Image from "next/image";
 import { supabasePublic } from "../../lib/supabasePublic";
+import MediaGallery from "../../components/MediaGallery";
 
 export const revalidate = 0;
 
@@ -104,38 +104,40 @@ export default async function ServiceDetailPage({ params }: Params) {
 
   return (
     <main className="bg-white text-slate-900">
-      <section className="py-24 bg-slate-950 text-white">
-        <div className="max-w-5xl mx-auto px-4 md:px-6">
-          <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
-            Service
-          </p>
-          <h1 className="text-4xl md:text-5xl font-semibold mt-6">
-            {serviceRecord.title}
-          </h1>
-          {serviceRecord.description ? (
-            <p className="text-xl text-slate-200 max-w-3xl mt-6">
-              {serviceRecord.description}
+      <section className="bg-slate-50 py-24 md:py-28">
+        <div
+          className={`mx-auto grid max-w-6xl gap-12 px-4 md:px-6 ${
+            coverUrl ? "md:grid-cols-[1fr_0.9fr] md:items-center" : ""
+          }`}
+        >
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+              Service
             </p>
-          ) : null}
-          <div className="mt-10">
-            <a
-              href={ctaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex rounded-xl bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-slate-200"
-            >
-              {ctaLabel}
-            </a>
+            <h1 className="mt-6 text-4xl font-semibold leading-tight md:text-6xl">
+              {serviceRecord.title}
+            </h1>
+            {serviceRecord.description ? (
+              <p className="mt-6 max-w-3xl text-lg leading-8 text-slate-600 md:text-xl">
+                {serviceRecord.description}
+              </p>
+            ) : null}
+            <div className="mt-10">
+              <a
+                href={ctaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                {ctaLabel}
+              </a>
+            </div>
           </div>
           {coverUrl ? (
-            <div className="relative mt-10 aspect-[16/7] overflow-hidden rounded-2xl border border-white/10 bg-slate-900">
-              <Image
-                src={coverUrl}
-                alt=""
-                fill
-                priority
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 960px"
+            <div className="rounded-3xl bg-white p-5 shadow-2xl shadow-slate-200">
+              <MediaGallery
+                items={[{ url: coverUrl, alt: serviceRecord.title }]}
+                title={serviceRecord.title}
               />
             </div>
           ) : null}
@@ -144,7 +146,10 @@ export default async function ServiceDetailPage({ params }: Params) {
 
       {contentSections.length ? (
         contentSections.map((section, index) => (
-          <ServiceContentSection key={`${section.title}-${index}`} section={section} />
+          <ServiceContentSection
+            key={`${section.title}-${index}`}
+            section={section}
+          />
         ))
       ) : (
         <section className="py-20">
@@ -196,7 +201,7 @@ function ServiceContentSection({ section }: { section: ServiceSection }) {
   return (
     <section
       className={`py-24 ${
-        isDark ? "bg-slate-900 text-white" : isLight ? "bg-slate-50" : "bg-white"
+        isDark ? "bg-slate-950 text-white" : isLight ? "bg-slate-50" : "bg-white"
       }`}
     >
       <div className="max-w-6xl mx-auto px-4 md:px-6">
@@ -217,7 +222,7 @@ function ServiceContentSection({ section }: { section: ServiceSection }) {
                 return (
                   <p
                     key={`${item}-${index}`}
-                    className={`text-lg ${isDark ? "text-slate-300" : "text-slate-600"}`}
+                    className={`leading-8 ${isDark ? "text-slate-300" : "text-slate-600"}`}
                   >
                     • {item}
                   </p>

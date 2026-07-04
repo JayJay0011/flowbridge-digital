@@ -126,6 +126,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: updateBucketError.message }, { status: 500 });
     }
 
+    await supabaseAdmin
+      .schema("storage")
+      .from("buckets")
+      .update({
+        public: true,
+        file_size_limit: MAX_VIDEO_SIZE,
+        allowed_mime_types: Array.from(ALLOWED_TYPES),
+      })
+      .eq("id", BUCKET);
+
     const section = cleanSection(formData.get("section"));
     const filePath = `admin-media/${section}/${user.id}/${Date.now()}.${getExtension(
       file
@@ -144,7 +154,7 @@ export async function POST(request: Request) {
         normalizedError.includes("maximum") ||
         normalizedError.includes("exceeded") ||
         normalizedError.includes("file size")
-        ? "Upload is still above the storage bucket limit after processing. Try a smaller image, or increase the public-assets bucket file size limit in Supabase Storage settings."
+        ? `Supabase Storage rejected this file because the public-assets bucket limit is still too low. The app compressed the image before upload, but the bucket setting must be raised. Processed upload size: ${Math.ceil(file.size / 1024)}KB.`
         : uploadError.message;
       return NextResponse.json({ error: message }, { status: 500 });
     }

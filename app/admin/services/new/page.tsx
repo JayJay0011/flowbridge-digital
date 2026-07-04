@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import ServiceSectionBuilder, {
+  sanitizeServiceSections,
+  type EditableServiceSection,
+} from "../ServiceSectionBuilder";
 
 export default function AdminServiceNewPage() {
   const router = useRouter();
@@ -14,7 +18,10 @@ export default function AdminServiceNewPage() {
     slug: "",
     description: "",
     cover_url: "",
+    cta_label: "",
+    cta_url: "",
     status: "draft",
+    content_sections: [] as EditableServiceSection[],
   });
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -35,6 +42,9 @@ export default function AdminServiceNewPage() {
       slug,
       description: form.description.trim() || null,
       cover_url: form.cover_url.trim() || null,
+      cta_label: form.cta_label.trim() || null,
+      cta_url: form.cta_url.trim() || null,
+      content_sections: sanitizeServiceSections(form.content_sections),
       status: form.status,
     };
 
@@ -45,7 +55,11 @@ export default function AdminServiceNewPage() {
       .single();
 
     if (error) {
-      if (error.message.includes("cover_url")) {
+      if (
+        ["cover_url", "cta_label", "cta_url", "content_sections"].some((field) =>
+          error.message.includes(field)
+        )
+      ) {
         const payloadWithoutCover = {
           title: payload.title,
           slug: payload.slug,
@@ -72,7 +86,7 @@ export default function AdminServiceNewPage() {
   };
 
   return (
-    <section className="max-w-3xl space-y-6">
+    <section className="max-w-5xl space-y-6">
       <div>
         <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
           Services
@@ -110,6 +124,30 @@ export default function AdminServiceNewPage() {
             className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
           />
         </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="text-sm font-semibold">CTA label</label>
+            <input
+              value={form.cta_label}
+              onChange={(event) =>
+                setForm({ ...form, cta_label: event.target.value })
+              }
+              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+              placeholder="Book a Strategy Call"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-semibold">CTA URL</label>
+            <input
+              value={form.cta_url}
+              onChange={(event) =>
+                setForm({ ...form, cta_url: event.target.value })
+              }
+              className="w-full mt-2 border border-slate-200 rounded-xl px-4 py-3"
+              placeholder="https://cal.com/..."
+            />
+          </div>
+        </div>
         <div>
           <AdminImageUpload
             label="Service image"
@@ -121,6 +159,12 @@ export default function AdminServiceNewPage() {
             }
           />
         </div>
+        <ServiceSectionBuilder
+          value={form.content_sections}
+          onChange={(content_sections) =>
+            setForm({ ...form, content_sections })
+          }
+        />
         <div>
           <label className="text-sm font-semibold">Status</label>
           <select

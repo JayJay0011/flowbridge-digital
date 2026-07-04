@@ -15,9 +15,9 @@ type AdminImageUploadProps = {
   onUploaded: (urls: string[]) => void;
 };
 
-const IMAGE_WIDTH_STEPS = [1400, 1100, 900, 700];
-const IMAGE_QUALITY_STEPS = [0.76, 0.66, 0.56, 0.46, 0.36];
-const TARGET_IMAGE_SIZE = 850 * 1024;
+const IMAGE_WIDTH_STEPS = [1200, 900, 700, 520];
+const IMAGE_QUALITY_STEPS = [0.72, 0.6, 0.48, 0.36, 0.28];
+const TARGET_IMAGE_SIZE = 420 * 1024;
 const ACCEPT_MAP = {
   image: "image/jpeg,image/png,image/webp",
   video: "video/mp4,video/webm,video/quicktime",
@@ -162,6 +162,7 @@ export default function AdminImageUpload({
         const file = selectedFile.type.startsWith("image/")
           ? await prepareImage(selectedFile, watermark)
           : selectedFile;
+        const processedSizeKb = Math.ceil(file.size / 1024);
         const formData = new FormData();
         formData.append("file", file);
         formData.append("section", section);
@@ -177,7 +178,9 @@ export default function AdminImageUpload({
         };
 
         if (!response.ok || !payload.url) {
-          throw new Error(payload.error || "Upload failed.");
+          throw new Error(
+            `${payload.error || "Upload failed."} Processed file size: ${processedSizeKb}KB.`
+          );
         }
 
         urls.push(payload.url);

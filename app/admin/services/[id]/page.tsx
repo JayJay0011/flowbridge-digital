@@ -4,6 +4,11 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "../../../lib/supabaseClient";
 import AdminImageUpload from "../../_components/AdminImageUpload";
+import ServiceSectionBuilder, {
+  sanitizeServiceSections,
+  toEditableServiceSections,
+  type EditableServiceSection,
+} from "../ServiceSectionBuilder";
 
 type ServiceItem = {
   id: string;
@@ -13,6 +18,7 @@ type ServiceItem = {
   cover_url: string | null;
   cta_label: string | null;
   cta_url: string | null;
+  content_sections: EditableServiceSection[];
   status: "draft" | "published";
 };
 
@@ -27,7 +33,7 @@ export default function AdminServiceEditPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("services")
-        .select("id,title,slug,description,cover_url,cta_label,cta_url,status")
+        .select("id,title,slug,description,cover_url,cta_label,cta_url,content_sections,status")
         .eq("id", params.id)
         .single();
 
@@ -44,13 +50,21 @@ export default function AdminServiceEditPage() {
               cover_url: null,
               cta_label: null,
               cta_url: null,
+              content_sections: [],
             } as ServiceItem)
           : null;
         setService(fallbackService);
         return;
       }
 
-      setService(data as ServiceItem);
+      setService({
+        ...(data as Omit<ServiceItem, "content_sections"> & {
+          content_sections?: unknown;
+        }),
+        content_sections: toEditableServiceSections(
+          Array.isArray(data.content_sections) ? data.content_sections : []
+        ),
+      });
     };
     load();
   }, [params.id]);
@@ -67,6 +81,7 @@ export default function AdminServiceEditPage() {
       cover_url: service.cover_url?.trim() || null,
       cta_label: service.cta_label?.trim() || null,
       cta_url: service.cta_url?.trim() || null,
+      content_sections: sanitizeServiceSections(service.content_sections),
       status: service.status,
     };
 
@@ -76,7 +91,11 @@ export default function AdminServiceEditPage() {
       .eq("id", service.id);
 
     if (error) {
-      if (error.message.includes("cover_url")) {
+      if (
+        ["cover_url", "cta_label", "cta_url", "content_sections"].some((field) =>
+          error.message.includes(field)
+        )
+      ) {
         const payloadWithoutCover = {
           title: payload.title,
           slug: payload.slug,
@@ -108,7 +127,7 @@ export default function AdminServiceEditPage() {
   }
 
   return (
-    <section className="max-w-3xl space-y-6">
+    <section className="max-w-5xl space-y-6">
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">
@@ -195,6 +214,12 @@ export default function AdminServiceEditPage() {
             }
           />
         </div>
+        <ServiceSectionBuilder
+          value={service.content_sections}
+          onChange={(content_sections) =>
+            setService({ ...service, content_sections })
+          }
+        />
         <div>
           <label className="text-sm font-semibold">Status</label>
           <select
