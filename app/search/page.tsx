@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCaseStudyCoverUrl } from "../lib/caseStudyAssets";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const metadata = {
@@ -144,7 +145,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                   title={item.title}
                   description={item.summary}
                   href={`/case-studies/${item.slug}`}
-                  imageUrl={item.cover_url}
+                  imageUrl={getCaseStudyCoverUrl(item.slug, item.cover_url)}
                 />
               ))
             ) : (

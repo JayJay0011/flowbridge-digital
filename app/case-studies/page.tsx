@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCaseStudyCoverUrl } from "../lib/caseStudyAssets";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const revalidate = 0;
@@ -25,7 +26,7 @@ export default async function CaseStudiesPage({ searchParams }: PageProps) {
     title: item.title,
     summary: item.summary,
     href: `/case-studies/${item.slug}`,
-    cover_url: item.cover_url,
+    cover_url: getCaseStudyCoverUrl(item.slug, item.cover_url),
   }));
   const totalPages = Math.max(1, Math.ceil(cases.length / CASES_PER_PAGE));
   const currentPage = Number.isFinite(requestedPage)

@@ -31,14 +31,15 @@ export default function MedspaCaseStudy() {
             </Link>
           </div>
 
-          <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-xl">
-        <Image
-          src="/medspa-automation-system.png"
-          alt="MedSpa Automation System Dashboard"
-          width={800}
-          height={1000}
-          className="rounded-2xl shadow-md mb-6"
-        />
+          <div className="relative flex min-h-[340px] items-center rounded-2xl overflow-hidden bg-white p-4 shadow-xl md:min-h-[420px]">
+            <Image
+              src="/medspa-crm-pipeline.png"
+              alt="MedSpa CRM pipeline dashboard"
+              width={1536}
+              height={1024}
+              priority
+              className="h-auto w-full rounded-xl object-contain"
+            />
           </div>
 
         </div>
@@ -106,10 +107,10 @@ export default function MedspaCaseStudy() {
       {/* CRM Pipeline */}
       <div>
         <Image
-          src="/medspa-automation-system.png"
-          alt="MedSpa Automation System Dashboard"
-          width={800}
-          height={1000}
+          src="/medspa-crm-pipeline.png"
+          alt="MedSpa CRM pipeline dashboard"
+          width={1536}
+          height={1024}
           className="rounded-2xl shadow-md mb-6"
         />
         <h3 className="text-xl font-semibold mb-2">

@@ -99,7 +99,7 @@ values
   'Replacing fragmented lead tracking and manual follow-ups with a structured CRM system, lifecycle automation, and operational visibility.',
   'MedSpa / Clinic',
   'The clinic had steady lead volume from paid ads and referrals, but follow-ups, visibility, and team coordination were fragmented.',
-  '/medspa-mockup.png',
+  '/medspa-crm-pipeline.png',
   array['/medspa-crm-pipeline.png','/medspa-automation-system.png'],
   '[
     {"title":"Business Context","body":"The clinic was experiencing steady lead volume from paid ads and referrals but struggled with follow-ups, visibility, and internal coordination."},
