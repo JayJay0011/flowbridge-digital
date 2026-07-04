@@ -33,7 +33,7 @@ export default function MedspaCaseStudy() {
 
           <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-xl">
             <Image
-              src="//Users/akin/flowbridge-digital/public/medspa-crm-pipeline.png"
+              src="/medspa-crm-pipeline.png"
               alt="Medspa CRM Dashboard Mockup"
               fill
               className="object-cover"
@@ -105,8 +105,8 @@ export default function MedspaCaseStudy() {
       {/* CRM Pipeline */}
       <div>
         <Image
-          src="/medspa-crm-pipeline.png"
-          alt="MedSpa CRM Pipeline Dashboard"
+          src="/medspa-automation-system.png"
+          alt="MedSpa Automation System Dashboard"
           width={800}
           height={1000}
           className="rounded-2xl shadow-md mb-6"
