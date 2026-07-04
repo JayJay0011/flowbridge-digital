@@ -32,12 +32,13 @@ export default function MedspaCaseStudy() {
           </div>
 
           <div className="relative h-[420px] rounded-2xl overflow-hidden shadow-xl">
-            <Image
-              src="/medspa-crm-pipeline.png"
-              alt="Medspa CRM Dashboard Mockup"
-              fill
-              className="object-cover"
-            />
+        <Image
+          src="/medspa-automation-system.png"
+          alt="MedSpa Automation System Dashboard"
+          width={800}
+          height={1000}
+          className="rounded-2xl shadow-md mb-6"
+        />
           </div>
 
         </div>
