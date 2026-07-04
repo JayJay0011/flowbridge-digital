@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+import MediaGallery from "../../components/MediaGallery";
 
 export default function MedspaCaseStudy() {
   return (
@@ -31,16 +31,17 @@ export default function MedspaCaseStudy() {
             </Link>
           </div>
 
-          <div className="relative flex min-h-[340px] items-center rounded-2xl overflow-hidden bg-white p-4 shadow-xl md:min-h-[420px]">
-            <Image
-              src="/medspa-crm-pipeline.png"
-              alt="MedSpa CRM pipeline dashboard"
-              width={1536}
-              height={1024}
-              priority
-              className="h-auto w-full rounded-xl object-contain"
-            />
-          </div>
+          <MediaGallery
+            items={[
+              {
+                url: "/medspa-crm-pipeline.png",
+                type: "image",
+                alt: "MedSpa CRM pipeline dashboard",
+              },
+            ]}
+            title="MedSpa CRM pipeline dashboard"
+            className="shadow-xl"
+          />
 
         </div>
       </section>
@@ -106,12 +107,16 @@ export default function MedspaCaseStudy() {
 
       {/* CRM Pipeline */}
       <div>
-        <Image
-          src="/medspa-crm-pipeline.png"
-          alt="MedSpa CRM pipeline dashboard"
-          width={1536}
-          height={1024}
-          className="rounded-2xl shadow-md mb-6"
+        <MediaGallery
+          items={[
+            {
+              url: "/medspa-crm-pipeline.png",
+              type: "image",
+              alt: "MedSpa CRM pipeline dashboard",
+            },
+          ]}
+          title="MedSpa CRM pipeline dashboard"
+          className="mb-6 shadow-md"
         />
         <h3 className="text-xl font-semibold mb-2">
           Structured CRM Pipeline
@@ -124,12 +129,16 @@ export default function MedspaCaseStudy() {
 
       {/* Automation System */}
       <div>
-        <Image
-          src="/medspa-automation-system.png"
-          alt="MedSpa Automation System Dashboard"
-          width={800}
-          height={1000}
-          className="rounded-2xl shadow-md mb-6"
+        <MediaGallery
+          items={[
+            {
+              url: "/medspa-automation-system.png",
+              type: "image",
+              alt: "MedSpa automation system dashboard",
+            },
+          ]}
+          title="MedSpa automation system dashboard"
+          className="mb-6 shadow-md"
         />
         <h3 className="text-xl font-semibold mb-2">
           Lead → Consultation & Lifecycle Automation
