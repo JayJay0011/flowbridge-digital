@@ -60,16 +60,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const { error: bucketError } = await supabaseAdmin.storage.createBucket("public-assets", {
-      public: true,
-      fileSizeLimit: MAX_AVATAR_SIZE,
-      allowedMimeTypes: Array.from(ALLOWED_TYPES),
-    });
-
-    if (bucketError && !bucketError.message.toLowerCase().includes("already exists")) {
-      return NextResponse.json({ error: bucketError.message }, { status: 500 });
-    }
-
     const filePath = `avatars/${user.id}/${Date.now()}.${getExtension(file)}`;
     const { error: uploadError } = await supabaseAdmin.storage
       .from("public-assets")
