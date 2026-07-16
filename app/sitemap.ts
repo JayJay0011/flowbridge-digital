@@ -14,12 +14,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/services/platform-development",
     "/services/operational-support",
     "/gigs",
+    "/portfolio",
+    "/blog",
+    "/reviews",
     "/about",
     "/how-we-work",
+    "/contact",
     "/case-studies",
     "/case-studies/ecommerce-automation",
     "/case-studies/medspa-crm-rebuild",
     "/case-studies/internal-operations",
+    "/privacy-policy",
+    "/terms-of-service",
     "/strategy-call",
   ];
 

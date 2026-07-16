@@ -37,34 +37,77 @@ export default async function Home() {
       }))
     : undefined;
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://flowbridgedigital.org";
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Organization",
-    name: "Flowbridge Digital",
-    url: "https://flowbridgedigital.org",
-    description:
-      "Automation systems, CRM pipelines, and growth infrastructure for modern operators.",
-    sameAs: [],
-    makesOffer: [
+    "@graph": [
       {
-        "@type": "Service",
-        name: "Automation Systems",
+        "@type": "WebPage",
+        "@id": `${siteUrl}/#homepage`,
+        url: siteUrl,
+        name: "Flowbridge Digital | Automation & CRM Systems",
+        description:
+          "Automation systems, CRM pipelines, and growth infrastructure for modern operators.",
+        isPartOf: {
+          "@id": `${siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${siteUrl}/#organization`,
+        },
       },
       {
-        "@type": "Service",
-        name: "CRM Pipeline Engineering",
-      },
-      {
-        "@type": "Service",
-        name: "Growth Infrastructure",
-      },
-      {
-        "@type": "Service",
-        name: "Platform Development",
-      },
-      {
-        "@type": "Service",
-        name: "Operational Support",
+        "@type": "ItemList",
+        "@id": `${siteUrl}/#core-services`,
+        name: "Flowbridge Digital core services",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            item: {
+              "@type": "Service",
+              name: "Automation Systems",
+              url: `${siteUrl}/services/automation-systems-architecture`,
+            },
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            item: {
+              "@type": "Service",
+              name: "CRM Pipeline Engineering",
+              url: `${siteUrl}/services/crm-pipeline`,
+            },
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            item: {
+              "@type": "Service",
+              name: "Growth Infrastructure",
+              url: `${siteUrl}/services/growth-infrastructure`,
+            },
+          },
+          {
+            "@type": "ListItem",
+            position: 4,
+            item: {
+              "@type": "Service",
+              name: "Platform Development",
+              url: `${siteUrl}/services/platform-development`,
+            },
+          },
+          {
+            "@type": "ListItem",
+            position: 5,
+            item: {
+              "@type": "Service",
+              name: "Operational Support",
+              url: `${siteUrl}/services/operational-support`,
+            },
+          },
+        ],
       },
     ],
   };
