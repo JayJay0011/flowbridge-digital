@@ -36,7 +36,10 @@ const socialItems: SocialItem[] = [
   {
     label: "LinkedIn",
     choices: [
-      { label: "Founder Profile", href: "#" },
+      {
+        label: "Founder Profile",
+        href: "https://www.linkedin.com/in/oyeleke-jubril-846a223a6",
+      },
       { label: "Business Page", href: "#" },
     ],
   },
@@ -61,9 +64,9 @@ const socialItems: SocialItem[] = [
   {
     label: "WhatsApp",
     choices: [
-      { label: "UK Support", href: "#" },
+      { label: "UK Support", href: "https://wa.link/sqgra4" },
       { label: "US Support", href: "#" },
-      { label: "Nigeria Support", href: "#" },
+      { label: "Nigeria Support", href: "https://wa.link/pz72hl" },
     ],
   },
 ];

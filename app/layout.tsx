@@ -95,6 +95,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "@id": `${siteUrl}/#founder`,
           name: founderName,
           jobTitle: "Founder",
+          sameAs: [
+            "https://www.linkedin.com/in/oyeleke-jubril-846a223a6",
+          ],
         },
         owner: {
           "@id": `${siteUrl}/#founder`,
