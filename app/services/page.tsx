@@ -111,6 +111,55 @@ export default async function ServicesPage() {
         </div>
       </section>
 
+      {/* CARE PLAN */}
+      <section className="py-20 bg-white border-b border-slate-100">
+        <div className="max-w-5xl mx-auto px-4 md:px-6">
+          <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-start rounded-2xl border border-slate-200 bg-slate-50 p-8 md:p-10">
+            <div>
+              <p className="uppercase tracking-[0.25em] text-xs text-slate-500">
+                Recurring Support
+              </p>
+              <h2 className="mt-4 text-3xl font-semibold">
+                Flowbridge Care Plan
+              </h2>
+              <p className="mt-5 text-slate-600 leading-relaxed">
+                Ongoing CRM, automation, and systems maintenance for businesses
+                that want their infrastructure reviewed, improved, and supported
+                after launch.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-3 gap-4">
+              {["Monitoring", "Monthly Optimization", "Priority Updates"].map(
+                (item) => (
+                  <div
+                    key={item}
+                    className="rounded-xl border border-slate-200 bg-white p-5"
+                  >
+                    <h3 className="font-semibold">{item}</h3>
+                    <p className="mt-3 text-sm leading-relaxed text-slate-600">
+                      Keep your systems clean, connected, and aligned with your
+                      current operations.
+                    </p>
+                  </div>
+                )
+              )}
+            </div>
+
+            <div className="lg:col-span-2">
+              <a
+                href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-block rounded-xl bg-slate-900 px-7 py-4 font-semibold text-white transition hover:bg-slate-800"
+              >
+                Discuss a Care Plan
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CONNECTIVE STRATEGY SECTION */}
       <section className="py-28">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">

@@ -107,6 +107,15 @@ export default async function Home() {
               url: `${siteUrl}/services/operational-support`,
             },
           },
+          {
+            "@type": "ListItem",
+            position: 6,
+            item: {
+              "@type": "Service",
+              name: "Flowbridge Care Plan",
+              url: `${siteUrl}/services`,
+            },
+          },
         ],
       },
     ],
@@ -177,12 +186,16 @@ export default async function Home() {
           </div>
 
           <div className="mt-12 flex flex-wrap items-center gap-6 text-slate-300 text-sm">
-            <span className="uppercase tracking-[0.2em] text-xs">Trusted by</span>
-            <span className="text-slate-200 font-semibold">Meta</span>
-            <span className="text-slate-200 font-semibold">Google</span>
-            <span className="text-slate-200 font-semibold">PayPal</span>
-            <span className="text-slate-200 font-semibold">P&amp;G</span>
-            <span className="text-slate-200 font-semibold">Netflix</span>
+            <span className="uppercase tracking-[0.2em] text-xs">
+              Platforms we build with
+            </span>
+            <span className="text-slate-200 font-semibold">HubSpot</span>
+            <span className="text-slate-200 font-semibold">Zapier</span>
+            <span className="text-slate-200 font-semibold">Make</span>
+            <span className="text-slate-200 font-semibold">Supabase</span>
+            <span className="text-slate-200 font-semibold">Airtable</span>
+            <span className="text-slate-200 font-semibold">GoHighLevel</span>
+            <span className="text-slate-200 font-semibold">Bitrix24</span>
           </div>
         </div>
       </section>
@@ -316,6 +329,14 @@ export default async function Home() {
               <p className="text-slate-600 text-sm leading-relaxed">
                 Clear operational strategy that supports scalable growth.
               </p>
+              <a
+                href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+                target="_blank"
+                rel="noreferrer"
+                className="mt-6 inline-block text-sm font-semibold text-slate-900"
+              >
+                Book strategy call →
+              </a>
             </div>
 
           </div>
@@ -437,6 +458,60 @@ export default async function Home() {
         <p className="mt-4 text-gray-600">
           Growth no longer feels overwhelming. Systems support expansion instead of breaking under it.
         </p>
+      </div>
+    </div>
+  </div>
+</section>
+{/* ================= CARE PLAN SECTION ================= */}
+<section className="py-24 bg-slate-950 text-white">
+  <div className="max-w-6xl mx-auto px-4 md:px-6">
+    <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-12 items-start">
+      <div>
+        <p className="uppercase tracking-[0.3em] text-xs text-cyan-200">
+          Ongoing Support
+        </p>
+        <h2 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight">
+          Flowbridge Care Plan
+        </h2>
+        <p className="mt-6 text-lg leading-relaxed text-slate-300">
+          After your CRM, automation, or operational system is live, we help keep
+          it clean, optimized, and aligned with how your business grows.
+        </p>
+        <a
+          href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+          target="_blank"
+          rel="noreferrer"
+          className="mt-8 inline-block rounded-xl bg-white px-7 py-4 font-semibold text-slate-950 transition hover:bg-slate-200"
+        >
+          Discuss ongoing support
+        </a>
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-4">
+        {[
+          {
+            title: "Maintain",
+            body: "Keep workflows, CRM stages, forms, automations, and connected tools running correctly.",
+          },
+          {
+            title: "Optimize",
+            body: "Review system usage, fix bottlenecks, improve follow-up flows, and refine operations monthly.",
+          },
+          {
+            title: "Support",
+            body: "Get a structured support lane for updates, light changes, troubleshooting, and advisory calls.",
+          },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="rounded-2xl border border-slate-800 bg-slate-900 p-6"
+          >
+            <h3 className="text-lg font-semibold">{item.title}</h3>
+            <p className="mt-4 text-sm leading-relaxed text-slate-400">
+              {item.body}
+            </p>
+          </div>
+        ))}
       </div>
     </div>
   </div>
