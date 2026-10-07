@@ -34,13 +34,14 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { persistSession: false },
 });
 
-function image(sourceName, outputName, cropTop = 76) {
+function image(sourceName, outputName, cropTop = 76, redactions = []) {
   return {
     type: "image",
     sourceName,
     source: path.join(assetRoot, sourceName),
     name: outputName,
     cropTop,
+    redactions,
   };
 }
 
@@ -63,10 +64,18 @@ const studies = [
     body:
       "This project structured a mortgage lead operation inside Pipedrive so the team could see where every lead sat, which conversations needed attention, and how high-value applications moved through the pipeline. The supporting screenshots show the pipeline architecture, stage model, and working CRM view used for daily follow-up.",
     assets: [
-      image("Pipedrive Pipeines Integration.png", "pipeline-cover.webp"),
-      image("Piplines Structure.png", "pipeline-structure.webp"),
-      image("ONCE HOME SOLUTIONS PIPEDRIVE PIPELINE SETUP 2.png", "once-home-pipeline.webp"),
-      image("Pipedrive Expert copie.png", "pipeline-expert-view.webp"),
+      image("Pipedrive Pipeines Integration.png", "pipeline-cover.webp", 76, [
+        { x: 0, y: 0.2, width: 1, height: 0.8, label: "Client names and deal data redacted" },
+      ]),
+      image("Piplines Structure.png", "pipeline-structure.webp", 76, [
+        { x: 0, y: 0.2, width: 1, height: 0.8, label: "Client names and deal data redacted" },
+      ]),
+      image("ONCE HOME SOLUTIONS PIPEDRIVE PIPELINE SETUP 2.png", "once-home-pipeline.webp", 76, [
+        { x: 0, y: 0.2, width: 1, height: 0.8, label: "Client names and deal data redacted" },
+      ]),
+      image("Pipedrive Expert copie.png", "pipeline-expert-view.webp", 76, [
+        { x: 0, y: 0.2, width: 1, height: 0.8, label: "Client names and deal data redacted" },
+      ]),
     ],
     videos: [video("Pipedrive CRM.mov", "pipedrive-crm-demo.mov")],
     results: [
@@ -117,10 +126,20 @@ const studies = [
     body:
       "This automation connects scheduled booking events to Pipedrive lookup, deal updates, and owner-specific activity creation. It keeps booked appointments from sitting outside the CRM and gives each assigned team member a clear next action.",
     assets: [
-      image("Pipedrive Automation 3.png", "booking-assignment-cover.webp"),
-      image("Pipedrive Automation.png", "booking-assignment-flow.webp"),
-      image("Booking Activity- Tidycal with Pipedrive.png", "tidycal-booking-activity.webp"),
-      image("PD Expert.png", "multi-owner-followup-flow.webp"),
+      image("Pipedrive Automation 3.png", "booking-assignment-cover.webp", 76, [
+        { x: 0.26, y: 0.45, width: 0.52, height: 0.09, label: "Team names redacted" },
+      ]),
+      image("Pipedrive Automation.png", "booking-assignment-flow.webp", 76, [
+        { x: 0.12, y: 0, width: 0.32, height: 0.06 },
+        { x: 0.25, y: 0.45, width: 0.53, height: 0.09, label: "Team names redacted" },
+      ]),
+      image("Booking Activity- Tidycal with Pipedrive.png", "tidycal-booking-activity.webp", 76, [
+        { x: 0.05, y: 0, width: 0.3, height: 0.06 },
+      ]),
+      image("PD Expert.png", "multi-owner-followup-flow.webp", 76, [
+        { x: 0.12, y: 0, width: 0.32, height: 0.06 },
+        { x: 0.25, y: 0.43, width: 0.53, height: 0.09, label: "Team names redacted" },
+      ]),
     ],
     videos: [],
     results: [
@@ -171,8 +190,13 @@ const studies = [
     body:
       "This workflow receives completed lead application events, validates and formats the intake data, routes the lead by owner, updates Pipedrive, and creates the right follow-up actions. The result is a cleaner handoff from application completion to sales follow-through.",
     assets: [
-      image("LeadApp Completed Pipedrive.png", "lead-app-completed-cover.webp"),
-      image("Zapier PD Automation.png", "new-isa-lead-flow.webp"),
+      image("LeadApp Completed Pipedrive.png", "lead-app-completed-cover.webp", 76, [
+        { x: 0.32, y: 0, width: 0.25, height: 0.08 },
+        { x: 0.25, y: 0.68, width: 0.53, height: 0.09, label: "Team names redacted" },
+      ]),
+      image("Zapier PD Automation.png", "new-isa-lead-flow.webp", 76, [
+        { x: 0.12, y: 0, width: 0.32, height: 0.07 },
+      ]),
     ],
     videos: [video("Had Convo Pipedrive Recording.mov", "had-convo-pipedrive-demo.mov")],
     results: [
@@ -223,8 +247,12 @@ const studies = [
     body:
       "This portfolio record documents a wider automation estate across Pipedrive, Zapier, and supporting tools. The workflows cover lead movement, appointment activity, campaign cleanup, and multiple operational rules that keep CRM activity from becoming manual busywork.",
     assets: [
-      image("30+ Pipedrive Zapier Automation.png", "zapier-automation-estate-cover.webp"),
-      image("Pipedrive Automation 2.png", "zapier-automation-list.webp", 120),
+      image("30+ Pipedrive Zapier Automation.png", "zapier-automation-estate-cover.webp", 76, [
+        { x: 0.2, y: 0, width: 0.78, height: 1, label: "Client workspace details redacted" },
+      ]),
+      image("Pipedrive Automation 2.png", "zapier-automation-list.webp", 120, [
+        { x: 0.22, y: 0.3, width: 0.74, height: 0.61, label: "Client workflow details redacted" },
+      ]),
     ],
     videos: [],
     results: [
@@ -274,7 +302,9 @@ const studies = [
       "A Zapier workflow that routes parsed lead intake into contacts, Pipedrive people, deals, logs, and SMS follow-up.",
     body:
       "This workflow turns parsed lead intake into clean sales operations. It creates or updates contacts, writes the right CRM records, logs source data, and starts SMS follow-up so new leads do not sit untouched.",
-    assets: [image("Faiway Pipedrive Automation.png", "fairway-lead-routing-cover.webp")],
+    assets: [image("Faiway Pipedrive Automation.png", "fairway-lead-routing-cover.webp", 76, [
+      { x: 0.12, y: 0, width: 0.52, height: 0.08 },
+    ])],
     videos: [video("Pipedrive Recording.mov", "fairway-pipedrive-demo.mov")],
     results: [
       "Converted parsed lead requests into CRM records and follow-up actions",
@@ -421,6 +451,23 @@ function assertSources() {
   console.log(`Used ${used.length}/${selectedSourceNames.length} selected source files.`);
 }
 
+function privacyMaskSvg(width, height, regions) {
+  const shapes = regions.map((region) => {
+    const x = Math.round(width * region.x);
+    const y = Math.round(height * region.y);
+    const regionWidth = Math.round(width * region.width);
+    const regionHeight = Math.round(height * region.height);
+    const label = region.label
+      ? `<text x="${x + regionWidth / 2}" y="${y + regionHeight / 2}" text-anchor="middle" dominant-baseline="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#ffffff">${region.label}</text>`
+      : "";
+    return `<rect x="${x}" y="${y}" width="${regionWidth}" height="${regionHeight}" fill="#0f172a" fill-opacity="1"/>${label}`;
+  });
+
+  return Buffer.from(
+    `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">${shapes.join("")}</svg>`,
+  );
+}
+
 function watermarkSvg(width, height) {
   const stepX = 420;
   const stepY = 220;
@@ -428,7 +475,7 @@ function watermarkSvg(width, height) {
 
   for (let y = -height; y < height * 2; y += stepY) {
     for (let x = -width; x < width * 2; x += stepX) {
-      text += `<text x="${x}" y="${y}" fill="rgba(255,255,255,0.16)" font-family="Inter, Arial, sans-serif" font-size="26" font-weight="700" transform="rotate(-28 ${x} ${y})">Flowbridge Digital</text>`;
+      text += `<text x="${x}" y="${y}" fill="#ffffff" fill-opacity="0.3" stroke="#0f172a" stroke-opacity="0.38" stroke-width="2" paint-order="stroke" font-family="Inter, Arial, sans-serif" font-size="40" letter-spacing="1" font-weight="700" transform="rotate(-28 ${x} ${y})">Flowbridge Digital</text>`;
     }
   }
 
@@ -458,8 +505,18 @@ async function preparePublicImage(asset, slug) {
   const outputPath = path.join(outputDirectory, slug, asset.name);
 
   await mkdir(path.dirname(outputPath), { recursive: true });
+  const overlays = [];
+  overlays.push({
+    input: privacyMaskSvg(width, height, [{ x: 0, y: 0, width: 1, height: 0.11, label: "Account header redacted" }]),
+    gravity: "northwest",
+  });
+  if (asset.redactions?.length) {
+    overlays.push({ input: privacyMaskSvg(width, height, asset.redactions), gravity: "northwest" });
+  }
+  overlays.push({ input: watermarkSvg(width, height), gravity: "center" });
+
   await sharp(baseBuffer)
-    .composite([{ input: watermarkSvg(width, height), gravity: "center" }])
+    .composite(overlays)
     .webp({ quality: 84 })
     .toFile(outputPath);
 
@@ -484,17 +541,28 @@ async function uploadImage(study, asset) {
 
 async function uploadVideo(study, asset) {
   const storagePath = `admin-media/showcase/${study.slug}/${asset.name}`;
-  const bytes = await readFile(asset.source);
-  const { error } = await supabase.storage.from(bucket).upload(storagePath, bytes, {
-    contentType: "video/quicktime",
-    upsert: true,
-  });
+  const directory = path.posix.dirname(storagePath);
+  const filename = path.posix.basename(storagePath);
+  const storage = supabase.storage.from(bucket);
+  const existing = await storage.list(directory, { search: filename });
 
-  if (error) {
-    throw new Error(`Video upload failed for ${asset.sourceName}: ${error.message}`);
+  if (existing.error) {
+    throw new Error(`Video lookup failed for ${asset.sourceName}: ${existing.error.message}`);
   }
 
-  return supabase.storage.from(bucket).getPublicUrl(storagePath).data.publicUrl;
+  if (!existing.data.some((file) => file.name === filename)) {
+    const bytes = await readFile(asset.source);
+    const { error } = await storage.upload(storagePath, bytes, {
+      contentType: "video/quicktime",
+      upsert: true,
+    });
+
+    if (error) {
+      throw new Error(`Video upload failed for ${asset.sourceName}: ${error.message}`);
+    }
+  }
+
+  return storage.getPublicUrl(storagePath).data.publicUrl;
 }
 
 async function upsertPortfolio(payload) {
@@ -510,17 +578,8 @@ async function upsertPortfolio(payload) {
     status: "published",
   };
 
-  const first = await supabase.from("portfolio").upsert(withVideos, { onConflict: "slug" });
-  if (!first.error) return;
-
-  if (!/video_urls/i.test(first.error.message)) {
-    throw first.error;
-  }
-
-  console.warn("portfolio.video_urls is not available; retrying portfolio upsert without videos.");
-  const { video_urls, ...withoutVideos } = withVideos;
-  const retry = await supabase.from("portfolio").upsert(withoutVideos, { onConflict: "slug" });
-  if (retry.error) throw retry.error;
+  const { error } = await supabase.from("portfolio").upsert(withVideos, { onConflict: "slug" });
+  if (error) throw error;
 }
 
 async function publishStudy(study) {
@@ -575,11 +634,14 @@ async function publishStudy(study) {
 
   const portfolioVerify = await supabase
     .from("portfolio")
-    .select("slug,title,status")
+    .select("slug,title,status,video_urls")
     .eq("slug", study.slug)
     .single();
   if (portfolioVerify.error) {
     throw new Error(`Portfolio verification failed for ${study.slug}: ${portfolioVerify.error.message}`);
+  }
+  if (JSON.stringify(portfolioVerify.data.video_urls ?? []) !== JSON.stringify(videoUrls)) {
+    throw new Error(`Video URL verification failed for ${study.slug}.`);
   }
 
   console.log(`Published ${study.slug}`);

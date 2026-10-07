@@ -86,6 +86,40 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* BUSINESS REGISTRATION */}
+      <section className="py-16 bg-slate-50 border-y border-slate-100">
+        <div className="max-w-4xl mx-auto px-4 md:px-6">
+          <p className="uppercase tracking-[0.25em] text-xs text-slate-500">
+            Business registration
+          </p>
+          <h2 className="text-3xl font-semibold mt-4">
+            Organized in Missouri, United States
+          </h2>
+          <p className="mt-4 text-slate-600 text-lg">
+            The legal entity for Flowbridge Digital is Flow Bridge Digital LLC,
+            organized in the State of Missouri.
+          </p>
+          <dl className="mt-6 grid gap-3 text-sm text-slate-600 sm:grid-cols-2">
+            <div>
+              <dt className="font-semibold text-slate-900">Legal entity</dt>
+              <dd>Flow Bridge Digital LLC</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-slate-900">Jurisdiction</dt>
+              <dd>Missouri, United States</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-slate-900">Missouri charter number</dt>
+              <dd>LC014786962</dd>
+            </div>
+            <div>
+              <dt className="font-semibold text-slate-900">Organized</dt>
+              <dd>October 7, 2026</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
       {/* FOUNDER BACKGROUND */}
       <section className="py-24 bg-slate-50">
         <div className="max-w-4xl mx-auto px-4 md:px-6">

@@ -24,7 +24,7 @@ export default async function PortfolioPage({ searchParams }: PageProps) {
   const requestedPage = Number(resolvedSearchParams?.page ?? "1");
   const { data: items } = await supabasePublic
     .from("portfolio")
-    .select("id,title,slug,summary,cover_url,case_study_slug")
+    .select("id,title,slug,summary,cover_url,case_study_slug,video_urls")
     .eq("status", "published")
     .order("created_at", { ascending: false });
   const allItems = items ?? [];
@@ -58,42 +58,55 @@ export default async function PortfolioPage({ searchParams }: PageProps) {
       <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 grid md:grid-cols-3 gap-8">
           {visibleItems.length ? (
-            visibleItems.map((item) => {
-              const href = item.case_study_slug
-                ? `/case-studies/${item.case_study_slug}`
-                : `/portfolio/${item.slug}`;
-              return (
-                <Link
-                  key={item.id}
-                  href={href}
-                  className="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition"
-                >
-                  <div className="aspect-[4/3] bg-slate-100">
-                    {item.cover_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
+            visibleItems.map((item) => (
+              <article
+                key={item.id}
+                className="border border-slate-200 rounded-2xl overflow-hidden bg-white hover:shadow-md transition"
+              >
+                <div className="aspect-[4/3] bg-slate-100">
+                  {item.cover_url ? (
+                    <Link
+                      href={`/portfolio/${item.slug}`}
+                      aria-label={`View media for ${item.title}`}
+                      className="block h-full w-full"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={item.cover_url}
                         alt={item.title}
                         className="h-full w-full object-cover"
                       />
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
-                        Cover image
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold">{item.title}</h3>
-                    <p className="text-slate-600 mt-2">{item.summary}</p>
-                    <div className="mt-4 text-sm font-semibold text-slate-900">
-                      {item.case_study_slug
-                        ? "View case study →"
-                        : "View case →"}
+                    </Link>
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
+                      Cover image
                     </div>
+                  )}
+                </div>
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
+                  {item.video_urls?.length ? (
+                    <p className="mt-2 inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {item.video_urls.length} video {item.video_urls.length === 1 ? "demo" : "demos"}
+                    </p>
+                  ) : null}
+                  <p className="text-slate-600 mt-2">{item.summary}</p>
+                  <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-semibold">
+                    <Link href={`/portfolio/${item.slug}`} className="text-slate-900 hover:underline">
+                      View media →
+                    </Link>
+                    {item.case_study_slug ? (
+                      <Link
+                        href={`/case-studies/${item.case_study_slug}`}
+                        className="text-slate-600 hover:text-slate-900 hover:underline"
+                      >
+                        Read case study
+                      </Link>
+                    ) : null}
                   </div>
-                </Link>
-              );
-            })
+                </div>
+              </article>
+            ))
           ) : (
             <div className="border border-slate-200 rounded-2xl p-6 text-slate-500">
               Portfolio items will appear here once published.

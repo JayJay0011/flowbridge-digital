@@ -278,6 +278,7 @@ export default function Footer() {
       <div className="border-t border-slate-800">
         <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 text-sm text-slate-500 flex flex-col md:flex-row justify-between items-center gap-4">
           <p>© {new Date().getFullYear()} Flowbridge Digital. All rights reserved.</p>
+          <p className="text-center">Flow Bridge Digital LLC · Missouri, USA · Charter No. LC014786962</p>
           <p>Built with clarity.</p>
         </div>
       </div>

@@ -28,6 +28,11 @@ export default function FAQSection() {
     question: "How long does a CRM or automation implementation take?",
     answer:
       "Most CRM setup and workflow automation projects are completed within 2–6 weeks depending on complexity, integrations required, and reporting needs."
+  },
+  {
+    question: "Is Flowbridge Digital a registered company?",
+    answer:
+      "Yes. Flowbridge Digital operates as Flow Bridge Digital LLC, a limited liability company organized in Missouri, United States, on October 7, 2026. Its Missouri charter number is LC014786962."
   }
 ];
 
