@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
 type Related<T> = T | T[] | null;
@@ -19,6 +20,8 @@ type Order = {
 };
 
 export default function AdminOrdersPage() {
+  const searchParams = useSearchParams();
+  const focusedOrderId = searchParams.get("order");
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
@@ -114,7 +117,7 @@ export default function AdminOrdersPage() {
                     const gig = Array.isArray(order.gigs) ? order.gigs[0] : order.gigs;
 
                     return (
-                      <tr key={order.id} className="border-t border-slate-200">
+                      <tr key={order.id} className={`border-t border-slate-200 ${focusedOrderId === order.id ? "bg-amber-50 ring-2 ring-inset ring-amber-400" : ""}`}>
                         <td className="px-6 py-4 font-medium">
                           {order.id.slice(0, 8)}
                         </td>

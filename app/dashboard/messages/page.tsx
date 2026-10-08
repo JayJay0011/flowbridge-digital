@@ -40,6 +40,18 @@ export default function DashboardMessagesPage() {
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
+  const refreshOfferStatuses = async (offerIds: string[]) => {
+    const uniqueIds = Array.from(new Set(offerIds));
+    if (uniqueIds.length === 0) return;
+    const { data } = await supabase.from("offers").select("id,status").in("id", uniqueIds);
+    if (!data) return;
+    setOffersById((previous) => {
+      const next = { ...previous };
+      data.forEach((offer) => { next[offer.id] = { status: offer.status }; });
+      return next;
+    });
+  };
+
   const loadMessages = async (clientId: string) => {
     const { data } = await supabase
       .from("messages")
@@ -119,6 +131,18 @@ export default function DashboardMessagesPage() {
       supabase.removeChannel(channel);
     };
   }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`orders-client-${userId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders", filter: `client_id=eq.${userId}` }, () => {
+        const offerIds = messages.map((message) => parseOffer(message.body)?.offerId).filter((id): id is string => Boolean(id));
+        void refreshOfferStatuses(offerIds);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, messages]);
 
   useEffect(() => {
     if (!userId) return;
@@ -376,22 +400,19 @@ export default function DashboardMessagesPage() {
 
     const loadOffers = async () => {
       const uniqueIds = Array.from(new Set(offerIds));
-      const { data } = await supabase
-        .from("offers")
-        .select("id,status")
-        .in("id", uniqueIds);
-
-      if (!data) return;
-      setOffersById((prev) => {
-        const next = { ...prev };
-        data.forEach((row) => {
-          next[row.id] = { status: row.status };
-        });
-        return next;
-      });
+      await refreshOfferStatuses(uniqueIds);
     };
 
     loadOffers();
+  }, [messages]);
+
+  useEffect(() => {
+    const refresh = () => {
+      const ids = messages.map((message) => parseOffer(message.body)?.offerId).filter((id): id is string => Boolean(id));
+      void refreshOfferStatuses(ids);
+    };
+    window.addEventListener("focus", refresh);
+    return () => window.removeEventListener("focus", refresh);
   }, [messages]);
 
   useEffect(() => {
@@ -480,6 +501,7 @@ export default function DashboardMessagesPage() {
 
               if (offer) {
                 const offerStatus = offersById[offer.offerId]?.status ?? "sent";
+                const offerOrder = messages.map((item) => parseOrder(item.body)).find((item) => item?.offerId === offer.offerId);
                 return (
                   <div key={message.id} className="flex justify-start">
                   <div className="w-full md:max-w-[70%] border border-[var(--dash-border)] rounded-2xl bg-[var(--dash-surface)] p-4 shadow-sm">
@@ -495,7 +517,7 @@ export default function DashboardMessagesPage() {
                         {offer.description}
                       </p>
                       {offerStatus === "sent" ? <p className="mt-3 rounded-lg bg-[var(--dash-surface-2)] p-3 text-xs text-[var(--dash-muted)]">Review the scope and amount above. Accepting records your agreement; payment is a separate step.</p> : null}
-                      {offerStatus === "accepted" ? <p className="mt-3 rounded-lg bg-[var(--dash-surface-2)] p-3 text-xs text-[var(--dash-muted)]">You accepted this offer. It becomes an order after payment is completed.</p> : null}
+                      {offerStatus === "accepted" ? <p className="mt-3 rounded-lg bg-[var(--dash-surface-2)] p-3 text-xs text-[var(--dash-muted)]">You accepted the agreed scope. Complete payment to start the order.</p> : null}
                       <div className="mt-3 text-xs text-[var(--dash-muted)] flex flex-wrap gap-3">
                         {offer.deliveryDate ? (
                           <span>Delivery: {offer.deliveryDate}</span>
@@ -557,11 +579,11 @@ export default function DashboardMessagesPage() {
                                 const payload = await response.json();
                                 if (response.ok && payload.url) window.location.href = payload.url;
                                 else { setError(payload.error || "Unable to start payment."); setPayingOfferId(null); }
-                              })(); }} disabled={payingOfferId === offer.offerId} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-60">Pay agreed amount</button>
+                              })(); }} disabled={payingOfferId === offer.offerId} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-60">Pay now</button>
                             </>
                           ) : null}
                           {offerStatus === "accepted" && payingOfferId === offer.offerId ? <span className="text-xs text-[var(--dash-muted)]">Opening Stripe Checkout…</span> : null}
-                          {offerStatus === "paid" ? <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Paid</span> : null}
+                          {offerStatus === "paid" ? <><span aria-disabled="true" className="cursor-not-allowed text-xs px-3 py-1 rounded-full bg-slate-100 text-slate-500">Offer accepted</span>{offerOrder ? <button type="button" onClick={() => router.push(`/dashboard/orders?order=${encodeURIComponent(offerOrder.orderId)}`)} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white">View order</button> : null}</> : null}
                         </div>
                       </div>
                     </div>

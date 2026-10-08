@@ -57,6 +57,15 @@ export async function POST(request: Request) {
     const packageKey = body?.packageKey as "basic" | "standard" | "premium";
     const offerId = body?.offerId as string | undefined;
 
+    const { data: billingProfile, error: billingProfileError } = await supabaseAdmin
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .maybeSingle();
+    if (billingProfileError) {
+      return NextResponse.json({ error: "Unable to load your billing profile." }, { status: 500 });
+    }
+
     if (offerId) {
       const { data: offer, error: offerError } = await supabaseAdmin
         .from("offers")
@@ -100,6 +109,8 @@ export async function POST(request: Request) {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
+        ...(billingProfile?.stripe_customer_id ? { customer: billingProfile.stripe_customer_id } : {}),
+        ...(!billingProfile?.stripe_customer_id && userData.user?.email ? { customer_email: userData.user.email } : {}),
         line_items: [{
           price_data: {
             currency: "usd",
@@ -176,6 +187,8 @@ export async function POST(request: Request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
+      ...(billingProfile?.stripe_customer_id ? { customer: billingProfile.stripe_customer_id } : {}),
+      ...(!billingProfile?.stripe_customer_id && userData.user?.email ? { customer_email: userData.user.email } : {}),
       line_items: [
         {
           price_data: {

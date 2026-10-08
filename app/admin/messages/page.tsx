@@ -376,6 +376,7 @@ export default function AdminMessagesPage() {
         title: string;
         amountCents: number | null;
         currency: string;
+        offerId?: string | null;
       };
     } catch {
       return null;
@@ -813,7 +814,7 @@ export default function AdminMessagesPage() {
                               <div className="max-w-[70%] rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
                                 <p className="text-sm font-semibold">Payment confirmed · {paidOrder.title}</p>
                                 <p className="mt-1 text-sm">{amount} received · Order {paidOrder.orderId.slice(0, 8)}</p>
-                                <Link href="/admin/orders" className="mt-3 inline-block text-sm font-semibold underline">Open order management</Link>
+                                <Link href={`/admin/orders?order=${encodeURIComponent(paidOrder.orderId)}`} className="mt-3 inline-block text-sm font-semibold underline">View this order</Link>
                               </div>
                             </div>
                           );
@@ -822,6 +823,7 @@ export default function AdminMessagesPage() {
                         if (offer) {
                           const offerStatus =
                             offersById[offer.offerId]?.status ?? "sent";
+                          const offerOrder = messages.map((item) => parseOrder(item.body)).find((item) => item?.offerId === offer.offerId);
                           return (
                             <div
                               key={message.id}
@@ -877,15 +879,10 @@ export default function AdminMessagesPage() {
                                     ) : null}
                                     {offerStatus === "paid" ? (
                                       <>
-                                        <Link
-                                          href="/admin/orders"
-                                          className="text-xs underline"
-                                        >
-                                          View order
-                                        </Link>
                                         <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                           Paid
                                         </span>
+                                        {offerOrder ? <Link href={`/admin/orders?order=${encodeURIComponent(offerOrder.orderId)}`} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white">View order</Link> : null}
                                       </>
                                     ) : null}
                                   </div>

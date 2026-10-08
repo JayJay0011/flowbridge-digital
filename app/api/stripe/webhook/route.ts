@@ -38,6 +38,27 @@ export async function POST(request: Request) {
     );
   }
 
+  if (event.type === "setup_intent.succeeded") {
+    const setupIntent = event.data.object as Stripe.SetupIntent;
+    const userId = setupIntent.metadata?.user_id;
+    const customerId = typeof setupIntent.customer === "string" ? setupIntent.customer : setupIntent.customer?.id;
+    const paymentMethodId = typeof setupIntent.payment_method === "string" ? setupIntent.payment_method : setupIntent.payment_method?.id;
+    if (!userId || !customerId || !paymentMethodId) return NextResponse.json({ error: "Card setup metadata is incomplete." }, { status: 500 });
+
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+    if (paymentMethod.type !== "card" || !paymentMethod.card) return NextResponse.json({ error: "The saved payment method is not a card." }, { status: 400 });
+    await stripe.customers.update(customerId, { invoice_settings: { default_payment_method: paymentMethodId } });
+    const { error } = await supabaseAdmin.from("profiles").update({
+      stripe_customer_id: customerId,
+      stripe_default_payment_method_id: paymentMethodId,
+      stripe_card_brand: paymentMethod.card.brand,
+      stripe_card_last4: paymentMethod.card.last4,
+      stripe_card_exp_month: paymentMethod.card.exp_month,
+      stripe_card_exp_year: paymentMethod.card.exp_year,
+    }).eq("id", userId);
+    if (error) return NextResponse.json({ error: "Card was set up, but the billing profile could not be updated." }, { status: 500 });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     if (session.payment_status !== "paid") {

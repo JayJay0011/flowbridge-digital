@@ -18,6 +18,8 @@ type Order = {
   gigs: Related<{ title: string | null; delivery_days: number | null; package_basic: { delivery_days?: number } | null; package_standard: { delivery_days?: number } | null; package_premium: { delivery_days?: number } | null }>;
 };
 
+type OrderSection = "active" | "in_progress" | "review" | "completed";
+
 const statusLabel = (status: string) => {
   if (status === "complete") return "Completed";
   if (status === "delivered") return "Delivered";
@@ -38,6 +40,7 @@ export default function DashboardOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<OrderSection>("active");
   const [reviewedOrders, setReviewedOrders] = useState<Set<string>>(new Set());
   const [revisionReason, setRevisionReason] = useState("");
   const [acting, setActing] = useState(false);
@@ -47,7 +50,12 @@ export default function DashboardOrdersPage() {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") !== "success") return;
     setActionMessage("Stripe confirmed your payment. Your order should appear below shortly.");
-    const timeout = window.setTimeout(() => window.location.replace("/dashboard/orders"), 8000);
+    const timeout = window.setTimeout(() => {
+      const url = new URL(window.location.href);
+      url.searchParams.delete("payment");
+      url.searchParams.delete("session_id");
+      window.history.replaceState({}, "", url.toString());
+    }, 8000);
     return () => window.clearTimeout(timeout);
   }, []);
 
@@ -70,7 +78,8 @@ export default function DashboardOrdersPage() {
               .filter((id): id is string => Boolean(id))
           )
         );
-        setSelectedId((prev) => prev ?? data?.[0]?.id ?? null);
+        const orderFromQuery = new URLSearchParams(window.location.search).get("order");
+        setSelectedId((prev) => orderFromQuery && data?.some((order) => order.id === orderFromQuery) ? orderFromQuery : prev ?? data?.[0]?.id ?? null);
         setLoading(false);
       }
     };
@@ -81,7 +90,7 @@ export default function DashboardOrdersPage() {
   }, []);
 
   const selectedOrder = useMemo(
-    () => orders.find((order) => order.id === selectedId) ?? orders[0],
+    () => orders.find((order) => order.id === selectedId) ?? orders.find((order) => ["new", "in_progress"].includes(order.status)) ?? orders[0],
     [orders, selectedId]
   );
 
@@ -108,12 +117,40 @@ export default function DashboardOrdersPage() {
       : addDays(new Date(selectedOrder.created_at), selectedPackage?.delivery_days || selectedGig?.delivery_days || 7).toLocaleDateString()
     : "";
 
+  const sectionOrders = useMemo(() => {
+    switch (activeSection) {
+      case "active":
+      case "in_progress":
+        return orders.filter((order) => ["new", "in_progress"].includes(order.status));
+      case "review":
+        return orders.filter((order) => ["delivered", "revision_requested"].includes(order.status));
+      case "completed":
+        return orders.filter((order) => ["complete", "cancelled"].includes(order.status));
+    }
+  }, [activeSection, orders]);
+
+  const sectionCards: { id: OrderSection; title: string; description: string; count: number }[] = [
+    { id: "active", title: "Active orders", description: "Orders you’ve placed", count: orders.filter((order) => ["new", "in_progress"].includes(order.status)).length },
+    { id: "in_progress", title: "In progress", description: "Work underway", count: orders.filter((order) => ["new", "in_progress"].includes(order.status)).length },
+    { id: "review", title: "In review", description: "Delivery or revisions", count: orders.filter((order) => ["delivered", "revision_requested"].includes(order.status)).length },
+    { id: "completed", title: "Completed", description: "Finished orders", count: orders.filter((order) => ["complete", "cancelled"].includes(order.status)).length },
+  ];
+
   useEffect(() => {
     const orderFromQuery = new URLSearchParams(window.location.search).get("order");
-    if (orderFromQuery && orders.some((order) => order.id === orderFromQuery)) {
-      setSelectedId(orderFromQuery);
-    }
+    const order = orderFromQuery ? orders.find((item) => item.id === orderFromQuery) : null;
+    if (!order) return;
+    setSelectedId(order.id);
+    if (["delivered", "revision_requested"].includes(order.status)) setActiveSection("review");
+    else if (["complete", "cancelled"].includes(order.status)) setActiveSection("completed");
+    else setActiveSection("active");
   }, [orders]);
+
+  useEffect(() => {
+    if (sectionOrders.length && !sectionOrders.some((order) => order.id === selectedId)) {
+      setSelectedId(sectionOrders[0].id);
+    }
+  }, [sectionOrders, selectedId]);
 
   const updateDeliveryStatus = async (nextStatus: "revision_requested" | "complete") => {
     if (!selectedOrder) return;
@@ -179,33 +216,42 @@ export default function DashboardOrdersPage() {
       </div>
 
       <div className="mt-8 border border-[var(--dash-border)] rounded-2xl overflow-hidden">
-        <div className="flex flex-wrap items-center gap-4 px-6 py-4 border-b border-[var(--dash-border)] bg-[var(--dash-surface)]">
-          <p className="text-sm font-semibold text-[var(--dash-strong)]">
-            Order timeline and delivery actions
-          </p>
-          {orders.length > 1 ? (
-            <select
-              value={selectedId ?? ""}
-              onChange={(event) => setSelectedId(event.target.value)}
-              className="ml-auto text-sm border border-[var(--dash-border)] bg-[var(--dash-surface)] rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            >
-              {orders.map((order) => (
-                <option key={order.id} value={order.id}>
-                  {(Array.isArray(order.gigs) ? order.gigs[0]?.title : order.gigs?.title) ||
-                    "Order"}{" "}
-                  · {order.id.slice(0, 6)}
-                </option>
-              ))}
-            </select>
-          ) : null}
-        </div>
-
         {loading ? (
           <div className="p-6 text-slate-500">Loading orders...</div>
-        ) : !selectedOrder ? (
-          <div className="p-6 text-slate-500">No orders yet.</div>
         ) : (
-          <div className="grid lg:grid-cols-[1.7fr_1fr] gap-8 p-6 bg-[var(--dash-surface-2)]">
+          <div className="p-5 md:p-7 bg-[var(--dash-surface-2)]">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {sectionCards.map((card) => (
+                <button key={card.id} type="button" onClick={() => setActiveSection(card.id)} aria-pressed={activeSection === card.id}
+                  className={`rounded-2xl border p-5 text-left transition ${activeSection === card.id ? "border-slate-900 bg-slate-900 text-white shadow-md" : "border-[var(--dash-border)] bg-[var(--dash-surface)] text-[var(--dash-text)] hover:border-slate-400"}`}>
+                  <span className="text-2xl font-semibold">{card.count}</span>
+                  <span className="mt-2 block font-semibold">{card.title}</span>
+                  <span className={`mt-1 block text-sm ${activeSection === card.id ? "text-slate-300" : "text-[var(--dash-muted)]"}`}>{card.description}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <h3 className="text-lg font-semibold">{sectionCards.find((card) => card.id === activeSection)?.title}</h3>
+              {sectionOrders.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-8 text-center">
+                  <p className="font-medium">No {sectionCards.find((card) => card.id === activeSection)?.title.toLowerCase()} yet</p>
+                  <p className="mt-1 text-sm text-[var(--dash-muted)]">Your orders will appear here as their status changes.</p>
+                  {orders.length === 0 ? <Link href="/gigs" className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Browse gigs</Link> : null}
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {sectionOrders.map((order) => {
+                    const gig = Array.isArray(order.gigs) ? order.gigs[0] : order.gigs;
+                    return <button key={order.id} type="button" onClick={() => setSelectedId(order.id)} className={`rounded-2xl border p-4 text-left transition ${selectedId === order.id ? "border-slate-900 bg-[var(--dash-surface)] ring-1 ring-slate-900" : "border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-slate-400"}`}>
+                      <div className="flex items-start justify-between gap-3"><span className="font-semibold">{gig?.title || "Custom project"}</span><span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700">{statusLabel(order.status)}</span></div>
+                      <p className="mt-2 text-sm text-[var(--dash-muted)]">Order {order.id.slice(0, 8)} · {order.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "Amount pending"}</p>
+                    </button>;
+                  })}
+                </div>
+              )}
+            </div>
+            {selectedOrder && sectionOrders.some((order) => order.id === selectedOrder.id) ? <div className="mt-6 grid gap-6 lg:grid-cols-[1.7fr_1fr]">
             <div className="space-y-6">
               <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6">
                 <h3 className="text-lg font-semibold">Order activity</h3>
@@ -385,6 +431,7 @@ export default function DashboardOrdersPage() {
                 </div>
               </div>
             </aside>
+            </div> : null}
           </div>
         )}
       </div>
