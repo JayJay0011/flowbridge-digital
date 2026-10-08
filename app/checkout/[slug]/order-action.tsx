@@ -5,11 +5,13 @@ import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 
 type Props = {
-  gigId: string;
-  packageKey: "basic" | "standard" | "premium";
+  gigId?: string;
+  packageKey?: "basic" | "standard" | "premium";
+  offerId?: string;
+  label?: string;
 };
 
-export default function OrderAction({ gigId, packageKey }: Props) {
+export default function OrderAction({ gigId, packageKey, offerId, label }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export default function OrderAction({ gigId, packageKey }: Props) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ gigId, packageKey }),
+      body: JSON.stringify(offerId ? { offerId } : { gigId, packageKey }),
     });
 
     if (!response.ok) {
@@ -80,11 +82,11 @@ export default function OrderAction({ gigId, packageKey }: Props) {
         disabled={submitting}
         className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-800 transition disabled:opacity-60"
       >
-        {userId ? "Confirm and pay" : "Sign in to Order"}
+        {userId ? label || "Pay securely with Stripe" : "Sign in to Order"}
       </button>
       <p className="text-sm text-slate-500 mt-3">
         {userId
-          ? "We will confirm scope and timeline after submission."
+          ? offerId ? "You’ll be charged the amount shown in the accepted offer." : "You’ll be charged the listed price for this package."
           : "You will need an account to place this order."}
       </p>
       {message && <p className="text-sm text-red-600 mt-2">{message}</p>}

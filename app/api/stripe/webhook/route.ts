@@ -40,6 +40,9 @@ export async function POST(request: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
+    if (session.payment_status !== "paid") {
+      return NextResponse.json({ received: true });
+    }
     const metadata = session.metadata || {};
     if (metadata.payment_type === "tip") {
       const orderId = metadata.order_id;
@@ -49,7 +52,7 @@ export async function POST(request: Request) {
         : null;
 
       if (orderId && userId && amountCents) {
-        await supabaseAdmin.from("tips").upsert(
+        const { error: tipError } = await supabaseAdmin.from("tips").upsert(
           {
             order_id: orderId,
             client_id: userId,
@@ -60,6 +63,7 @@ export async function POST(request: Request) {
           },
           { onConflict: "stripe_session_id" }
         );
+        if (tipError) return NextResponse.json({ error: "Unable to record payment." }, { status: 500 });
       }
 
       return NextResponse.json({ received: true });
@@ -68,21 +72,60 @@ export async function POST(request: Request) {
     const gigId = metadata.gig_id;
     const userId = metadata.user_id;
     const packageTier = metadata.package_tier;
+    const offerId = metadata.offer_id;
     const amountCents = metadata.amount_cents
       ? Number.parseInt(metadata.amount_cents, 10)
       : null;
 
-    if (gigId && userId) {
-      await supabaseAdmin.from("orders").insert({
+    if (!userId || (!gigId && !offerId) || !Number.isSafeInteger(amountCents) || !amountCents || amountCents <= 0) {
+      return NextResponse.json({ error: "Payment metadata is incomplete." }, { status: 500 });
+    }
+
+    if (userId && (gigId || offerId)) {
+      let offer: { title: string | null; delivery_date: string | null } | null = null;
+      if (offerId) {
+        const { data, error } = await supabaseAdmin
+          .from("offers")
+          .select("id,client_id,title,delivery_date,status")
+          .eq("id", offerId)
+          .eq("client_id", userId)
+          .in("status", ["accepted", "paid"])
+          .single();
+        if (error || !data) return NextResponse.json({ error: "Accepted offer not found." }, { status: 500 });
+        offer = data;
+      }
+
+      const { data: order, error: orderError } = await supabaseAdmin.from("orders").upsert({
         client_id: userId,
-        gig_id: gigId,
+        gig_id: gigId || null,
+        offer_id: offerId || null,
         status: "new",
-        package_tier: packageTier || null,
+        package_tier: offerId ? "custom_offer" : packageTier || null,
         amount_cents: amountCents,
         currency: session.currency || "usd",
         stripe_session_id: session.id,
         payment_status: "paid",
-      });
+      }, { onConflict: "stripe_session_id" }).select("id").single();
+      if (orderError || !order) return NextResponse.json({ error: "Unable to record order." }, { status: 500 });
+
+      const messageTitle = offer?.title || "Your Flowbridge order";
+      const { error: messageError } = await supabaseAdmin.from("messages").upsert({
+        client_id: userId,
+        subject: "Paid order",
+        body: `__order__:${JSON.stringify({ orderId: order.id, title: messageTitle, amountCents, currency: session.currency || "usd", offerId: offerId || null })}`,
+        status: "replied",
+        order_id: order.id,
+      }, { onConflict: "order_id,subject" });
+      if (messageError) return NextResponse.json({ error: "Order saved, but the conversation update failed." }, { status: 500 });
+
+      if (offerId) {
+        const { error: offerUpdateError } = await supabaseAdmin
+          .from("offers")
+          .update({ status: "paid" })
+          .eq("id", offerId)
+          .eq("client_id", userId);
+        if (offerUpdateError) return NextResponse.json({ error: "Order saved, but offer status update failed." }, { status: 500 });
+      }
     }
   }
 

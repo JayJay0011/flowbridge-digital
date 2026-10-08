@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { supabaseAdmin } from "../lib/supabaseAdmin";
 import OrderAction from "./[slug]/order-action";
+import OfferCheckoutSummary from "./offer-summary";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{ package?: string; id?: string; title?: string; price?: string; description?: string; delivery?: string } | undefined>;
+type SearchParams = Promise<{ package?: string; id?: string; title?: string; price?: string; description?: string; delivery?: string; canceled?: string; offer?: string; payment?: string } | undefined>;
 
 const CHECKOUT_GIG_COLUMNS = `
   id,
@@ -61,6 +62,7 @@ export default async function CheckoutRootPage({
   const priceFromQuery = resolvedSearchParams?.price?.trim() || "";
   const descriptionFromQuery = resolvedSearchParams?.description?.trim() || "";
   const deliveryFromQuery = resolvedSearchParams?.delivery?.trim() || "";
+  const offerId = resolvedSearchParams?.offer?.trim() || "";
   const gig = gigId ? await resolveGig(gigId) : null;
 
   const packageKey =
@@ -88,8 +90,8 @@ export default async function CheckoutRootPage({
     deliveryFromQuery ||
     gig?.average_delivery ||
     "Confirmed after scope";
-  const pageTitle = gig?.title || titleFromQuery;
-  const pageSummary = gig?.summary || "Review your package, confirm your details, and continue to payment.";
+  const pageTitle = offerId ? "Review your custom offer" : gig?.title || titleFromQuery;
+  const pageSummary = offerId ? "Confirm the agreed scope and amount before paying securely." : gig?.summary || "Review your selected package and continue to secure payment.";
   const totalPrice = selectedPrice;
 
   return (
@@ -110,8 +112,9 @@ export default async function CheckoutRootPage({
         <div className="mx-auto grid max-w-6xl gap-10 px-4 md:grid-cols-[1.15fr_0.85fr] md:px-6">
           <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
             <h2 className="text-3xl font-semibold tracking-tight">Order details</h2>
+            {resolvedSearchParams?.canceled === "1" || resolvedSearchParams?.payment === "canceled" ? <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">Payment was canceled. Your accepted offer is still available in your inbox.</p> : null}
 
-            <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            {!offerId ? <div className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-6">
                 <div className="space-y-3">
                   <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Selected package</p>
@@ -127,9 +130,9 @@ export default async function CheckoutRootPage({
                   <p className="mt-2 text-3xl font-semibold text-slate-950">{selectedPrice}</p>
                 </div>
               </div>
-            </div>
+            </div> : <OfferCheckoutSummary offerId={offerId} />}
 
-            {gig?.highlights?.length ? (
+            {gig?.highlights?.length && !offerId ? (
               <div className="mt-8">
                 <h3 className="text-lg font-semibold">What is included</h3>
                 <ul className="mt-4 grid gap-3 text-slate-700 sm:grid-cols-2">
@@ -146,22 +149,23 @@ export default async function CheckoutRootPage({
             ) : null}
 
             <div className="mt-10">
-              {gigId ? <OrderAction gigId={gigId} packageKey={packageKey} /> : <p className="text-sm text-red-600">Missing gig reference. Please return to the gig page and try again.</p>}
+              {!offerId && gigId ? <OrderAction gigId={gigId} packageKey={packageKey} /> : null}
+              {!offerId && !gigId ? <p className="text-sm text-red-600">Missing gig reference. Please return to the gig page and try again.</p> : null}
             </div>
           </div>
 
           <div className="h-fit rounded-3xl border border-slate-200 bg-slate-50 p-8 shadow-sm md:sticky md:top-24">
             <div className="flex items-center justify-between gap-4">
               <h3 className="text-3xl font-semibold tracking-tight">Total</h3>
-              <div className="text-3xl font-semibold text-slate-950">{totalPrice}</div>
+              <div className="text-3xl font-semibold text-slate-950">{offerId ? "Agreed amount" : totalPrice}</div>
             </div>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
               <div className="space-y-4 text-sm">
-                <div className="flex items-center justify-between gap-4">
+                {!offerId ? <div className="flex items-center justify-between gap-4">
                   <span className="text-slate-600">Selected package</span>
                   <span className="font-semibold capitalize text-slate-900">{packageKey}</span>
-                </div>
+                </div> : <p className="text-sm text-slate-600">The custom offer amount is shown with its scope on the left.</p>}
                 <div className="flex items-center justify-between gap-4">
                   <span className="text-slate-600">Package price</span>
                   <span className="font-semibold text-slate-900">{selectedPrice}</span>
@@ -178,14 +182,14 @@ export default async function CheckoutRootPage({
             </div>
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-relaxed text-slate-600">
-              Secure payment is processed only after you confirm the selected package. Once Stripe is connected, clicking <span className="font-semibold text-slate-900">Confirm and pay</span> redirects the client to Stripe Checkout.
+              {offerId ? "This custom amount reflects the agreement in Messages. Stripe processes payment securely; Flowbridge receives the order after Stripe confirms payment." : "You’ll review the package and total before payment. Payment is securely processed by Stripe; Flowbridge receives your order after Stripe confirms payment."}
             </div>
 
             <Link
-              href={gig ? `/gigs/${gig.slug}?id=${gig.id}&package=${packageKey}` : `/gigs`}
+              href={offerId ? "/dashboard/messages" : gig ? `/gigs/${gig.slug}?id=${gig.id}&package=${packageKey}` : "/gigs"}
               className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-900"
             >
-              Back to gig
+              {offerId ? "Back to inbox" : "Back to gig"}
             </Link>
           </div>
         </div>

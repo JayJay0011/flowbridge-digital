@@ -14,6 +14,7 @@ type Message = {
 };
 
 const offerPrefix = "__offer__:";
+const orderPrefix = "__order__:";
 
 export default function DashboardMessagesPage() {
   const router = useRouter();
@@ -31,6 +32,8 @@ export default function DashboardMessagesPage() {
   const [offersById, setOffersById] = useState<Record<string, { status: string }>>(
     {}
   );
+  const [acceptingOfferId, setAcceptingOfferId] = useState<string | null>(null);
+  const [payingOfferId, setPayingOfferId] = useState<string | null>(null);
   const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const typingTimeoutRef = useRef<number | null>(null);
   const lastTypingSentRef = useRef<number>(0);
@@ -243,15 +246,37 @@ export default function DashboardMessagesPage() {
   };
 
   const updateOfferStatus = async (offerId: string, status: string) => {
+    if (status === "accepted" || status === "rejected") {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) {
+        setError("Please sign in again to accept this offer.");
+        return false;
+      }
+      const response = await fetch("/api/offers/accept", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ offerId, decision: status }),
+      });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        setError(payload.error || "Unable to accept this offer.");
+        return false;
+      }
+      setOffersById((prev) => ({ ...prev, [offerId]: { status } }));
+      return true;
+    }
     const { data, error } = await supabase
       .from("offers")
       .update({ status })
       .eq("id", offerId)
+      .eq("status", "sent")
       .select("id,status")
       .single();
 
-    if (error || !data) return;
+    if (error || !data) return false;
     setOffersById((prev) => ({ ...prev, [data.id]: { status: data.status } }));
+    return true;
   };
 
   const parseReply = (body: string) => {
@@ -279,6 +304,21 @@ export default function DashboardMessagesPage() {
         deliveryDate?: string;
         revisions?: string;
         deliverables?: string;
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const parseOrder = (body: string) => {
+    if (!body.startsWith(orderPrefix)) return null;
+    try {
+      return JSON.parse(body.slice(orderPrefix.length)) as {
+        orderId: string;
+        title: string;
+        amountCents: number | null;
+        currency: string;
+        offerId?: string | null;
       };
     } catch {
       return null;
@@ -421,6 +461,22 @@ export default function DashboardMessagesPage() {
                 ? parsed.reply.slice(0, 120)
                 : message.body.slice(0, 120);
               const offer = parseOffer(message.body);
+              const paidOrder = parseOrder(message.body);
+
+              if (paidOrder) {
+                const amount = paidOrder.amountCents
+                  ? new Intl.NumberFormat(undefined, { style: "currency", currency: paidOrder.currency.toUpperCase() }).format(paidOrder.amountCents / 100)
+                  : "Paid";
+                return (
+                  <div key={message.id} className="flex justify-start">
+                    <div className="w-full md:max-w-[70%] rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+                      <p className="text-sm font-semibold">Payment confirmed · {paidOrder.title}</p>
+                      <p className="mt-1 text-sm">{amount} received. Your order is now in your Orders dashboard.</p>
+                      <button type="button" onClick={() => router.push(`/dashboard/orders?order=${encodeURIComponent(paidOrder.orderId)}`)} className="mt-3 text-sm font-semibold underline">View order</button>
+                    </div>
+                  </div>
+                );
+              }
 
               if (offer) {
                 const offerStatus = offersById[offer.offerId]?.status ?? "sent";
@@ -438,6 +494,8 @@ export default function DashboardMessagesPage() {
                       <p className="text-sm text-[var(--dash-muted)] mt-2">
                         {offer.description}
                       </p>
+                      {offerStatus === "sent" ? <p className="mt-3 rounded-lg bg-[var(--dash-surface-2)] p-3 text-xs text-[var(--dash-muted)]">Review the scope and amount above. Accepting records your agreement; payment is a separate step.</p> : null}
+                      {offerStatus === "accepted" ? <p className="mt-3 rounded-lg bg-[var(--dash-surface-2)] p-3 text-xs text-[var(--dash-muted)]">You accepted this offer. It becomes an order after payment is completed.</p> : null}
                       <div className="mt-3 text-xs text-[var(--dash-muted)] flex flex-wrap gap-3">
                         {offer.deliveryDate ? (
                           <span>Delivery: {offer.deliveryDate}</span>
@@ -456,6 +514,7 @@ export default function DashboardMessagesPage() {
                         <div className="text-xs text-[var(--dash-muted)]">
                           {offerStatus === "sent" && "Offer sent"}
                           {offerStatus === "accepted" && "Offer accepted"}
+                          {offerStatus === "paid" && "Paid"}
                           {offerStatus === "rejected" && "Offer rejected"}
                           {offerStatus === "withdrawn" && "Offer withdrawn"}
                         </div>
@@ -465,40 +524,44 @@ export default function DashboardMessagesPage() {
                               <button
                                 type="button"
                                 onClick={async () => {
-                                  await updateOfferStatus(offer.offerId, "accepted");
-                                  if (offer.gigSlug) {
-                                    router.push(`/checkout/${offer.gigSlug}`);
-                                  }
+                                  setAcceptingOfferId(offer.offerId);
+                                  const accepted = await updateOfferStatus(offer.offerId, "accepted");
+                                  if (!accepted) setAcceptingOfferId(null);
                                 }}
+                                disabled={acceptingOfferId === offer.offerId}
                                 className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white"
                               >
-                                Accept offer
+                                {acceptingOfferId === offer.offerId ? "Accepting…" : "Accept offer"}
                               </button>
                               <button
                                 type="button"
-                                onClick={() =>
-                                  updateOfferStatus(offer.offerId, "rejected")
-                                }
+                                onClick={async () => {
+                                  setAcceptingOfferId(offer.offerId);
+                                  const rejected = await updateOfferStatus(offer.offerId, "rejected");
+                                  if (!rejected) setAcceptingOfferId(null);
+                                }}
+                                disabled={acceptingOfferId === offer.offerId}
                                 className="text-xs px-3 py-2 rounded-lg border border-[var(--dash-border)]"
                               >
-                                Reject offer
+                                {acceptingOfferId === offer.offerId ? "Updating…" : "Reject offer"}
                               </button>
                             </>
                           ) : null}
-                          {offerStatus === "accepted" ? (
+                          {offerStatus === "accepted" && payingOfferId !== offer.offerId ? (
                             <>
-                              <button
-                                type="button"
-                                onClick={() => router.push("/dashboard/orders")}
-                                className="text-xs underline text-[var(--dash-strong)]"
-                              >
-                                View order
-                              </button>
-                              <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                                Offer accepted
-                              </span>
+                              <button type="button" onClick={() => { setPayingOfferId(offer.offerId); void (async () => {
+                                const { data } = await supabase.auth.getSession();
+                                const token = data.session?.access_token;
+                                if (!token) { setError("Please sign in again to continue."); setPayingOfferId(null); return; }
+                                const response = await fetch("/api/stripe/checkout", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` }, body: JSON.stringify({ offerId: offer.offerId }) });
+                                const payload = await response.json();
+                                if (response.ok && payload.url) window.location.href = payload.url;
+                                else { setError(payload.error || "Unable to start payment."); setPayingOfferId(null); }
+                              })(); }} disabled={payingOfferId === offer.offerId} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white disabled:opacity-60">Pay agreed amount</button>
                             </>
                           ) : null}
+                          {offerStatus === "accepted" && payingOfferId === offer.offerId ? <span className="text-xs text-[var(--dash-muted)]">Opening Stripe Checkout…</span> : null}
+                          {offerStatus === "paid" ? <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">Paid</span> : null}
                         </div>
                       </div>
                     </div>

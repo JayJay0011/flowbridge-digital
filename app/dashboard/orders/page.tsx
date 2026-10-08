@@ -13,8 +13,9 @@ type Order = {
   revision_request: string | null;
   amount_cents: number | null;
   currency: string | null;
+  package_tier: string | null;
   created_at: string;
-  gigs: Related<{ title: string | null; delivery_days: number | null }>;
+  gigs: Related<{ title: string | null; delivery_days: number | null; package_basic: { delivery_days?: number } | null; package_standard: { delivery_days?: number } | null; package_premium: { delivery_days?: number } | null }>;
 };
 
 const statusLabel = (status: string) => {
@@ -43,12 +44,20 @@ export default function DashboardOrdersPage() {
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") !== "success") return;
+    setActionMessage("Stripe confirmed your payment. Your order should appear below shortly.");
+    const timeout = window.setTimeout(() => window.location.replace("/dashboard/orders"), 8000);
+    return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
     const load = async () => {
       const [{ data }, { data: reviews }] = await Promise.all([
         supabase
           .from("orders")
-          .select("id,status,revision_request,amount_cents,currency,created_at,gigs(title,delivery_days)")
+          .select("id,status,revision_request,amount_cents,currency,package_tier,created_at,gigs(title,delivery_days,package_basic,package_standard,package_premium)")
           .order("created_at", { ascending: false }),
         supabase.from("reviews").select("order_id"),
       ]);
@@ -90,12 +99,21 @@ export default function DashboardOrdersPage() {
       }).format(selectedOrder.amount_cents / 100)
     : "To be confirmed";
 
+  const selectedPackage = selectedOrder?.package_tier && selectedGig
+    ? selectedGig[`package_${selectedOrder.package_tier}` as "package_basic" | "package_standard" | "package_premium"]
+    : null;
   const expectedDelivery = selectedOrder
-    ? addDays(
-        new Date(selectedOrder.created_at),
-        selectedGig?.delivery_days || 7
-      ).toLocaleDateString()
+    ? selectedOrder.package_tier === "custom_offer"
+      ? "See your agreed offer in Messages"
+      : addDays(new Date(selectedOrder.created_at), selectedPackage?.delivery_days || selectedGig?.delivery_days || 7).toLocaleDateString()
     : "";
+
+  useEffect(() => {
+    const orderFromQuery = new URLSearchParams(window.location.search).get("order");
+    if (orderFromQuery && orders.some((order) => order.id === orderFromQuery)) {
+      setSelectedId(orderFromQuery);
+    }
+  }, [orders]);
 
   const updateDeliveryStatus = async (nextStatus: "revision_requested" | "complete") => {
     if (!selectedOrder) return;
@@ -338,7 +356,7 @@ export default function DashboardOrdersPage() {
                   </div>
                 </div>
                 <Link
-                  href="/dashboard/messages"
+                  href={`/dashboard/messages?order=${encodeURIComponent(selectedOrder.id)}`}
                   className="mt-5 w-full inline-flex items-center justify-center px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition"
                 >
                   View conversation

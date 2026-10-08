@@ -8,6 +8,10 @@ type Related<T> = T | T[] | null;
 type Order = {
   id: string;
   status: string;
+  payment_status: string | null;
+  amount_cents: number | null;
+  currency: string | null;
+  package_tier: string | null;
   revision_request: string | null;
   created_at: string;
   gigs: Related<{ title: string | null }>;
@@ -25,7 +29,7 @@ export default function AdminOrdersPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id,status,revision_request,created_at,gigs(title),profiles(email)")
+        .select("id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,gigs(title),profiles(email)")
         .order("created_at", { ascending: false });
 
       if (isMounted) {
@@ -82,6 +86,8 @@ export default function AdminOrdersPage() {
                   <th className="px-6 py-4 font-medium">Order</th>
                   <th className="px-6 py-4 font-medium">Account</th>
                   <th className="px-6 py-4 font-medium">Gig</th>
+                  <th className="px-6 py-4 font-medium">Amount / payment</th>
+                  <th className="px-6 py-4 font-medium">Package</th>
                   <th className="px-6 py-4 font-medium">Status</th>
                   <th className="px-6 py-4 font-medium">Revision note</th>
                   <th className="px-6 py-4 font-medium">Date</th>
@@ -90,13 +96,13 @@ export default function AdminOrdersPage() {
               <tbody>
                 {loading ? (
                   <tr className="border-t border-slate-200">
-                    <td className="px-6 py-6 text-slate-500" colSpan={6}>
+                    <td className="px-6 py-6 text-slate-500" colSpan={8}>
                       Loading orders...
                     </td>
                   </tr>
                 ) : orders.length === 0 ? (
                   <tr className="border-t border-slate-200">
-                    <td className="px-6 py-6 text-slate-500" colSpan={6}>
+                    <td className="px-6 py-6 text-slate-500" colSpan={8}>
                       No orders yet.
                     </td>
                   </tr>
@@ -118,6 +124,11 @@ export default function AdminOrdersPage() {
                         <td className="px-6 py-4">
                           {gig?.title || "—"}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>{order.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "—"}</div>
+                          <div className={`mt-1 text-xs font-semibold ${order.payment_status === "paid" ? "text-emerald-700" : "text-amber-700"}`}>{order.payment_status || "unpaid"}</div>
+                        </td>
+                        <td className="px-6 py-4 capitalize">{order.package_tier === "custom_offer" ? "Custom offer" : order.package_tier || "—"}</td>
                         <td className="px-6 py-4">
                           <select
                             value={order.status}

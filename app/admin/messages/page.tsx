@@ -47,6 +47,7 @@ const quickMessages = [
 
 const emojiOptions = ["😀", "👍", "🚀", "✅", "✨", "💡"];
 const offerPrefix = "__offer__:";
+const orderPrefix = "__order__:";
 
 export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -361,6 +362,20 @@ export default function AdminMessagesPage() {
         deliveryDate?: string;
         revisions?: string;
         deliverables?: string;
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const parseOrder = (body: string) => {
+    if (!body.startsWith(orderPrefix)) return null;
+    try {
+      return JSON.parse(body.slice(orderPrefix.length)) as {
+        orderId: string;
+        title: string;
+        amountCents: number | null;
+        currency: string;
       };
     } catch {
       return null;
@@ -783,10 +798,26 @@ export default function AdminMessagesPage() {
                           profiles[selectedClientId]?.username ||
                           "Client";
                         const offer = parseOffer(message.body);
+                        const paidOrder = parseOrder(message.body);
                         const parsed = parseReply(message.body);
                         const replyExcerpt = parsed.reply
                           ? parsed.reply.slice(0, 120)
                           : message.body.slice(0, 120);
+
+                        if (paidOrder) {
+                          const amount = paidOrder.amountCents
+                            ? new Intl.NumberFormat(undefined, { style: "currency", currency: paidOrder.currency.toUpperCase() }).format(paidOrder.amountCents / 100)
+                            : "Paid";
+                          return (
+                            <div key={message.id} className="flex justify-start">
+                              <div className="max-w-[70%] rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
+                                <p className="text-sm font-semibold">Payment confirmed · {paidOrder.title}</p>
+                                <p className="mt-1 text-sm">{amount} received · Order {paidOrder.orderId.slice(0, 8)}</p>
+                                <Link href="/admin/orders" className="mt-3 inline-block text-sm font-semibold underline">Open order management</Link>
+                              </div>
+                            </div>
+                          );
+                        }
 
                         if (offer) {
                           const offerStatus =
@@ -828,6 +859,7 @@ export default function AdminMessagesPage() {
                                   <div className="text-xs text-slate-500">
                                     {offerStatus === "sent" && "Offer sent"}
                                     {offerStatus === "accepted" && "Offer accepted"}
+                                    {offerStatus === "paid" && "Paid"}
                                     {offerStatus === "rejected" && "Offer rejected"}
                                     {offerStatus === "withdrawn" && "Offer withdrawn"}
                                   </div>
@@ -843,7 +875,7 @@ export default function AdminMessagesPage() {
                                         Withdraw offer
                                       </button>
                                     ) : null}
-                                    {offerStatus === "accepted" ? (
+                                    {offerStatus === "paid" ? (
                                       <>
                                         <Link
                                           href="/admin/orders"
@@ -852,7 +884,7 @@ export default function AdminMessagesPage() {
                                           View order
                                         </Link>
                                         <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                                          Offer accepted
+                                          Paid
                                         </span>
                                       </>
                                     ) : null}
