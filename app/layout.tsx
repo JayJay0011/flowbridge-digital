@@ -2,6 +2,7 @@ import "./globals.css";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import ChatWidget from "./components/ChatWidget";
+import ReferralCapture from "./components/ReferralCapture";
 import { Fraunces, Manrope } from "next/font/google";
 
 const fraunces = Fraunces({
@@ -158,6 +159,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <Header />
+        <ReferralCapture />
         {children}
         <ChatWidget />
         <Footer />

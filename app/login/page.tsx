@@ -8,6 +8,7 @@ function LoginPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next") || "/dashboard";
+  const referralCode = searchParams.get("ref")?.trim().toUpperCase() || "";
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "login";
   const initialStep =
     initialMode === "signup" && searchParams.get("step") === "username"
@@ -159,6 +160,22 @@ function LoginPageInner() {
         setMessage(error.message);
         setLoading(false);
         return;
+      }
+
+      const capturedReferralCode = referralCode || window.localStorage.getItem("flowbridge-referral-code") || "";
+      if (data.user && capturedReferralCode) {
+        const { data: verifiedSession } = await supabase.auth.getSession();
+        const { error: referralError } = await fetch("/api/referrals/attribute", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${verifiedSession.session?.access_token || ""}` },
+          body: JSON.stringify({ referralCode: capturedReferralCode }),
+        }).then(async (response) => ({ error: response.ok ? null : (await response.json()).error || "Unable to apply referral code." }));
+        if (referralError) {
+          window.localStorage.removeItem("flowbridge-referral-code");
+          setMessage(`Your account was created, but the referral could not be recorded: ${referralError}`);
+        } else {
+          window.localStorage.removeItem("flowbridge-referral-code");
+        }
       }
 
       if (data.session) {

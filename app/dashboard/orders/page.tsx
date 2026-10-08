@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,6 +12,8 @@ type Related<T> = T | T[] | null;
 type Order = {
   id: string;
   status: string;
+  payment_status: string | null;
+  stripe_session_id: string | null;
   revision_request: string | null;
   amount_cents: number | null;
   currency: string | null;
@@ -49,7 +53,7 @@ export default function DashboardOrdersPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") !== "success") return;
-    setActionMessage("Stripe confirmed your payment. Your order should appear below shortly.");
+    setActionMessage("Confirming your payment and loading the order…");
     const timeout = window.setTimeout(() => {
       const url = new URL(window.location.href);
       url.searchParams.delete("payment");
@@ -61,16 +65,20 @@ export default function DashboardOrdersPage() {
 
   useEffect(() => {
     let isMounted = true;
+    const fetchOrders = async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id,status,payment_status,stripe_session_id,revision_request,amount_cents,currency,package_tier,created_at,gigs(title,delivery_days,package_basic,package_standard,package_premium)")
+        .order("created_at", { ascending: false });
+      return data ?? [];
+    };
     const load = async () => {
-      const [{ data }, { data: reviews }] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id,status,revision_request,amount_cents,currency,package_tier,created_at,gigs(title,delivery_days,package_basic,package_standard,package_premium)")
-          .order("created_at", { ascending: false }),
+      const [{ data: reviews }, initialOrders] = await Promise.all([
         supabase.from("reviews").select("order_id"),
+        fetchOrders(),
       ]);
       if (isMounted) {
-        setOrders(data ?? []);
+        setOrders(initialOrders);
         setReviewedOrders(
           new Set(
             (reviews ?? [])
@@ -79,8 +87,27 @@ export default function DashboardOrdersPage() {
           )
         );
         const orderFromQuery = new URLSearchParams(window.location.search).get("order");
-        setSelectedId((prev) => orderFromQuery && data?.some((order) => order.id === orderFromQuery) ? orderFromQuery : prev ?? data?.[0]?.id ?? null);
+        setSelectedId((prev) => orderFromQuery && initialOrders.some((order) => order.id === orderFromQuery) ? orderFromQuery : prev ?? initialOrders[0]?.id ?? null);
         setLoading(false);
+        const sessionId = new URLSearchParams(window.location.search).get("session_id");
+        if (sessionId && !initialOrders.some((order) => order.stripe_session_id === sessionId)) {
+          for (let attempt = 0; attempt < 8 && isMounted; attempt += 1) {
+            await new Promise((resolve) => window.setTimeout(resolve, 2500));
+            const updatedOrders = await fetchOrders();
+            if (!isMounted) return;
+            setOrders(updatedOrders);
+            const paidOrder = updatedOrders.find((order) => order.stripe_session_id === sessionId && order.payment_status === "paid");
+            if (paidOrder) {
+              setSelectedId(paidOrder.id);
+              setActionMessage("Payment confirmed. Your order is ready in Active orders.");
+              return;
+            }
+          }
+          if (isMounted) setActionMessage("Payment was completed, but order confirmation is taking longer than usual. Refresh this page shortly or contact Flowbridge if it does not appear.");
+        } else if (sessionId) {
+          const paidOrder = initialOrders.find((order) => order.stripe_session_id === sessionId && order.payment_status === "paid");
+          if (paidOrder) setActionMessage("Payment confirmed. Your order is ready in Active orders.");
+        }
       }
     };
     load();
@@ -121,19 +148,19 @@ export default function DashboardOrdersPage() {
     switch (activeSection) {
       case "active":
       case "in_progress":
-        return orders.filter((order) => ["new", "in_progress"].includes(order.status));
+        return orders.filter((order) => order.payment_status === "paid" && ["new", "in_progress"].includes(order.status));
       case "review":
-        return orders.filter((order) => ["delivered", "revision_requested"].includes(order.status));
+        return orders.filter((order) => order.payment_status === "paid" && ["delivered", "revision_requested"].includes(order.status));
       case "completed":
-        return orders.filter((order) => ["complete", "cancelled"].includes(order.status));
+        return orders.filter((order) => order.payment_status === "paid" && ["complete", "cancelled"].includes(order.status));
     }
   }, [activeSection, orders]);
 
   const sectionCards: { id: OrderSection; title: string; description: string; count: number }[] = [
-    { id: "active", title: "Active orders", description: "Orders you’ve placed", count: orders.filter((order) => ["new", "in_progress"].includes(order.status)).length },
-    { id: "in_progress", title: "In progress", description: "Work underway", count: orders.filter((order) => ["new", "in_progress"].includes(order.status)).length },
-    { id: "review", title: "In review", description: "Delivery or revisions", count: orders.filter((order) => ["delivered", "revision_requested"].includes(order.status)).length },
-    { id: "completed", title: "Completed", description: "Finished orders", count: orders.filter((order) => ["complete", "cancelled"].includes(order.status)).length },
+    { id: "active", title: "Active orders", description: "Orders you’ve placed", count: orders.filter((order) => order.payment_status === "paid" && ["new", "in_progress"].includes(order.status)).length },
+    { id: "in_progress", title: "In progress", description: "Work underway", count: orders.filter((order) => order.payment_status === "paid" && ["new", "in_progress"].includes(order.status)).length },
+    { id: "review", title: "In review", description: "Delivery or revisions", count: orders.filter((order) => order.payment_status === "paid" && ["delivered", "revision_requested"].includes(order.status)).length },
+    { id: "completed", title: "Completed", description: "Finished orders", count: orders.filter((order) => order.payment_status === "paid" && ["complete", "cancelled"].includes(order.status)).length },
   ];
 
   useEffect(() => {
