@@ -20,7 +20,7 @@ as $$
 declare candidate text;
 begin
   loop
-    candidate := upper(encode(gen_random_bytes(5), 'hex'));
+    candidate := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 10));
     exit when not exists (select 1 from public.profiles where referral_code = candidate);
   end loop;
   return candidate;
