@@ -12,7 +12,7 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
-function orderEmailHtml(title: string, shortId: string, amount: string, paidAt: string, dashboardUrl: string, isAdmin: boolean) {
+function orderEmailHtml(title: string, shortId: string, amount: string, paidAt: string, dashboardUrl: string, isAdmin: boolean, buyerName: string, buyerEmail: string, packageName: string) {
   const heading = isAdmin ? "A new order has been paid" : "Your payment is confirmed";
   const intro = isAdmin ? "A customer completed payment for this Flowbridge order." : "Thanks for your purchase. Keep this receipt for your records.";
   return `
@@ -23,6 +23,8 @@ function orderEmailHtml(title: string, shortId: string, amount: string, paidAt: 
           <table role="presentation" style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;border-radius:10px">
             <tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Order</td><td style="padding:13px 16px;text-align:right;font-weight:bold;border-bottom:1px solid #e2e8f0">${escapeHtml(title)}</td></tr>
             <tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Order ID</td><td style="padding:13px 16px;text-align:right;border-bottom:1px solid #e2e8f0">${escapeHtml(shortId)}</td></tr>
+            ${isAdmin ? `<tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Customer</td><td style="padding:13px 16px;text-align:right;border-bottom:1px solid #e2e8f0">${escapeHtml(buyerName)}</td></tr><tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Customer email</td><td style="padding:13px 16px;text-align:right;border-bottom:1px solid #e2e8f0">${escapeHtml(buyerEmail)}</td></tr>` : ""}
+            <tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Package</td><td style="padding:13px 16px;text-align:right;border-bottom:1px solid #e2e8f0">${escapeHtml(packageName)}</td></tr>
             <tr><td style="padding:13px 16px;color:#64748b;border-bottom:1px solid #e2e8f0">Paid on</td><td style="padding:13px 16px;text-align:right;border-bottom:1px solid #e2e8f0">${escapeHtml(paidAt)}</td></tr>
             <tr><td style="padding:15px 16px;color:#64748b;font-weight:bold">Total paid</td><td style="padding:15px 16px;text-align:right;font-size:18px;font-weight:bold">${escapeHtml(amount)}</td></tr>
           </table>
@@ -201,30 +203,31 @@ export async function POST(request: Request) {
       }
 
       const [{ data: profile }, { data: authUser }, gigResult] = await Promise.all([
-        supabaseAdmin.from("profiles").select("email").eq("id", userId).maybeSingle(),
+        supabaseAdmin.from("profiles").select("email,username,company_name").eq("id", userId).maybeSingle(),
         supabaseAdmin.auth.admin.getUserById(userId),
         gigId ? supabaseAdmin.from("gigs").select("title").eq("id", gigId).maybeSingle() : Promise.resolve({ data: null, error: null }),
       ]);
       const recipient = authUser.user?.email || profile?.email || null;
+      const buyerName = profile?.company_name || profile?.username || authUser.user?.user_metadata?.full_name || "Flowbridge customer";
       const orderTitle = offer?.title || gigResult.data?.title || "Flowbridge Digital service";
+      const packageName = offerId ? "Custom offer" : packageTier || "Service package";
       const currency = (session.currency || "usd").toUpperCase();
       const paidCents = session.amount_total ?? amountCents;
       const paidAmount = new Intl.NumberFormat("en-US", { style: "currency", currency }).format(paidCents / 100);
       const paidAt = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(session.created * 1000));
       const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://flowbridgedigital.org").replace(/\/+$/, "");
-      const orderUrl = `${siteUrl}/dashboard/orders`;
+      const orderUrl = `${siteUrl}/dashboard/orders/${encodeURIComponent(order.id)}`;
       const adminOrderUrl = `${siteUrl}/admin/orders?order=${encodeURIComponent(order.id)}`;
       const resend = new Resend(resendKey);
-      const notificationSender = process.env.NOTIFICATION_FROM_EMAIL || "Flowbridge Digital <noreply@flowbridgedigital.org>";
-      const supportSender = "Flowbridge Digital Support <support@flowbridgedigital.org>";
+      const adminSender = `Flowbridge Digital <${adminEmail}>`;
 
       if (!order.receipt_email_sent_at && recipient) {
         const { error: receiptError } = await resend.emails.send({
-          from: supportSender,
+          from: adminSender,
           to: recipient,
           subject: `Payment receipt for ${orderTitle}`,
-          html: orderEmailHtml(orderTitle, order.id.slice(0, 8), paidAmount, paidAt, orderUrl, false),
-          text: `Payment confirmed\nOrder: ${orderTitle}\nOrder ID: ${order.id.slice(0, 8)}\nPaid on: ${paidAt}\nTotal paid: ${paidAmount}\nView your order: ${orderUrl}`,
+          html: orderEmailHtml(orderTitle, order.id.slice(0, 8), paidAmount, paidAt, orderUrl, false, buyerName, recipient, packageName),
+          text: `Payment confirmed\nOrder: ${orderTitle}\nPackage: ${packageName}\nOrder ID: ${order.id.slice(0, 8)}\nPaid on: ${paidAt}\nTotal paid: ${paidAmount}\nView your order: ${orderUrl}`,
         }, { idempotencyKey: `flowbridge-receipt-${order.id}` });
         if (receiptError) {
           console.error("Client order receipt email failed:", receiptError);
@@ -238,11 +241,11 @@ export async function POST(request: Request) {
 
       if (!order.admin_order_email_sent_at) {
         const { error: adminEmailError } = await resend.emails.send({
-          from: notificationSender,
+          from: adminSender,
           to: adminEmail,
           subject: `New paid order: ${orderTitle}`,
-          html: orderEmailHtml(orderTitle, order.id.slice(0, 8), paidAmount, paidAt, adminOrderUrl, true),
-          text: `New paid order\nOrder: ${orderTitle}\nOrder ID: ${order.id.slice(0, 8)}\nPaid on: ${paidAt}\nTotal paid: ${paidAmount}\nOpen in admin: ${adminOrderUrl}`,
+          html: orderEmailHtml(orderTitle, order.id.slice(0, 8), paidAmount, paidAt, adminOrderUrl, true, buyerName, recipient || "Unavailable", packageName),
+          text: `New paid order\nOrder: ${orderTitle}\nPackage: ${packageName}\nCustomer: ${buyerName}\nCustomer email: ${recipient || "Unavailable"}\nOrder ID: ${order.id.slice(0, 8)}\nPaid on: ${paidAt}\nTotal paid: ${paidAmount}\nOpen in admin: ${adminOrderUrl}`,
         }, { idempotencyKey: `flowbridge-admin-order-${order.id}` });
         if (adminEmailError) {
           console.error("Admin new-order email failed:", adminEmailError);

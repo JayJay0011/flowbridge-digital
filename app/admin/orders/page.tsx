@@ -8,6 +8,7 @@ type Related<T> = T | T[] | null;
 
 type Order = {
   id: string;
+  client_id: string;
   status: string;
   payment_status: string | null;
   amount_cents: number | null;
@@ -27,6 +28,7 @@ export default function AdminOrdersPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [deliveryOrderId, setDeliveryOrderId] = useState<string | null>(null);
   const [deliveryNote, setDeliveryNote] = useState("");
+  const [deliveryFiles, setDeliveryFiles] = useState<File[]>([]);
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export default function AdminOrdersPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,gigs(title),profiles(email)")
+        .select("id,client_id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,gigs(title),profiles(email)")
         .order("created_at", { ascending: false });
 
       if (isMounted) {
@@ -72,10 +74,39 @@ export default function AdminOrdersPage() {
       setSubmittingDelivery(false);
       return;
     }
+    const uploadedAttachments: { path: string; name: string }[] = [];
+    for (const file of deliveryFiles) {
+      const form = new FormData();
+      form.set("file", file);
+      const order = orders.find((item) => item.id === orderId);
+      if (!order) {
+        setMessage("Order not found. Refresh and try again.");
+        setSubmittingDelivery(false);
+        return;
+      }
+      if (!order.client_id) {
+        setMessage("Unable to identify the client for this delivery.");
+        setSubmittingDelivery(false);
+        return;
+      }
+      form.set("clientId", order.client_id);
+      const uploadResponse = await fetch("/api/messages/attachment", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const uploaded = await uploadResponse.json().catch(() => ({}));
+      if (!uploadResponse.ok || !uploaded.path) {
+        setMessage(uploaded.error || `Could not upload ${file.name}. Delivery was not submitted.`);
+        setSubmittingDelivery(false);
+        return;
+      }
+      uploadedAttachments.push({ path: uploaded.path, name: file.name });
+    }
     const response = await fetch("/api/admin/orders/delivery", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ orderId, note: deliveryNote }),
+      body: JSON.stringify({ orderId, note: deliveryNote, attachments: uploadedAttachments }),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -90,6 +121,7 @@ export default function AdminOrdersPage() {
     );
     setDeliveryOrderId(null);
     setDeliveryNote("");
+    setDeliveryFiles([]);
     setMessage(result.notificationSent === false ? "Delivery submitted. Client activity message could not be added." : "Delivery submitted and sent to the client for approval.");
     setSubmittingDelivery(false);
   };
@@ -166,7 +198,9 @@ export default function AdminOrdersPage() {
                             deliveryOrderId === order.id ? (
                               <div className="mt-2 min-w-52 space-y-2">
                                 <textarea value={deliveryNote} onChange={(event) => setDeliveryNote(event.target.value)} rows={3} placeholder="Add an optional delivery note" className="w-full rounded-lg border border-slate-200 p-2 text-xs" />
-                                <div className="flex gap-2"><button type="button" disabled={submittingDelivery} onClick={() => void submitDelivery(order.id)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{submittingDelivery ? "Submitting…" : "Submit delivery"}</button><button type="button" onClick={() => { setDeliveryOrderId(null); setDeliveryNote(""); }} className="rounded-lg border border-slate-200 px-3 py-2 text-xs">Cancel</button></div>
+                                <input type="file" multiple onChange={(event) => setDeliveryFiles(Array.from(event.target.files ?? []))} className="block w-full text-xs" aria-label="Attach delivered files" />
+                                {deliveryFiles.length ? <p className="text-xs text-slate-500">{deliveryFiles.map((file) => file.name).join(", ")}</p> : null}
+                                <div className="flex gap-2"><button type="button" disabled={submittingDelivery} onClick={() => void submitDelivery(order.id)} className="rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">{submittingDelivery ? "Submitting…" : "Submit delivery"}</button><button type="button" onClick={() => { setDeliveryOrderId(null); setDeliveryNote(""); setDeliveryFiles([]); }} className="rounded-lg border border-slate-200 px-3 py-2 text-xs">Cancel</button></div>
                               </div>
                             ) : <button type="button" onClick={() => setDeliveryOrderId(order.id)} className="mt-2 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold">{order.status === "revision_requested" ? "Submit revision" : "Submit delivery"}</button>
                           ) : null}

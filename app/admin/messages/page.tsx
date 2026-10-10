@@ -40,6 +40,8 @@ type UploadAttachment = {
   path: string;
 };
 
+type ClientActivity = { completedOrders: number; averageRating: number | null; lastOrderAt: string | null; error: boolean };
+
 const quickMessages = [
   "Thanks for the update! I'll review and get back to you shortly.",
   "Got it. I have everything I need to proceed.",
@@ -54,6 +56,7 @@ export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [clientActivity, setClientActivity] = useState<ClientActivity | null>(null);
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -282,6 +285,29 @@ export default function AdminMessagesPage() {
         );
       });
   }, [selectedClientId, selectedMessages]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setClientActivity(null);
+    if (!selectedClientId) return;
+    const loadActivity = async () => {
+      const [ordersResult, reviewsResult] = await Promise.all([
+        supabase.from("orders").select("status,created_at").eq("client_id", selectedClientId).eq("payment_status", "paid").order("created_at", { ascending: false }),
+        supabase.from("reviews").select("rating").eq("client_id", selectedClientId).eq("status", "published"),
+      ]);
+      if (cancelled) return;
+      const paidOrders = ordersResult.data ?? [];
+      const ratings = (reviewsResult.data ?? []).map((review) => review.rating).filter((rating): rating is number => typeof rating === "number");
+      setClientActivity({
+        completedOrders: paidOrders.filter((order) => order.status === "complete").length,
+        averageRating: ratings.length ? ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length : null,
+        lastOrderAt: paidOrders[0]?.created_at ?? null,
+        error: Boolean(ordersResult.error || reviewsResult.error),
+      });
+    };
+    void loadActivity();
+    return () => { cancelled = true; };
+  }, [selectedClientId]);
 
   const lastClientMessage = useMemo(
     () =>
@@ -1166,15 +1192,15 @@ export default function AdminMessagesPage() {
                 <div className="mt-4 space-y-3 text-sm text-slate-600">
                   <div className="flex items-center justify-between">
                     <span>Completed orders</span>
-                    <span className="font-semibold text-slate-900">—</span>
+                    <span className="font-semibold text-slate-900">{clientActivity ? clientActivity.error ? "Unavailable" : clientActivity.completedOrders : "—"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Average rating</span>
-                    <span className="font-semibold text-slate-900">—</span>
+                    <span className="font-semibold text-slate-900">{clientActivity?.error ? "Unavailable" : clientActivity?.averageRating != null ? `${clientActivity.averageRating.toFixed(1)} / 5` : clientActivity ? "No reviews" : "—"}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Last order</span>
-                    <span className="font-semibold text-slate-900">—</span>
+                    <span className="font-semibold text-slate-900">{clientActivity?.error ? "Unavailable" : clientActivity?.lastOrderAt ? new Date(clientActivity.lastOrderAt).toLocaleDateString() : clientActivity ? "No orders" : "—"}</span>
                   </div>
                 </div>
 

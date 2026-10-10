@@ -291,10 +291,13 @@ export default function DashboardOrdersPage() {
                 <div className="grid gap-3 md:grid-cols-2">
                   {sectionOrders.map((order) => {
                     const gig = Array.isArray(order.gigs) ? order.gigs[0] : order.gigs;
-                    return <button key={order.id} type="button" onClick={() => setSelectedId(order.id)} className={`rounded-2xl border p-4 text-left transition ${selectedId === order.id ? "border-slate-900 bg-[var(--dash-surface)] ring-1 ring-slate-900" : "border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-slate-400"}`}>
-                      <div className="flex items-start justify-between gap-3"><span className="font-semibold">{gig?.title || "Custom project"}</span><span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700">{statusLabel(order.status)}</span></div>
-                      <p className="mt-2 text-sm text-[var(--dash-muted)]">Order {order.id.slice(0, 8)} · {order.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "Amount pending"}</p>
-                    </button>;
+                    return <article key={order.id} className={`rounded-2xl border p-4 transition ${selectedId === order.id ? "border-slate-900 bg-[var(--dash-surface)] ring-1 ring-slate-900" : "border-[var(--dash-border)] bg-[var(--dash-surface)] hover:border-slate-400"}`}>
+                      <button type="button" onClick={() => setSelectedId(order.id)} className="w-full text-left">
+                        <div className="flex items-start justify-between gap-3"><span className="font-semibold">{gig?.title || (order.package_tier === "custom_offer" ? "Custom offer" : "Custom project")}</span><span className="shrink-0 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-700">{statusLabel(order.status)}</span></div>
+                        <p className="mt-2 text-sm text-[var(--dash-muted)]">Order {order.id.slice(0, 8)} · {order.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "Amount pending"}</p>
+                      </button>
+                      {order.payment_status === "paid" ? <Link href={`/dashboard/orders/${encodeURIComponent(order.id)}`} className="mt-3 inline-flex text-sm font-semibold underline">View order</Link> : null}
+                    </article>;
                   })}
                 </div>
               )}
@@ -455,6 +458,7 @@ export default function DashboardOrdersPage() {
                 >
                   View conversation
                 </Link>
+                <Link href={`/dashboard/orders/${encodeURIComponent(selectedOrder.id)}`} className="mt-3 inline-flex text-sm font-semibold underline">View full order</Link>
               </div>
 
               <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6">

@@ -82,9 +82,7 @@ export async function POST(request: Request) {
     const resendKey = process.env.RESEND_API_KEY;
     const adminEmail = process.env.ADMIN_EMAIL;
     if (resendKey && adminEmail) {
-      const sender =
-        process.env.NOTIFICATION_FROM_EMAIL ||
-        "Flowbridge Digital <noreply@flowbridgedigital.org>";
+      const sender = `Flowbridge Digital <${adminEmail}>`;
       const contactName =
         profile?.company_name || profile?.username || user.email || "Account";
       const dashboardUrl = `${
