@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 
 type Related<T> = T | T[] | null;
@@ -179,7 +180,8 @@ export default function AdminOrdersPage() {
                     return (
                       <tr key={order.id} className={`border-t border-slate-200 ${focusedOrderId === order.id ? "bg-amber-50 ring-2 ring-inset ring-amber-400" : ""}`}>
                         <td className="px-6 py-4 font-medium">
-                          {order.id.slice(0, 8)}
+                          <div>{order.id.slice(0, 8)}</div>
+                          {order.payment_status === "paid" ? <Link href={`/admin/orders/${encodeURIComponent(order.id)}`} className="mt-1 inline-block text-xs font-semibold text-slate-700 underline">View order</Link> : null}
                         </td>
                         <td className="px-6 py-4">
                           {profile?.email || "—"}

@@ -874,7 +874,7 @@ export default function AdminMessagesPage() {
                               <div className="max-w-[70%] rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-950">
                                 <p className="text-sm font-semibold">Payment confirmed · {paidOrder.title}</p>
                                 <p className="mt-1 text-sm">{amount} received · Order {paidOrder.orderId.slice(0, 8)}</p>
-                                <Link href={`/admin/orders?order=${encodeURIComponent(paidOrder.orderId)}`} className="mt-3 inline-block text-sm font-semibold underline">View this order</Link>
+                                <Link href={`/admin/orders/${encodeURIComponent(paidOrder.orderId)}`} className="mt-3 inline-block text-sm font-semibold underline">View this order</Link>
                               </div>
                             </div>
                           );
@@ -942,7 +942,7 @@ export default function AdminMessagesPage() {
                                         <span className="text-xs px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                           Paid
                                         </span>
-                                        {offerOrder ? <Link href={`/admin/orders?order=${encodeURIComponent(offerOrder.orderId)}`} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white">View order</Link> : null}
+                                        {offerOrder ? <Link href={`/admin/orders/${encodeURIComponent(offerOrder.orderId)}`} className="text-xs px-3 py-2 rounded-lg bg-slate-900 text-white">View order</Link> : null}
                                       </>
                                     ) : null}
                                   </div>

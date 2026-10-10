@@ -217,7 +217,7 @@ export async function POST(request: Request) {
       const paidAt = new Intl.DateTimeFormat("en-US", { dateStyle: "long", timeZone: "UTC" }).format(new Date(session.created * 1000));
       const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://flowbridgedigital.org").replace(/\/+$/, "");
       const orderUrl = `${siteUrl}/dashboard/orders/${encodeURIComponent(order.id)}`;
-      const adminOrderUrl = `${siteUrl}/admin/orders?order=${encodeURIComponent(order.id)}`;
+      const adminOrderUrl = `${siteUrl}/admin/orders/${encodeURIComponent(order.id)}`;
       const resend = new Resend(resendKey);
       const adminSender = `Flowbridge Digital <${adminEmail}>`;
 
