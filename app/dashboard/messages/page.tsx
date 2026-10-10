@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { playNotification } from "../../lib/notifications";
+import MessageAttachment from "../../components/MessageAttachment";
 
 type Message = {
   id: string;
@@ -15,6 +16,7 @@ type Message = {
 
 const offerPrefix = "__offer__:";
 const orderPrefix = "__order__:";
+type PendingAttachment = { name: string; path: string; voice?: boolean };
 
 export default function DashboardMessagesPage() {
   const router = useRouter();
@@ -23,6 +25,10 @@ export default function DashboardMessagesPage() {
   const [sending, setSending] = useState(false);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [agentTyping, setAgentTyping] = useState(false);
   const [agentOnline, setAgentOnline] = useState(false);
@@ -39,6 +45,10 @@ export default function DashboardMessagesPage() {
   const lastTypingSentRef = useRef<number>(0);
   const messageListRef = useRef<HTMLDivElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
 
   const refreshOfferStatuses = async (offerIds: string[]) => {
     const uniqueIds = Array.from(new Set(offerIds));
@@ -225,9 +235,10 @@ export default function DashboardMessagesPage() {
   };
 
   const handleSend = async () => {
-    if (!draft.trim() || !userId) return;
+    if ((!draft.trim() && attachments.length === 0) || !userId || uploading) return;
     setSending(true);
     setError(null);
+    setAttachmentError(null);
 
     const replyPrefix = replyTo
       ? `Replying to: ${replyTo.author}: "${replyTo.excerpt}"\n---\n`
@@ -249,7 +260,7 @@ export default function DashboardMessagesPage() {
       },
       body: JSON.stringify({
         subject: "Chat",
-        body: `${replyPrefix}${draft.trim()}`,
+        body: [replyPrefix + draft.trim(), ...attachments.map((item) => `${item.voice ? "Voice note" : "Attachment"}: storage://${item.path}`)].filter(Boolean).join("\n\n"),
       }),
     });
     const payload = (await response.json()) as {
@@ -266,7 +277,70 @@ export default function DashboardMessagesPage() {
     upsertMessage(payload.message);
     setDraft("");
     setReplyTo(null);
+    setAttachments([]);
     setSending(false);
+  };
+
+  const uploadAttachment = async (file: File, voice = false) => {
+    if (!userId) return;
+    setUploading(true);
+    setAttachmentError(null);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Please sign in again before uploading.");
+      const form = new FormData();
+      form.set("file", file);
+      form.set("clientId", userId);
+      const response = await fetch("/api/messages/attachment", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+      const result = await response.json();
+      if (!response.ok || !result.path) throw new Error(result.error || "Upload failed.");
+      setAttachments((previous) => [...previous, { name: file.name, path: result.path, voice }]);
+    } catch (uploadError) {
+      setAttachmentError(uploadError instanceof Error ? uploadError.message : "Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) void uploadAttachment(file);
+    event.target.value = "";
+  };
+
+  const startRecording = async () => {
+    setAttachmentError(null);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") throw new Error("Voice recording is not supported by this browser.");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      recordingChunksRef.current = [];
+      const preferredType = ["audio/webm", "audio/ogg", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, preferredType ? { mimeType: preferredType } : undefined);
+      recorder.ondataavailable = (event) => { if (event.data.size) recordingChunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const mimeType = (recorder.mimeType || "audio/webm").split(";")[0];
+        const extension = mimeType === "audio/ogg" ? "ogg" : mimeType === "audio/mp4" ? "m4a" : "webm";
+        const file = new File(recordingChunksRef.current, `voice-note-${Date.now()}.${extension}`, { type: mimeType });
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        setRecording(false);
+        if (file.size) void uploadAttachment(file, true);
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setRecording(true);
+    } catch (recordError) {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setAttachmentError(recordError instanceof Error ? recordError.message : "Could not start recording.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    recorderRef.current = null;
   };
 
   const updateOfferStatus = async (offerId: string, status: string) => {
@@ -361,22 +435,16 @@ export default function DashboardMessagesPage() {
         {parsed.content.split("\n").map((line, index) => {
           const trimmed = line.trim();
           const match = trimmed.match(
-            /^(Attachment|Voice note):\s*(https?:\/\/\S+)/i
+            /^(Attachment|Voice note):\s*(https?:\/\/\S+|storage:\/\/\S+)/i
           );
           if (match) {
             const label = match[1];
             const url = match[2];
+            const storagePath = url.startsWith("storage://") ? url.slice("storage://".length) : null;
             return (
               <div key={`${label}-${index}`} className="text-xs">
                 {label}:{" "}
-                <a
-                  href={url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline"
-                >
-                  Open
-                </a>
+                {storagePath ? <MessageAttachment path={storagePath} label="Open" /> : <a href={url} target="_blank" rel="noreferrer" className="underline">Open</a>}
               </div>
             );
           }
@@ -676,18 +744,25 @@ export default function DashboardMessagesPage() {
             className="w-full border border-[var(--dash-border)] bg-transparent rounded-xl px-4 py-3 text-sm text-[var(--dash-text)] placeholder:text-[var(--dash-muted)] focus:outline-none focus:ring-2 focus:ring-slate-900"
           />
           {error && <div className="text-sm text-red-600">{error}</div>}
-          <div className="flex items-center justify-between">
+          {attachments.length ? <div className="flex flex-wrap gap-2">{attachments.map((item) => <span key={item.path} className="rounded-full bg-[var(--dash-surface-2)] px-3 py-1 text-xs">{item.voice ? "Voice" : "File"}: {item.name}<button type="button" aria-label={`Remove ${item.name}`} onClick={() => setAttachments((current) => current.filter((entry) => entry.path !== item.path))} className="ml-2">×</button></span>)}</div> : null}
+          {attachmentError ? <div role="alert" className="text-sm text-red-600">{attachmentError}</div> : null}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs text-[var(--dash-muted)]">
               We typically respond within 1 business day.
             </p>
+            <div className="flex items-center gap-2">
+              <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx" onChange={handleFileChange} />
+              <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading || sending} className="h-10 w-10 rounded-full border border-[var(--dash-border)] hover:bg-[var(--dash-surface-2)] disabled:opacity-50" title="Attach a file" aria-label="Attach a file">📎</button>
+              <button type="button" onClick={recording ? stopRecording : () => void startRecording()} disabled={uploading || sending} className={`h-10 w-10 rounded-full border border-[var(--dash-border)] hover:bg-[var(--dash-surface-2)] disabled:opacity-50 ${recording ? "text-red-600" : ""}`} title={recording ? "Stop voice recording" : "Record a voice note"} aria-label={recording ? "Stop voice recording" : "Record a voice note"}>{recording ? "■" : "🎙️"}</button>
             <button
               type="button"
               onClick={handleSend}
-              disabled={sending || !draft.trim()}
+              disabled={sending || uploading || (!draft.trim() && attachments.length === 0)}
               className="px-5 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-60"
             >
-              {sending ? "Sending..." : "Send"}
+              {uploading ? "Uploading…" : sending ? "Sending..." : "Send"}
             </button>
+            </div>
           </div>
         </div>
       </div>

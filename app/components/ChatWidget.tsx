@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import { playNotification } from "../lib/notifications";
+import MessageAttachment from "./MessageAttachment";
 
 type Message = {
   id: string;
@@ -212,13 +213,10 @@ export default function ChatWidget() {
     lastTypingSentRef.current = now;
   };
 
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: "file"
-  ) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setUploads((prev) => [...prev, { file, type }]);
+    setUploads((prev) => [...prev, { file, type: "file" }]);
     event.target.value = "";
   };
 
@@ -259,24 +257,18 @@ export default function ChatWidget() {
     setRecording(false);
   };
 
-  const uploadFile = async (file: File, type: "file" | "voice") => {
+  const uploadFile = async (file: File) => {
     if (!userId) return null;
-    const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
-    const path = `chat-attachments/${userId}/${Date.now()}-${type}-${safeName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from("public-assets")
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      throw new Error(uploadError.message);
-    }
-
-    const { data: publicUrl } = supabase.storage
-      .from("public-assets")
-      .getPublicUrl(path);
-
-    return publicUrl.publicUrl;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error("Please sign in again before uploading.");
+    const form = new FormData();
+    form.set("file", file);
+    form.set("clientId", userId);
+    const response = await fetch("/api/messages/attachment", { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+    const result = await response.json();
+    if (!response.ok || !result.path) throw new Error(result.error || "Upload failed.");
+    return result.path as string;
   };
 
   const handleSend = async () => {
@@ -288,10 +280,10 @@ export default function ChatWidget() {
       const attachmentLines: string[] = [];
 
       for (const upload of uploads) {
-        const url = await uploadFile(upload.file, upload.type);
-        if (url) {
+        const path = await uploadFile(upload.file);
+        if (path) {
           attachmentLines.push(
-            upload.type === "voice" ? `Voice note: ${url}` : `Attachment: ${url}`
+            upload.type === "voice" ? `Voice note: storage://${path}` : `Attachment: storage://${path}`
           );
         }
       }
@@ -384,21 +376,15 @@ export default function ChatWidget() {
     }
     return body.split("\n").map((line, index) => {
       const trimmed = line.trim();
-      const match = trimmed.match(/^(Attachment|Voice note):\s*(https?:\/\/\S+)/i);
+      const match = trimmed.match(/^(Attachment|Voice note):\s*(https?:\/\/\S+|storage:\/\/\S+)/i);
       if (match) {
         const label = match[1];
         const url = match[2];
+        const storagePath = url.startsWith("storage://") ? url.slice("storage://".length) : null;
         return (
           <div key={`${label}-${index}`} className="text-[11px]">
             {label}:{" "}
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              Open
-            </a>
+            {storagePath ? <MessageAttachment path={storagePath} label="Open" /> : <a href={url} target="_blank" rel="noreferrer" className="underline">Open</a>}
           </div>
         );
       }
@@ -621,7 +607,7 @@ export default function ChatWidget() {
                       <input
                         type="file"
                         className="hidden"
-                        onChange={(event) => handleFileChange(event, "file")}
+                        onChange={handleFileChange}
                       />
                       Attach file
                     </label>

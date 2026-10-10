@@ -64,6 +64,24 @@ export default function DashboardOrdersPage() {
   }, []);
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let cancelled = false;
+    const subscribe = async () => {
+      const { data } = await supabase.auth.getSession();
+      const clientId = data.session?.user.id;
+      if (!clientId || cancelled) return;
+      channel = supabase.channel(`orders-dashboard-${clientId}`).on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "orders", filter: `client_id=eq.${clientId}`,
+      }, (payload) => {
+        const updated = payload.new as Order;
+        setOrders((current) => current.map((order) => order.id === updated.id ? { ...order, status: updated.status, revision_request: updated.revision_request } : order));
+      }).subscribe();
+    };
+    void subscribe();
+    return () => { cancelled = true; if (channel) void supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
     const fetchOrders = async () => {
       const { data } = await supabase
@@ -188,18 +206,21 @@ export default function DashboardOrdersPage() {
 
     setActing(true);
     setActionMessage(null);
-    const { error } = await supabase
-      .from("orders")
-      .update({
-        status: nextStatus,
-        revision_request:
-          nextStatus === "revision_requested" ? revisionReason.trim() : null,
-      })
-      .eq("id", selectedOrder.id)
-      .eq("status", "delivered");
-
-    if (error) {
-      setActionMessage(error.message);
+    const { data: session } = await supabase.auth.getSession();
+    const token = session.session?.access_token;
+    if (!token) {
+      setActionMessage("Please sign in again to update this order.");
+      setActing(false);
+      return;
+    }
+    const response = await fetch("/api/orders/decision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ orderId: selectedOrder.id, decision: nextStatus, revisionReason }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setActionMessage(payload.error || "Unable to update this order.");
       setActing(false);
       return;
     }
@@ -217,11 +238,11 @@ export default function DashboardOrdersPage() {
       )
     );
     setRevisionReason("");
-    setActionMessage(
-      nextStatus === "complete"
+    setActionMessage(payload.activityRecorded === false
+      ? "Order updated, but the conversation could not be updated. Please message Flowbridge with this decision."
+      : nextStatus === "complete"
         ? "Delivery accepted. You can now leave a review."
-        : "Revision request sent to Flowbridge."
-    );
+        : "Revision request sent to Flowbridge.");
     setActing(false);
     if (nextStatus === "complete") {
       router.push(`/dashboard/reviews?order=${selectedOrder.id}`);
@@ -357,7 +378,7 @@ export default function DashboardOrdersPage() {
                       onClick={() => updateDeliveryStatus("complete")}
                       className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
                     >
-                      Accept delivery
+                      Approve delivery
                     </button>
                   </div>
                 </div>

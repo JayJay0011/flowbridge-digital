@@ -80,8 +80,8 @@ export async function POST(request: Request) {
     }
 
     const resendKey = process.env.RESEND_API_KEY;
-    const adminEmail = process.env.ADMIN_EMAIL || "admin@flowbridgedigital.org";
-    if (resendKey) {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (resendKey && adminEmail) {
       const sender =
         process.env.NOTIFICATION_FROM_EMAIL ||
         "Flowbridge Digital <noreply@flowbridgedigital.org>";
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         console.error("Message notification email failed:", emailError);
       }
     } else {
-      console.warn("RESEND_API_KEY is missing; message email notification skipped.");
+      console.warn("RESEND_API_KEY or ADMIN_EMAIL is missing; message email notification skipped.");
     }
 
     return NextResponse.json({ message });

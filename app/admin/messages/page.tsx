@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { playNotification } from "../../lib/notifications";
 import Link from "next/link";
+import MessageAttachment from "../../components/MessageAttachment";
 
 type Message = {
   id: string;
@@ -36,7 +37,7 @@ type ReplyTarget = {
 
 type UploadAttachment = {
   name: string;
-  url: string;
+  path: string;
 };
 
 const quickMessages = [
@@ -73,6 +74,8 @@ export default function AdminMessagesPage() {
   });
   const [attachments, setAttachments] = useState<UploadAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [attachmentError, setAttachmentError] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [offersById, setOffersById] = useState<Record<string, { status: string }>>(
     {}
@@ -85,6 +88,9 @@ export default function AdminMessagesPage() {
     `agent-${Math.random().toString(36).slice(2)}`
   );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     profilesRef.current = profiles;
@@ -300,30 +306,63 @@ export default function AdminMessagesPage() {
   const uploadAttachment = async (file: File) => {
     if (!selectedClientId) return;
     setUploading(true);
+    setAttachmentError(null);
     try {
-      const safeName = file.name.replace(/\s+/g, "-").toLowerCase();
-      const path = `admin-attachments/${selectedClientId}/${Date.now()}-${safeName}`;
-      const { error: uploadError } = await supabase.storage
-        .from("public-assets")
-        .upload(path, file, { upsert: true });
-
-      if (uploadError) {
-        throw new Error(uploadError.message);
-      }
-
-      const { data: publicUrl } = supabase.storage
-        .from("public-assets")
-        .getPublicUrl(path);
-
-      setAttachments((prev) => [
-        ...prev,
-        { name: file.name, url: publicUrl.publicUrl },
-      ]);
-    } catch {
-      // Ignore upload errors for now
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) throw new Error("Please sign in again before uploading.");
+      const form = new FormData();
+      form.set("file", file);
+      form.set("clientId", selectedClientId);
+      const response = await fetch("/api/messages/attachment", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const result = await response.json();
+      if (!response.ok || !result.path) throw new Error(result.error || "Upload failed.");
+      setAttachments((prev) => [...prev, { name: file.name, path: result.path }]);
+    } catch (error) {
+      setAttachmentError(error instanceof Error ? error.message : "Upload failed.");
     } finally {
       setUploading(false);
     }
+  };
+
+  const startRecording = async () => {
+    setAttachmentError(null);
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+        throw new Error("Voice recording is not supported by this browser.");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      recordingChunksRef.current = [];
+      const preferredType = ["audio/webm", "audio/ogg", "audio/mp4"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, preferredType ? { mimeType: preferredType } : undefined);
+      recorder.ondataavailable = (event) => { if (event.data.size) recordingChunksRef.current.push(event.data); };
+      recorder.onstop = () => {
+        const mimeType = (recorder.mimeType || "audio/webm").split(";")[0];
+        const extension = mimeType === "audio/ogg" ? "ogg" : mimeType === "audio/mp4" ? "m4a" : "webm";
+        const file = new File(recordingChunksRef.current, `voice-note-${Date.now()}.${extension}`, { type: mimeType });
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        setRecording(false);
+        if (file.size) void uploadAttachment(file);
+      };
+      recorder.start();
+      recorderRef.current = recorder;
+      setRecording(true);
+    } catch (error) {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setAttachmentError(error instanceof Error ? error.message : "Could not start recording.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    recorderRef.current = null;
   };
 
   const handleFileChange = async (
@@ -435,7 +474,7 @@ export default function AdminMessagesPage() {
   }, [selectedClientId]);
 
   const handleSend = async () => {
-    if (!draft.trim() || !selectedClientId) return;
+    if ((!draft.trim() && attachments.length === 0) || !selectedClientId || uploading) return;
     setSending(true);
 
     const baseText = draft.trim();
@@ -444,7 +483,7 @@ export default function AdminMessagesPage() {
       : "";
     const attachmentLines =
       attachments.length > 0
-        ? attachments.map((item) => `Attachment: ${item.url}`).join("\n")
+        ? attachments.map((item) => `${item.name.startsWith("voice-note-") ? "Voice note" : "Attachment"}: storage://${item.path}`).join("\n")
         : "";
     const body = [replyPrefix + baseText, attachmentLines]
       .filter(Boolean)
@@ -462,6 +501,7 @@ export default function AdminMessagesPage() {
 
     if (error) {
       setSending(false);
+      setAttachmentError(error.message);
       return;
     }
 
@@ -556,21 +596,15 @@ export default function AdminMessagesPage() {
   const renderLines = (text: string) => {
     return text.split("\n").map((line, index) => {
       const trimmed = line.trim();
-      const match = trimmed.match(/^(Attachment|Voice note):\s*(https?:\/\/\S+)/i);
+      const match = trimmed.match(/^(Attachment|Voice note):\s*(https?:\/\/\S+|storage:\/\/\S+)/i);
       if (match) {
         const label = match[1];
         const url = match[2];
+        const storagePath = url.startsWith("storage://") ? url.slice("storage://".length) : null;
         return (
           <div key={`${label}-${index}`} className="text-xs">
             {label}:{" "}
-            <a
-              href={url}
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              Open
-            </a>
+            {storagePath ? <MessageAttachment path={storagePath} label="Open" /> : <a href={url} target="_blank" rel="noreferrer" className="underline">Open</a>}
           </div>
         );
       }
@@ -965,7 +999,7 @@ export default function AdminMessagesPage() {
                         <div className="flex flex-wrap gap-2">
                           {attachments.map((item) => (
                             <span
-                              key={item.url}
+                              key={item.path}
                               className="text-[11px] px-2 py-1 rounded-full bg-slate-100 text-slate-600"
                             >
                               {item.name}
@@ -997,6 +1031,7 @@ export default function AdminMessagesPage() {
                             ref={fileInputRef}
                             type="file"
                             className="hidden"
+                            accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.csv,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
                             onChange={handleFileChange}
                           />
                           <button
@@ -1007,6 +1042,15 @@ export default function AdminMessagesPage() {
                             title="Upload"
                           >
                             📎
+                          </button>
+                          <button
+                            type="button"
+                            onClick={recording ? stopRecording : () => void startRecording()}
+                            className={`h-9 w-9 rounded-full border border-slate-200 flex items-center justify-center hover:bg-slate-50 ${recording ? "text-red-600" : ""}`}
+                            disabled={uploading}
+                            title={recording ? "Stop voice recording" : "Record voice note"}
+                          >
+                            {recording ? "■" : "🎙️"}
                           </button>
 
                           <div className="relative">
@@ -1089,13 +1133,15 @@ export default function AdminMessagesPage() {
                           <button
                             type="button"
                             onClick={handleSend}
-                            disabled={sending || !draft.trim()}
+                            disabled={sending || uploading || (!draft.trim() && attachments.length === 0)}
                             className="px-4 py-2 rounded-xl bg-slate-900 text-white text-sm font-semibold hover:bg-slate-800 transition disabled:opacity-60"
                           >
                             {sending ? "Sending..." : "Send"}
                           </button>
                         </div>
                       </div>
+
+                      {attachmentError ? <p role="alert" className="text-xs text-red-600">{attachmentError}</p> : null}
                     </div>
                   </>
                 ) : (

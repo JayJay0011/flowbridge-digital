@@ -18,19 +18,50 @@ function DashboardBillingContent() {
   const loadCard = useCallback(async () => {
     const { data: sessionData } = await supabase.auth.getSession();
     const token = sessionData.session?.access_token;
-    if (!token) { setLoading(false); return; }
-    const response = await fetch("/api/stripe/saved-card", { headers: { Authorization: `Bearer ${token}` } });
-    const result = await response.json();
-    if (!response.ok) { setError(result.error || "Unable to load billing details."); setLoading(false); return; }
-    setCard(result as SavedCard);
-    setLoading(false);
+    if (!token) { setLoading(false); return null; }
+    try {
+      const response = await fetch("/api/stripe/saved-card", { headers: { Authorization: `Bearer ${token}` } });
+      const result = await response.json();
+      if (!response.ok) { setError(result.error || "Unable to load billing details."); setLoading(false); return null; }
+      setCard(result as SavedCard);
+      setLoading(false);
+      return result as SavedCard;
+    } catch {
+      setError("Unable to load billing details. Check your connection and refresh.");
+      setLoading(false);
+      return null;
+    }
   }, []);
 
   useEffect(() => {
-    void loadCard();
     const status = searchParams.get("card");
-    if (status === "added") setNotice("Secure card setup completed. Your saved card will appear here once Stripe confirms it.");
-    if (status === "canceled") setNotice("Card setup was canceled. You can still pay at checkout without saving a card.");
+    let cancelled = false;
+    const confirmSetup = async () => {
+      if (status === "canceled") {
+        setNotice("Card setup was canceled. You can still pay at checkout without saving a card.");
+        await loadCard();
+        return;
+      }
+      if (status !== "added") {
+        await loadCard();
+        return;
+      }
+
+      setNotice("Confirming your saved card with Stripe…");
+      for (let attempt = 0; attempt < 10 && !cancelled; attempt += 1) {
+        const result = await loadCard();
+        if (cancelled) return;
+        if (result?.saved) {
+          setNotice("Your card is saved and ready for future checkout.");
+          return;
+        }
+        if (attempt < 9) await new Promise((resolve) => window.setTimeout(resolve, 1200));
+      }
+      if (!cancelled) setNotice("Stripe is still confirming the card. Refresh this page in a moment if it has not appeared yet.");
+    };
+
+    void confirmSetup();
+    return () => { cancelled = true; };
   }, [loadCard, searchParams]);
 
   const startCardSetup = async () => {
