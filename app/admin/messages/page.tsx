@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { playNotification } from "../../lib/notifications";
 import Link from "next/link";
@@ -53,6 +54,8 @@ const offerPrefix = "__offer__:";
 const orderPrefix = "__order__:";
 
 export default function AdminMessagesPage() {
+  const searchParams = useSearchParams();
+  const requestedClientId = searchParams.get("client");
   const [messages, setMessages] = useState<Message[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
@@ -166,7 +169,12 @@ export default function AdminMessagesPage() {
       if (isMounted) {
         setMessages(rows ?? []);
         setProfiles(profileMap);
-        setSelectedClientId((prev) => prev ?? clientIds[0] ?? null);
+        const latestClientId = rows?.at(-1)?.client_id ?? null;
+        setSelectedClientId((prev) =>
+          requestedClientId && clientIds.includes(requestedClientId)
+            ? requestedClientId
+            : prev ?? latestClientId
+        );
         setGigs(gigRows ?? []);
         setLoading(false);
       }
@@ -177,7 +185,13 @@ export default function AdminMessagesPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [requestedClientId]);
+
+  useEffect(() => {
+    if (requestedClientId && messages.some((message) => message.client_id === requestedClientId)) {
+      setSelectedClientId(requestedClientId);
+    }
+  }, [messages, requestedClientId]);
 
   useEffect(() => {
     const channel = supabase

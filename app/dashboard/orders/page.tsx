@@ -71,10 +71,12 @@ export default function DashboardOrdersPage() {
       const clientId = data.session?.user.id;
       if (!clientId || cancelled) return;
       channel = supabase.channel(`orders-dashboard-${clientId}`).on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "orders", filter: `client_id=eq.${clientId}`,
+        event: "*", schema: "public", table: "orders", filter: `client_id=eq.${clientId}`,
       }, (payload) => {
         const updated = payload.new as Order;
-        setOrders((current) => current.map((order) => order.id === updated.id ? { ...order, status: updated.status, revision_request: updated.revision_request } : order));
+        setOrders((current) => current.some((order) => order.id === updated.id)
+          ? current.map((order) => order.id === updated.id ? { ...order, ...updated } : order)
+          : [updated, ...current]);
       }).subscribe();
     };
     void subscribe();
@@ -116,15 +118,14 @@ export default function DashboardOrdersPage() {
             setOrders(updatedOrders);
             const paidOrder = updatedOrders.find((order) => order.stripe_session_id === sessionId && order.payment_status === "paid");
             if (paidOrder) {
-              setSelectedId(paidOrder.id);
-              setActionMessage("Payment confirmed. Your order is ready in Active orders.");
+              router.replace(`/dashboard/orders/${paidOrder.id}?payment=success`);
               return;
             }
           }
           if (isMounted) setActionMessage("Payment was completed, but order confirmation is taking longer than usual. Refresh this page shortly or contact Flowbridge if it does not appear.");
         } else if (sessionId) {
           const paidOrder = initialOrders.find((order) => order.stripe_session_id === sessionId && order.payment_status === "paid");
-          if (paidOrder) setActionMessage("Payment confirmed. Your order is ready in Active orders.");
+          if (paidOrder) router.replace(`/dashboard/orders/${paidOrder.id}?payment=success`);
         }
       }
     };
@@ -132,7 +133,7 @@ export default function DashboardOrdersPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [router]);
 
   const selectedOrder = useMemo(
     () => orders.find((order) => order.id === selectedId) ?? orders.find((order) => ["new", "in_progress"].includes(order.status)) ?? orders[0],

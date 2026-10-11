@@ -176,16 +176,6 @@ export async function POST(request: Request) {
       }
       if (orderError || !order) return NextResponse.json({ error: "Unable to record order." }, { status: 500 });
 
-      const messageTitle = offer?.title || "Your Flowbridge order";
-      const { error: messageError } = await supabaseAdmin.from("messages").upsert({
-        client_id: userId,
-        subject: "Paid order",
-        body: `__order__:${JSON.stringify({ orderId: order.id, title: messageTitle, amountCents, currency: session.currency || "usd", offerId: offerId || null })}`,
-        status: "replied",
-        order_id: order.id,
-      }, { onConflict: "order_id,subject" });
-      if (messageError) return NextResponse.json({ error: "Order saved, but the conversation update failed." }, { status: 500 });
-
       if (offerId) {
         const { error: offerUpdateError } = await supabaseAdmin
           .from("offers")
@@ -194,6 +184,26 @@ export async function POST(request: Request) {
           .eq("client_id", userId);
         if (offerUpdateError) return NextResponse.json({ error: "Order saved, but offer status update failed." }, { status: 500 });
       }
+
+      const messageTitle = offer?.title || "Your Flowbridge order";
+      const paidOrderMessage = {
+        client_id: userId,
+        subject: "Paid order",
+        body: `__order__:${JSON.stringify({ orderId: order.id, title: messageTitle, amountCents, currency: session.currency || "usd", offerId: offerId || null })}`,
+        status: "replied",
+        order_id: order.id,
+      };
+      const { data: existingOrderMessage, error: existingMessageError } = await supabaseAdmin
+        .from("messages")
+        .select("id")
+        .eq("order_id", order.id)
+        .eq("subject", "Paid order")
+        .maybeSingle();
+      if (existingMessageError) return NextResponse.json({ error: "Order saved, but the conversation could not be checked." }, { status: 500 });
+      const { error: messageError } = existingOrderMessage
+        ? await supabaseAdmin.from("messages").update(paidOrderMessage).eq("id", existingOrderMessage.id)
+        : await supabaseAdmin.from("messages").insert(paidOrderMessage);
+      if (messageError) return NextResponse.json({ error: "Order saved, but the conversation update failed." }, { status: 500 });
 
       const resendKey = process.env.RESEND_API_KEY;
       const adminEmail = process.env.ADMIN_EMAIL;

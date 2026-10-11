@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
 import { playNotification } from "../../lib/notifications";
@@ -31,7 +31,6 @@ export default function DashboardMessagesPage() {
   const [recording, setRecording] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [agentTyping, setAgentTyping] = useState(false);
-  const [agentOnline, setAgentOnline] = useState(false);
   const [replyTo, setReplyTo] = useState<{ author: string; excerpt: string } | null>(
     null
   );
@@ -186,14 +185,6 @@ export default function DashboardMessagesPage() {
       config: { presence: { key: userId } },
     });
 
-    presenceChannel.on("presence", { event: "sync" }, () => {
-      const state = presenceChannel.presenceState();
-      const online = Object.values(state)
-        .flat()
-        .some((item) => (item as { role?: string }).role === "agent");
-      setAgentOnline(online);
-    });
-
     presenceChannel.subscribe((status) => {
       if (status === "SUBSCRIBED") {
         presenceChannel.track({
@@ -216,11 +207,6 @@ export default function DashboardMessagesPage() {
       endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
     });
   }, [messages]);
-
-  const lastAgentMessage = useMemo(
-    () => [...messages].reverse().find((message) => message.status === "replied"),
-    [messages]
-  );
 
   const sendTyping = () => {
     if (!typingChannelRef.current) return;
@@ -518,16 +504,8 @@ export default function DashboardMessagesPage() {
           Conversations with the Flowbridge team.
         </p>
         <div className="mt-3 flex items-center gap-3 text-xs text-[var(--dash-muted)]">
-          <span
-            className={`h-2 w-2 rounded-full ${
-              agentOnline ? "bg-emerald-500" : "bg-slate-400"
-            }`}
-          />
-          {agentOnline
-            ? "Flowbridge online"
-            : lastAgentMessage
-            ? `Last seen ${new Date(lastAgentMessage.created_at).toLocaleString()}`
-            : "Flowbridge offline"}
+          <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          Flowbridge available
         </div>
       </div>
 
