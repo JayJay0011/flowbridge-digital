@@ -43,6 +43,7 @@ export async function POST(request: Request) {
     if (!session.url) return NextResponse.json({ error: "Stripe did not return a card setup link." }, { status: 502 });
     return NextResponse.json({ url: session.url });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to start secure card setup." }, { status: 500 });
+    console.error("Saved-card setup failed", error);
+    return NextResponse.json({ error: "We couldn't start secure card setup. Please try again shortly." }, { status: 500 });
   }
 }

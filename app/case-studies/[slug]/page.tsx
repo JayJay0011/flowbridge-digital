@@ -115,6 +115,10 @@ export default async function CaseStudyDetailPage({ params }: Params) {
   const { slug } = await params;
   const { item, error } = await getPublishedCaseStudy(slug);
 
+  if (error) {
+    console.error("Unable to load published case study", error);
+  }
+
   if (!item) {
     return (
       <main className="bg-white text-slate-900 py-24">
@@ -124,7 +128,9 @@ export default async function CaseStudyDetailPage({ params }: Params) {
             This case study is not available. Browse all case studies instead.
           </p>
           {error ? (
-            <p className="mt-2 text-xs text-slate-500">{error.message}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              We couldn&apos;t load this page. Please try again shortly.
+            </p>
           ) : null}
           <Link
             href="/case-studies"

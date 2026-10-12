@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="text-slate-200 mt-6">
-            Last updated: February 28, 2026
+            Last updated: October 12, 2026
           </p>
         </div>
       </section>
@@ -77,6 +77,33 @@ export default function PrivacyPolicyPage() {
               We implement reasonable security measures to protect your
               information. However, no method of transmission over the internet
               is 100% secure.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">Referral Attribution</h2>
+            <p className="text-slate-600 leading-relaxed">
+              If you visit through a referral link or enter a referral code, we
+              may store that code and associate it with your account or a
+              qualifying order. We use this information to attribute referrals,
+              administer any stated referral benefit, prevent misuse, and keep
+              related records accurate.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              Data Retention & Deletion
+            </h2>
+            <p className="text-slate-600 leading-relaxed">
+              We retain personal information for as long as needed to provide
+              your account and services, maintain order and transaction
+              records, resolve disputes, enforce agreements, and meet legal or
+              tax obligations. You may request deletion by contacting us. We
+              will delete or anonymize eligible information, while retaining
+              records that we must keep or that are reasonably required for
+              security, fraud prevention, legal claims, or completed
+              transactions.
             </p>
           </div>
 

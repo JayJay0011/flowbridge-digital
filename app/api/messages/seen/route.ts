@@ -36,7 +36,8 @@ export async function POST(request: Request) {
     .is("user_seen_at", null);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Unable to mark client messages as seen", error);
+    return NextResponse.json({ error: "We couldn't update the conversation. Please try again shortly." }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true });

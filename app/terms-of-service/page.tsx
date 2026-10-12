@@ -16,7 +16,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="text-slate-200 mt-6">
-            Last updated: February 28, 2026
+            Last updated: October 12, 2026
           </p>
         </div>
       </section>
@@ -51,20 +51,77 @@ export default function TermsOfServicePage() {
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Payments & Refunds</h2>
+            <h2 className="text-2xl font-semibold">Referral Attribution</h2>
             <p className="text-slate-600 leading-relaxed">
-              Payment terms are defined in project agreements or invoices.
-              Refunds, if any, are determined based on delivered work and the
-              applicable agreement.
+              When you use a referral link or code, we may associate the
+              resulting account or qualifying order with the referring user.
+              Referral benefits apply only when they are expressly offered,
+              have no cash value unless stated otherwise, and cannot be
+              transferred or combined unless the promotion permits it.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h2 className="text-2xl font-semibold">Intellectual Property</h2>
+            <h2 className="text-2xl font-semibold">Refunds & Cancellations</h2>
             <p className="text-slate-600 leading-relaxed">
-              Unless otherwise specified, all materials and content on this
-              website are owned by Flowbridge Digital. Client deliverables are
-              governed by the project agreement.
+              Cancellation and refund eligibility depends on the agreed scope,
+              work already completed, committed project costs, and any terms
+              shown in the applicable gig, custom offer, or written agreement.
+              Requests are reviewed fairly on their facts and do not limit any
+              rights that cannot be excluded under applicable law.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              Delivery Acceptance & Revisions
+            </h2>
+            <p className="text-slate-600 leading-relaxed">
+              A delivery may be approved or returned with a revision request
+              through the order page. Included revisions are limited to the
+              number and original scope stated in the selected package, custom
+              offer, or written agreement. New requirements or work outside
+              that scope may require a separate quote and timeline.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              Ownership & Intellectual Property
+            </h2>
+            <p className="text-slate-600 leading-relaxed">
+              Once the applicable order is paid in full, ownership of the
+              final, specifically commissioned deliverables transfers to the
+              client unless the agreement says otherwise. Flowbridge Digital
+              retains ownership of its pre-existing methods, templates, tools,
+              reusable components, and know-how. Third-party materials remain
+              subject to their own licence terms.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">Chargebacks & Disputes</h2>
+            <p className="text-slate-600 leading-relaxed">
+              Please contact us promptly if you believe a charge is incorrect
+              so we can investigate and try to resolve it. If a chargeback or
+              payment dispute is opened, we may pause the related work and
+              provide the payment provider with relevant order, delivery, and
+              communication records. This does not affect rights available
+              under applicable law.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold">
+              Client Information & Project Delays
+            </h2>
+            <p className="text-slate-600 leading-relaxed">
+              You are responsible for providing accurate information, access,
+              feedback, and approvals reasonably needed to perform the work.
+              Delivery dates may be extended when required information or
+              access is incomplete, inaccurate, or delayed. Any material
+              change to scope or timing will be communicated through the order
+              or project conversation.
             </p>
           </div>
 

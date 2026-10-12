@@ -232,15 +232,13 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
       }) ?? null;
 
     if (!gig && (exactError || listError)) {
+      console.error("Unable to load gig detail", exactError || listError);
       return (
         <main className="bg-white text-slate-900 py-24 min-h-[60vh]">
           <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
-            <h1 className="text-3xl font-semibold">Gig lookup error</h1>
+            <h1 className="text-3xl font-semibold">We couldn&apos;t load this gig</h1>
             <p className="mt-4 text-slate-600">
-              The gig could not be loaded due to a data access error.
-            </p>
-            <p className="mt-2 text-xs text-slate-500">
-              {exactError?.message || listError?.message}
+              Please try again shortly or browse the other available services.
             </p>
             <Link
               href="/gigs"

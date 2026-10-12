@@ -112,7 +112,8 @@ export async function GET(request: Request) {
   const { data, error } = await query.order("created_at", { ascending: true }).limit(20);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Unable to load delayed message notifications", error);
+    return NextResponse.json({ error: "Unable to process notifications." }, { status: 500 });
   }
 
   const resend = new Resend(resendKey);

@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     }
     await stripe.paymentMethods.detach(profile?.stripe_default_payment_method_id);
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unable to remove the saved card." }, { status: 502 });
+    console.error("Saved-card removal failed", error);
+    return NextResponse.json({ error: "We couldn't remove the saved card. Please try again shortly." }, { status: 502 });
   }
   const { error } = await admin.from("profiles").update({
     stripe_default_payment_method_id: null,

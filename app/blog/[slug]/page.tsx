@@ -139,6 +139,10 @@ export default async function BlogPostPage({ params }: Params) {
   const { post, error } = await getPublishedPost(slug);
   const articleBlocks = getArticleBlocks(post?.body);
 
+  if (error) {
+    console.error("Unable to load published blog post", error);
+  }
+
   if (!post) {
     return (
       <main className="bg-white text-slate-900 py-24">
@@ -148,7 +152,9 @@ export default async function BlogPostPage({ params }: Params) {
             This article is not available yet.
           </p>
           {error ? (
-            <p className="mt-2 text-xs text-slate-500">{error.message}</p>
+            <p className="mt-2 text-sm text-slate-500">
+              We couldn&apos;t load this page. Please try again shortly.
+            </p>
           ) : null}
           <Link href="/blog" className="mt-6 inline-block text-sm font-semibold">
             View all articles →

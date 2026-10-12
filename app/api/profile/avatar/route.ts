@@ -83,13 +83,15 @@ export async function POST(request: Request) {
       .eq("id", user.id);
 
     if (profileError) {
-      return NextResponse.json({ error: profileError.message }, { status: 500 });
+      console.error("Unable to save profile avatar URL", profileError);
+      return NextResponse.json({ error: "We couldn't save your profile photo. Please try again shortly." }, { status: 500 });
     }
 
     return NextResponse.json({ avatarUrl: publicUrl.publicUrl });
   } catch (error) {
+    console.error("Profile avatar upload failed", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed" },
+      { error: "We couldn't upload your profile photo. Please try again shortly." },
       { status: 500 }
     );
   }
