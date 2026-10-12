@@ -127,7 +127,31 @@ export default function Footer() {
                 href="/services/growth-infrastructure"
                 className="hover:text-white transition-colors duration-300"
               >
-                Strategic Consulting
+                Growth Infrastructure
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/services/platform-development"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Platform Development
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/services/operational-support"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Operational Support
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/services/email-marketing"
+                className="hover:text-white transition-colors duration-300"
+              >
+                Email Marketing
               </Link>
             </li>
           </ul>

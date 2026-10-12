@@ -46,6 +46,13 @@ const fallbackServices = [
     slug: "operational-support",
     cover_url: null,
   },
+  {
+    title: "Email Marketing",
+    description:
+      "Lifecycle campaigns, segmentation, email automation, and performance-focused retention systems.",
+    slug: "email-marketing",
+    cover_url: null,
+  },
 ];
 
 export default async function ServicesPage() {
@@ -55,7 +62,12 @@ export default async function ServicesPage() {
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  const services = data?.length ? data : fallbackServices;
+  const publishedServices = data ?? [];
+  const publishedSlugs = new Set(publishedServices.map((service) => service.slug));
+  const services = [
+    ...publishedServices,
+    ...fallbackServices.filter((service) => !publishedSlugs.has(service.slug)),
+  ];
 
   return (
     <main className="bg-white text-slate-900">

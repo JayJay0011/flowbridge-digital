@@ -17,6 +17,15 @@ type PublishedReview = {
   profiles: Related<{ username: string | null }>;
 };
 
+const popularServices = [
+  { title: "Automation Systems", desc: "Workflow mapping, integrations, and backend architecture.", href: "/services/automation-systems-architecture" },
+  { title: "CRM Pipeline Design", desc: "Lifecycle automation and revenue visibility.", href: "/services/crm-pipeline" },
+  { title: "Growth Infrastructure", desc: "Lead capture, nurturing, and conversion systems.", href: "/services/growth-infrastructure" },
+  { title: "Platform Development", desc: "Custom dashboards and internal tools.", href: "/services/platform-development" },
+  { title: "Operational Support", desc: "Execution frameworks and support systems.", href: "/services/operational-support" },
+  { title: "Email Marketing", desc: "Segmentation, campaigns, and lifecycle automations.", href: "/services/email-marketing" },
+];
+
 export default async function Home() {
   const { data: publishedReviews } = await supabasePublic
     .from("reviews")
@@ -112,8 +121,8 @@ export default async function Home() {
             position: 6,
             item: {
               "@type": "Service",
-              name: "Flowbridge Care Plan",
-              url: `${siteUrl}/services`,
+              name: "Email Marketing",
+              url: `${siteUrl}/services/email-marketing`,
             },
           },
         ],
@@ -164,6 +173,14 @@ export default async function Home() {
               >
                 Search
               </button>
+              <a
+                href="https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center rounded-xl bg-cyan-400 px-6 py-4 font-semibold text-slate-950 transition hover:bg-cyan-300"
+              >
+                Book a Strategy Call
+              </a>
             </form>
 
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
@@ -197,6 +214,20 @@ export default async function Home() {
             <span className="text-slate-200 font-semibold">GoHighLevel</span>
             <span className="text-slate-200 font-semibold">Bitrix24</span>
           </div>
+
+          <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-slate-800 bg-slate-800 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              "Registered US company",
+              "Secure Stripe checkout",
+              "Track your project online",
+              "Clear delivery and revision process",
+            ].map((item) => (
+              <div key={item} className="flex items-center gap-3 bg-slate-950 px-5 py-4 text-sm text-slate-200">
+                <span aria-hidden="true" className="h-2 w-2 shrink-0 rounded-full bg-cyan-400" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -221,49 +252,47 @@ export default async function Home() {
           </div>
 
           <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Automation Systems",
-                desc: "Workflow mapping, integrations, and backend architecture.",
-              },
-              {
-                title: "CRM Pipeline Design",
-                desc: "Lifecycle automation and revenue visibility.",
-              },
-              {
-                title: "Growth Infrastructure",
-                desc: "Lead capture, nurturing, and conversion systems.",
-              },
-              {
-                title: "Platform Development",
-                desc: "Custom dashboards and internal tools.",
-              },
-              {
-                title: "Operational Support",
-                desc: "Execution frameworks and support systems.",
-              },
-              {
-                title: "Email Marketing",
-                desc: "Segmentation, campaigns, and automations.",
-              },
-            ].map((item) => (
-              <div
+            {popularServices.map((item) => (
+              <Link
                 key={item.title}
-                className="border border-slate-200 rounded-2xl p-6 bg-slate-50 hover:shadow-md transition"
+                href={item.href}
+                className="group border border-slate-200 rounded-2xl p-6 bg-slate-50 hover:-translate-y-0.5 hover:shadow-md transition"
               >
                 <h3 className="text-xl font-semibold">{item.title}</h3>
                 <p className="text-slate-600 mt-3 text-sm leading-relaxed">
                   {item.desc}
                 </p>
-                <Link
-                  href="/gigs"
-                  className="mt-6 inline-block text-sm font-semibold text-slate-900"
-                >
+                <span className="mt-6 inline-block text-sm font-semibold text-slate-900 group-hover:underline">
                   View options →
-                </Link>
-              </div>
+                </span>
+              </Link>
             ))}
           </div>
+        </div>
+      </section>
+      <section className="border-b border-slate-100 bg-slate-50 py-20">
+        <div className="mx-auto max-w-5xl px-4 md:px-6">
+          <div className="max-w-2xl">
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Ordering with Flowbridge</p>
+            <h2 className="mt-4 text-3xl font-semibold md:text-4xl">From agreed scope to approved delivery</h2>
+            <p className="mt-4 text-slate-600">
+              Every order follows a visible process, whether you choose a listed service or receive a custom offer in your inbox.
+            </p>
+          </div>
+          <ol className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+            {[
+              ["01", "Choose or agree", "Choose a service or agree on a custom offer."],
+              ["02", "Pay securely", "Confirm the agreed amount through secure checkout."],
+              ["03", "Track the work", "Follow progress, messages, and delivery in your account."],
+              ["04", "Review delivery", "Approve the work or request an included revision."],
+            ].map(([number, title, body]) => (
+              <li key={number} className="rounded-2xl border border-slate-200 bg-white p-6">
+                <span className="text-sm font-semibold text-cyan-700">{number}</span>
+                <h3 className="mt-3 font-semibold text-slate-900">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-600">{body}</p>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
       <ReviewsPreview reviews={previewReviews} />
