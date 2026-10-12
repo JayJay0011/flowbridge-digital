@@ -36,13 +36,28 @@ export default function ClientOrderDetailPage() {
   const [revisionReason, setRevisionReason] = useState("");
   const [acting, setActing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const { data, error } = await supabase.from("orders").select("id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,offer_id,gigs(title)").eq("id", orderId).maybeSingle();
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const clientId = sessionData.session?.user.id;
       if (cancelled) return;
-      if (error || !data) { setLoading(false); return; }
+      if (sessionError || !clientId) {
+        setLoadError("Your session could not be loaded. Please sign in again.");
+        setLoading(false);
+        return;
+      }
+      const { data, error } = await supabase.from("orders").select("id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,offer_id,gigs(title)").eq("id", orderId).eq("client_id", clientId).maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error("Unable to load client order", error);
+        setLoadError("We could not load this order. Please refresh the page.");
+        setLoading(false);
+        return;
+      }
+      if (!data) { setLoading(false); return; }
       setOrder(data as Order);
       const [offerResult, activityResult] = await Promise.all([
         data.offer_id ? supabase.from("offers").select("title,description,delivery_date,revisions,deliverables").eq("id", data.offer_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -79,6 +94,7 @@ export default function ClientOrderDetailPage() {
   const amount = order?.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "To be confirmed";
 
   if (loading) return <div className="p-8 text-slate-500">Loading order…</div>;
+  if (loadError) return <section className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-8"><h1 className="text-2xl font-semibold">Unable to load order</h1><p role="alert" className="mt-2 text-[var(--dash-muted)]">{loadError}</p><button type="button" onClick={() => window.location.reload()} className="mt-5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">Refresh order</button></section>;
   if (!order) return <section className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-8"><h1 className="text-2xl font-semibold">Order not found</h1><p className="mt-2 text-[var(--dash-muted)]">This order may not belong to your account.</p><Link href="/dashboard/orders" className="mt-5 inline-flex underline">Back to orders</Link></section>;
   if (order.payment_status !== "paid") return <section className="rounded-2xl border border-[var(--dash-border)] bg-[var(--dash-surface)] p-8"><h1 className="text-2xl font-semibold">Payment is not complete</h1><p className="mt-2 text-[var(--dash-muted)]">The order page will be available after payment is confirmed.</p><Link href="/dashboard/messages" className="mt-5 inline-flex underline">Return to messages</Link></section>;
 

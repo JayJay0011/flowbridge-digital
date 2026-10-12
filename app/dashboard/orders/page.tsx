@@ -49,6 +49,7 @@ export default function DashboardOrdersPage() {
   const [revisionReason, setRevisionReason] = useState("");
   const [acting, setActing] = useState(false);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -85,23 +86,49 @@ export default function DashboardOrdersPage() {
 
   useEffect(() => {
     let isMounted = true;
-    const fetchOrders = async () => {
-      const { data } = await supabase
+    const fetchOrders = async (clientId: string) => {
+      const { data, error } = await supabase
         .from("orders")
         .select("id,status,payment_status,stripe_session_id,revision_request,amount_cents,currency,package_tier,created_at,gigs(title,delivery_days,package_basic,package_standard,package_premium)")
+        .eq("client_id", clientId)
         .order("created_at", { ascending: false });
+      if (error) throw error;
       return data ?? [];
     };
     const load = async () => {
-      const [{ data: reviews }, initialOrders] = await Promise.all([
-        supabase.from("reviews").select("order_id"),
-        fetchOrders(),
-      ]);
+      setLoadError(null);
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const clientId = sessionData.session?.user.id;
+      if (sessionError || !clientId) {
+        if (isMounted) {
+          setLoadError("Your session could not be loaded. Please sign in again.");
+          setLoading(false);
+        }
+        return;
+      }
+      let reviews: { order_id: string | null }[] = [];
+      let initialOrders: Order[] = [];
+      try {
+        const [reviewResult, orderResult] = await Promise.all([
+          supabase.from("reviews").select("order_id").eq("client_id", clientId),
+          fetchOrders(clientId),
+        ]);
+        if (reviewResult.error) throw reviewResult.error;
+        reviews = (reviewResult.data ?? []) as { order_id: string | null }[];
+        initialOrders = orderResult as Order[];
+      } catch (error) {
+        console.error("Unable to load client orders", error);
+        if (isMounted) {
+          setLoadError("We could not load your orders. Please refresh the page.");
+          setLoading(false);
+        }
+        return;
+      }
       if (isMounted) {
         setOrders(initialOrders);
         setReviewedOrders(
           new Set(
-            (reviews ?? [])
+            reviews
               .map((review) => review.order_id as string | null)
               .filter((id): id is string => Boolean(id))
           )
@@ -113,7 +140,7 @@ export default function DashboardOrdersPage() {
         if (sessionId && !initialOrders.some((order) => order.stripe_session_id === sessionId)) {
           for (let attempt = 0; attempt < 8 && isMounted; attempt += 1) {
             await new Promise((resolve) => window.setTimeout(resolve, 2500));
-            const updatedOrders = await fetchOrders();
+            const updatedOrders = await fetchOrders(clientId);
             if (!isMounted) return;
             setOrders(updatedOrders);
             const paidOrder = updatedOrders.find((order) => order.stripe_session_id === sessionId && order.payment_status === "paid");
@@ -267,6 +294,11 @@ export default function DashboardOrdersPage() {
       <div className="mt-8 border border-[var(--dash-border)] rounded-2xl overflow-hidden">
         {loading ? (
           <div className="p-6 text-slate-500">Loading orders...</div>
+        ) : loadError ? (
+          <div className="p-6">
+            <p role="alert" className="text-sm font-medium text-red-600">{loadError}</p>
+            <button type="button" onClick={() => window.location.reload()} className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Refresh orders</button>
+          </div>
         ) : (
           <div className="p-5 md:p-7 bg-[var(--dash-surface-2)]">
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
