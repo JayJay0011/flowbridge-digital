@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
@@ -21,6 +21,16 @@ type Order = {
   profiles: Related<{ email: string | null }>;
 };
 
+type OrderFilter = "all" | "in_progress" | "in_review" | "delivered" | "completed";
+
+const filterDefinitions: { id: OrderFilter; label: string; matches: (order: Order) => boolean }[] = [
+  { id: "all", label: "All orders", matches: () => true },
+  { id: "in_progress", label: "In progress", matches: (order) => ["new", "in_progress"].includes(order.status) },
+  { id: "in_review", label: "In review", matches: (order) => order.status === "revision_requested" },
+  { id: "delivered", label: "Delivered", matches: (order) => order.status === "delivered" },
+  { id: "completed", label: "Completed", matches: (order) => order.status === "complete" },
+];
+
 export default function AdminOrdersPage() {
   const searchParams = useSearchParams();
   const focusedOrderId = searchParams.get("order");
@@ -31,6 +41,7 @@ export default function AdminOrdersPage() {
   const [deliveryNote, setDeliveryNote] = useState("");
   const [deliveryFiles, setDeliveryFiles] = useState<File[]>([]);
   const [submittingDelivery, setSubmittingDelivery] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<OrderFilter>("all");
 
   useEffect(() => {
     let isMounted = true;
@@ -129,6 +140,11 @@ export default function AdminOrdersPage() {
 
   const statusLabel = (status: string) => status === "in_progress" ? "In progress" : status === "revision_requested" ? "Revision requested" : status === "delivered" ? "Awaiting client approval" : status === "complete" ? "Completed" : status === "cancelled" ? "Cancelled" : status;
 
+  const filteredOrders = useMemo(() => {
+    const selectedFilter = filterDefinitions.find((filter) => filter.id === activeFilter);
+    return selectedFilter ? orders.filter(selectedFilter.matches) : orders;
+  }, [activeFilter, orders]);
+
   return (
     <main className="bg-white text-slate-900">
       <section className="py-16 border-b border-slate-200">
@@ -143,6 +159,18 @@ export default function AdminOrdersPage() {
 
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4 md:px-6">
+          <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-2" aria-label="Filter orders by status">
+            <div className="flex gap-2 overflow-x-auto">
+              {filterDefinitions.map((filter) => {
+                const count = orders.filter(filter.matches).length;
+                const selected = activeFilter === filter.id;
+                return <button key={filter.id} type="button" onClick={() => setActiveFilter(filter.id)} aria-pressed={selected} className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${selected ? "bg-slate-900 text-white shadow-sm" : "bg-white text-slate-700 hover:bg-slate-100"}`}>
+                  <span>{filter.label}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${selected ? "bg-white/15 text-white" : "bg-slate-100 text-slate-600"}`}>{count}</span>
+                </button>;
+              })}
+            </div>
+          </div>
           <div className="overflow-x-auto border border-slate-200 rounded-2xl">
             <table className="w-full text-left text-sm">
               <thead className="bg-slate-50 text-slate-600">
@@ -164,14 +192,14 @@ export default function AdminOrdersPage() {
                       Loading orders...
                     </td>
                   </tr>
-                ) : orders.length === 0 ? (
+                ) : filteredOrders.length === 0 ? (
                   <tr className="border-t border-slate-200">
                     <td className="px-6 py-6 text-slate-500" colSpan={8}>
-                      No orders yet.
+                      {orders.length === 0 ? "No orders yet." : `No ${filterDefinitions.find((filter) => filter.id === activeFilter)?.label.toLowerCase()} orders.`}
                     </td>
                   </tr>
                 ) : (
-                  orders.map((order) => {
+                  filteredOrders.map((order) => {
                     const profile = Array.isArray(order.profiles)
                       ? order.profiles[0]
                       : order.profiles;
