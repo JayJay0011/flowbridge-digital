@@ -68,9 +68,6 @@ export default function Header() {
           <Link href="/portfolio" className="transition whitespace-nowrap">
             Portfolio
           </Link>
-          <Link href="/case-studies" className="transition whitespace-nowrap">
-            Case Studies
-          </Link>
           <Link href="/blog" className="transition whitespace-nowrap">
             Blog
           </Link>
@@ -134,9 +131,6 @@ export default function Header() {
             </Link>
             <Link href="/portfolio" onClick={() => setMobileOpen(false)}>
               Portfolio
-            </Link>
-            <Link href="/case-studies" onClick={() => setMobileOpen(false)}>
-              Case Studies
             </Link>
             <Link href="/blog" onClick={() => setMobileOpen(false)}>
               Blog

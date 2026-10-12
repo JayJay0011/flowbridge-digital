@@ -1,21 +1,9 @@
 
 import Link from "next/link"
 import FAQSection from "./components/FAQSection";
-import ReviewsPreview from "./components/ReviewsPreview";
-import { supabasePublic } from "./lib/supabasePublic";
-import type { ReviewItem } from "./lib/reviewContent";
+import OutcomeSlider from "./components/OutcomeSlider";
 
 export const revalidate = 0;
-
-type Related<T> = T | T[] | null;
-
-type PublishedReview = {
-  id: string;
-  rating: number | null;
-  summary: string | null;
-  body: string | null;
-  profiles: Related<{ username: string | null }>;
-};
 
 const popularServices = [
   { title: "Automation Systems", desc: "Workflow mapping, integrations, and backend architecture.", href: "/services/automation-systems-architecture" },
@@ -26,26 +14,7 @@ const popularServices = [
   { title: "Email Marketing", desc: "Segmentation, campaigns, and lifecycle automations.", href: "/services/email-marketing" },
 ];
 
-export default async function Home() {
-  const { data: publishedReviews } = await supabasePublic
-    .from("reviews")
-    .select("id,rating,summary,body,profiles(username)")
-    .order("created_at", { ascending: false })
-    .limit(5);
-  const previewReviews: ReviewItem[] | undefined = publishedReviews?.length
-    ? (publishedReviews as PublishedReview[]).map((review) => ({
-        id: review.id,
-        name:
-          (Array.isArray(review.profiles)
-            ? review.profiles[0]?.username
-            : review.profiles?.username) || "Flowbridge customer",
-        company: "Verified review",
-        rating: review.rating || 5,
-        summary: review.summary || "Great experience",
-        body: review.body || "",
-      }))
-    : undefined;
-
+export default function Home() {
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
     "https://flowbridgedigital.org";
@@ -295,7 +264,7 @@ export default async function Home() {
           </ol>
         </div>
       </section>
-      <ReviewsPreview reviews={previewReviews} />
+      <OutcomeSlider />
 
       {/* ================= PROBLEM SECTION ================= */}
       <section className="py-24 bg-white border-b border-slate-100">
