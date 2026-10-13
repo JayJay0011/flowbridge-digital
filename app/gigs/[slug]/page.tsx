@@ -2,6 +2,7 @@ import Link from "next/link";
 import MediaGallery from "../../components/MediaGallery";
 import { supabasePublic } from "../../lib/supabasePublic";
 import PackageTabs from "./PackageTabs";
+import FunnelEvent from "../../components/FunnelEvent";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -127,7 +128,7 @@ export async function generateMetadata({ params }: Params) {
   const slug = decodeURIComponent(rawSlug);
   const { data: gig } = await supabasePublic
     .from("gigs")
-    .select("title,summary,status,slug")
+    .select("title,summary,status,slug,cover_url,category_slugs")
     .eq("slug", slug)
     .eq("status", "published")
     .limit(1)
@@ -139,9 +140,35 @@ export async function generateMetadata({ params }: Params) {
     };
   }
 
+  const canonical = `/gigs/${gig.slug}`;
+  const socialImage =
+    gig.cover_url ||
+    `/api/og?title=${encodeURIComponent(gig.title)}&subtitle=${encodeURIComponent(gig.summary || "A structured Flowbridge Digital service")}`;
+
   return {
     title: gig.title,
     description: gig.summary,
+    keywords: [
+      gig.title,
+      "Flowbridge Digital services",
+      "business automation service",
+      "CRM and workflow implementation",
+      ...((gig.category_slugs as string[] | null) ?? []),
+    ],
+    alternates: { canonical },
+    openGraph: {
+      title: `${gig.title} | Flowbridge Digital`,
+      description: gig.summary || undefined,
+      url: canonical,
+      type: "website",
+      images: [{ url: socialImage, alt: gig.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: gig.title,
+      description: gig.summary || undefined,
+      images: [socialImage],
+    },
   };
 }
 
@@ -314,6 +341,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
 
   return (
     <main className="bg-white text-slate-900">
+      <FunnelEvent eventName="gig_viewed" resourceId={gig.id} resourceType="gig" />
       <section className="py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 md:px-6 grid lg:grid-cols-[1.4fr_0.6fr] gap-10">
           <div className="space-y-6">

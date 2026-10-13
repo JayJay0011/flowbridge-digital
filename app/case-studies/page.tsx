@@ -2,6 +2,28 @@ import Link from "next/link";
 import { getCaseStudyCoverUrl } from "../lib/caseStudyAssets";
 import { supabasePublic } from "../lib/supabasePublic";
 
+export const metadata = {
+  title: "Automation and CRM Case Studies",
+  description:
+    "Explore automation, CRM, ecommerce, and operational systems case studies from Flowbridge Digital.",
+  keywords: [
+    "automation case studies",
+    "CRM implementation case study",
+    "business process automation results",
+    "operations dashboard case study",
+  ],
+  alternates: { canonical: "/case-studies" },
+  openGraph: {
+    title: "Automation and CRM Case Studies | Flowbridge Digital",
+    description:
+      "See how structured automation, CRM, and operational systems improve visibility and delivery.",
+    url: "/case-studies",
+    images: [
+      "/api/og?title=Automation+and+CRM+case+studies&subtitle=Structured+systems%2C+clearer+operations%2C+and+measurable+progress",
+    ],
+  },
+};
+
 export const revalidate = 0;
 type PageProps = {
   searchParams?: Promise<{ page?: string }>;

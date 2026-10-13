@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Params) {
   const slug = decodeURIComponent(rawSlug).trim();
   const { data: service } = await supabasePublic
     .from("services")
-    .select("title,description")
+    .select("title,description,cover_url,slug")
     .eq("slug", slug)
     .limit(1)
     .maybeSingle();
@@ -45,9 +45,34 @@ export async function generateMetadata({ params }: Params) {
     return { title: "Service" };
   }
 
+  const canonical = `/services/${service.slug}`;
+  const socialImage =
+    service.cover_url ||
+    `/api/og?title=${encodeURIComponent(service.title)}&subtitle=${encodeURIComponent(service.description || "Flowbridge Digital service")}`;
+
   return {
     title: service.title,
     description: service.description,
+    keywords: [
+      service.title,
+      "business automation services",
+      "CRM implementation",
+      "workflow systems",
+      "Flowbridge Digital",
+    ],
+    alternates: { canonical },
+    openGraph: {
+      title: `${service.title} | Flowbridge Digital`,
+      description: service.description || undefined,
+      url: canonical,
+      images: [{ url: socialImage, alt: service.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: service.title,
+      description: service.description || undefined,
+      images: [socialImage],
+    },
   };
 }
 

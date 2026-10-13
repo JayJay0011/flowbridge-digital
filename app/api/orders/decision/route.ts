@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../../../lib/supabaseAdmin";
+import { recordFunnelEvent } from "../../../lib/funnelAnalytics";
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -35,6 +36,13 @@ export async function POST(request: Request) {
     order_id: order.id,
   });
   if (activityError) console.error("Order decision saved, but conversation activity could not be recorded:", activityError.message);
+
+  await recordFunnelEvent({
+    eventName: body.decision === "complete" ? "order_completed" : "revision_requested",
+    userId: data.user.id,
+    resourceId: order.id,
+    resourceType: "order",
+  });
 
   return NextResponse.json({ order, activityRecorded: !activityError });
 }

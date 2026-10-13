@@ -1,3 +1,17 @@
+export const metadata = {
+  title: "Growth Infrastructure and Lead Nurturing Systems",
+  description:
+    "Lead capture, nurturing automation, conversion workflows, and growth infrastructure designed to turn interest into structured revenue.",
+  keywords: ["lead nurturing automation", "growth automation systems", "conversion workflow", "marketing automation infrastructure"],
+  alternates: { canonical: "/services/growth-infrastructure" },
+  openGraph: {
+    title: "Growth Infrastructure and Lead Nurturing | Flowbridge Digital",
+    description: "Connect lead capture, nurturing, and conversion into one measurable growth system.",
+    url: "/services/growth-infrastructure",
+    images: ["/api/og?title=Growth+infrastructure&subtitle=Lead+capture%2C+nurturing%2C+and+conversion+systems+working+together"],
+  },
+};
+
 export default function GrowthInfrastructurePage() {
   return (
     <main className="bg-white text-slate-900">

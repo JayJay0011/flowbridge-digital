@@ -151,6 +151,15 @@ export default function DashboardReviewsPage() {
       return;
     }
 
+    void fetch("/api/analytics/events", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${data.session?.access_token || ""}`,
+      },
+      body: JSON.stringify({ eventName: "review_submitted", resourceId: selectedOrderId, resourceType: "order" }),
+    });
+
     setOrders((current) =>
       current.filter((order) => order.id !== selectedOrderId)
     );

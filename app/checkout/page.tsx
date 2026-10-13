@@ -2,6 +2,7 @@ import Link from "next/link";
 import { supabaseAdmin } from "../lib/supabaseAdmin";
 import OrderAction from "./[slug]/order-action";
 import OfferCheckoutSummary from "./offer-summary";
+import FunnelEvent from "../components/FunnelEvent";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -96,6 +97,11 @@ export default async function CheckoutRootPage({
 
   return (
     <main className="bg-white text-slate-900">
+      <FunnelEvent
+        eventName="checkout_started"
+        resourceId={offerId || gig?.id || gigId || undefined}
+        resourceType={offerId ? "offer" : "gig"}
+      />
       <section className="bg-slate-950 py-20 text-white">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-300">

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../../../../lib/supabaseAdmin";
+import { recordFunnelEvent } from "../../../../lib/funnelAnalytics";
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -38,5 +39,6 @@ export async function POST(request: Request) {
   const deliveryMessage = ["Your order delivery is ready for review.", note || null, ...attachmentLines, "Please open Orders to approve delivery or request a revision."].filter(Boolean).join("\n\n");
   const { error: messageError } = await supabaseAdmin.from("messages").insert({ client_id: order.client_id, subject: "Order delivery submitted", body: deliveryMessage, status: "replied", order_id: order.id });
   if (messageError) console.error("Delivery status updated, but client notification message failed:", messageError.message);
+  await recordFunnelEvent({ eventName: "delivery_submitted", userId: order.client_id, resourceId: order.id, resourceType: "order" });
   return NextResponse.json({ order, notificationSent: !messageError });
 }

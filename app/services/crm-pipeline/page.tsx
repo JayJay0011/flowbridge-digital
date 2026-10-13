@@ -1,3 +1,17 @@
+export const metadata = {
+  title: "CRM Setup and Pipeline Automation",
+  description:
+    "CRM setup, sales pipeline design, lead management automation, and lifecycle workflows for clearer revenue operations.",
+  keywords: ["CRM setup services", "sales pipeline automation", "lead management automation", "CRM implementation consultant"],
+  alternates: { canonical: "/services/crm-pipeline" },
+  openGraph: {
+    title: "CRM Setup and Pipeline Automation | Flowbridge Digital",
+    description: "Create a structured CRM with visible pipelines, automated follow-up, and clearer revenue tracking.",
+    url: "/services/crm-pipeline",
+    images: ["/api/og?title=CRM+and+pipeline+engineering&subtitle=Structured+lead+management%2C+follow-up%2C+and+revenue+visibility"],
+  },
+};
+
 export default function CRMPipelinePage() {
   return (
     <main className="bg-white text-slate-900">

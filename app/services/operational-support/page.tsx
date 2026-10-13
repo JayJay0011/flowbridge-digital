@@ -1,3 +1,17 @@
+export const metadata = {
+  title: "Operational Support Systems and Workflow Documentation",
+  description:
+    "Structured operational support, process documentation, execution workflows, and backend systems that keep growing businesses organized.",
+  keywords: ["operational support services", "workflow documentation", "business process documentation", "virtual assistant systems"],
+  alternates: { canonical: "/services/operational-support" },
+  openGraph: {
+    title: "Operational Support Systems | Flowbridge Digital",
+    description: "Create documented workflows and structured support systems that reduce operational bottlenecks.",
+    url: "/services/operational-support",
+    images: ["/api/og?title=Operational+support+systems&subtitle=Documented+workflows%2C+clear+handoffs%2C+and+reliable+execution"],
+  },
+};
+
 export default function OperationalSupportPage() {
   return (
     <main className="bg-white text-slate-900">

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "How We Work | Flowbridge Digital",
+  title: "How We Work",
   description:
     "Discover how Flowbridge Digital designs CRM systems, automation architecture, and operational infrastructure to help businesses regain control and clarity.",
   keywords: [
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
     "pipeline engineering services",
     "operational infrastructure design",
   ],
+  alternates: { canonical: "/how-we-work" },
 };
 
 export default function HowWeWorkPage() {

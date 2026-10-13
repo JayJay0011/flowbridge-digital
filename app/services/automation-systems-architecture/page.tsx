@@ -1,3 +1,17 @@
+export const metadata = {
+  title: "Business Process Automation and Systems Architecture",
+  description:
+    "Workflow automation, system integration, and business process architecture that reduce manual work and improve operational visibility.",
+  keywords: ["business process automation", "workflow automation consultant", "systems integration services", "automation architecture"],
+  alternates: { canonical: "/services/automation-systems-architecture" },
+  openGraph: {
+    title: "Business Process Automation and Systems Architecture | Flowbridge Digital",
+    description: "Build connected workflows and scalable operational systems that reduce manual work.",
+    url: "/services/automation-systems-architecture",
+    images: ["/api/og?title=Business+process+automation&subtitle=Connected+workflows%2C+integrations%2C+and+scalable+systems+architecture"],
+  },
+};
+
 export default function AutomationPage() {
   return (
     <main className="bg-white text-slate-900">

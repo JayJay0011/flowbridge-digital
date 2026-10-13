@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { recordFunnelEvent } from "../../../lib/funnelAnalytics";
 
 function escapeHtml(value: string) {
   return value
@@ -153,6 +154,7 @@ export async function POST(request: Request) {
         .select("id,receipt_email_sent_at,admin_order_email_sent_at")
         .eq("stripe_session_id", session.id)
         .maybeSingle();
+      const orderAlreadyExisted = Boolean(order);
       if (orderError) return NextResponse.json({ error: "Unable to check existing order." }, { status: 500 });
       if (!order) {
         const inserted = await supabaseAdmin.from("orders").insert({
@@ -175,6 +177,9 @@ export async function POST(request: Request) {
         }
       }
       if (orderError || !order) return NextResponse.json({ error: "Unable to record order." }, { status: 500 });
+      if (!orderAlreadyExisted) {
+        await recordFunnelEvent({ eventName: "payment_completed", userId, resourceId: order.id, resourceType: "order", metadata: { stripe_session_id: session.id } });
+      }
 
       if (offerId) {
         const { error: offerUpdateError } = await supabaseAdmin

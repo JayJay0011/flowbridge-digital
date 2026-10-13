@@ -2,9 +2,17 @@ const STRATEGY_CALL_URL =
   "https://cal.com/flow-bridge-digital-tee44g/systems-strategy-consultation";
 
 export const metadata = {
-  title: "Email Marketing",
+  title: "Email Marketing Automation and Lifecycle Campaigns",
   description:
     "Email marketing strategy, segmentation, campaigns, lifecycle automation, and retention systems from Flowbridge Digital.",
+  keywords: ["email marketing automation", "lifecycle email campaigns", "email segmentation strategy", "customer retention automation"],
+  alternates: { canonical: "/services/email-marketing" },
+  openGraph: {
+    title: "Email Marketing Automation and Lifecycle Campaigns | Flowbridge Digital",
+    description: "Build segmented campaigns and lifecycle automations around the complete customer journey.",
+    url: "/services/email-marketing",
+    images: ["/api/og?title=Email+marketing+automation&subtitle=Lifecycle+campaigns%2C+segmentation%2C+and+retention+systems"],
+  },
 };
 
 const capabilities = [

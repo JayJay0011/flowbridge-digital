@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { recordFunnelEvent } from "../../../lib/funnelAnalytics";
 
 export async function POST(request: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -32,5 +33,8 @@ export async function POST(request: Request) {
 
   if (error) return NextResponse.json({ error: "Unable to accept this offer." }, { status: 500 });
   if (!data) return NextResponse.json({ error: "This offer is no longer available to accept." }, { status: 409 });
+  if (body.decision === "accepted") {
+    await recordFunnelEvent({ eventName: "offer_accepted", userId, resourceId: data.id, resourceType: "offer" });
+  }
   return NextResponse.json({ decision: body.decision });
 }

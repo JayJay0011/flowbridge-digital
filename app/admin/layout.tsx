@@ -16,6 +16,7 @@ const navItems = [
   { href: "/admin/services", label: "Services", module: "services" },
   { href: "/admin/blog", label: "Blog", module: "blog" },
   { href: "/admin/orders", label: "Orders", module: "orders" },
+  { href: "/admin/analytics", label: "Analytics" },
   { href: "/admin/reviews", label: "Reviews", module: "reviews" },
   { href: "/admin/messages", label: "Messages", module: "messages" },
   { href: "/admin/settings", label: "Settings", module: "settings" },

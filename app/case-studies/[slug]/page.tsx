@@ -105,9 +105,28 @@ export async function generateMetadata({ params }: Params) {
     return { title: "Case Study" };
   }
 
+  const canonical = `/case-studies/${item.slug}`;
+  const socialImage =
+    getCaseStudyCoverUrl(item.slug, item.cover_url) ||
+    `/api/og?title=${encodeURIComponent(item.title)}&subtitle=${encodeURIComponent(item.summary || "Flowbridge Digital case study")}`;
+
   return {
     title: item.title,
     description: item.summary,
+    alternates: { canonical },
+    openGraph: {
+      title: `${item.title} | Flowbridge Digital`,
+      description: item.summary || undefined,
+      url: canonical,
+      type: "article",
+      images: [{ url: socialImage, alt: item.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description: item.summary || undefined,
+      images: [socialImage],
+    },
   };
 }
 

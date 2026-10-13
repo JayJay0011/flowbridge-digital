@@ -1,3 +1,17 @@
+export const metadata = {
+  title: "Custom Platform, Dashboard and Portal Development",
+  description:
+    "Custom web applications, client portals, internal dashboards, and operational platforms built for scalable business workflows.",
+  keywords: ["custom dashboard development", "client portal development", "internal tools development", "business web application"],
+  alternates: { canonical: "/services/platform-development" },
+  openGraph: {
+    title: "Custom Platform and Dashboard Development | Flowbridge Digital",
+    description: "Build modern client portals, dashboards, and internal tools around your real operations.",
+    url: "/services/platform-development",
+    images: ["/api/og?title=Custom+platform+development&subtitle=Client+portals%2C+dashboards%2C+and+operational+web+applications"],
+  },
+};
+
 export default function PlatformDevelopmentPage() {
   return (
     <main className="bg-white text-slate-900">

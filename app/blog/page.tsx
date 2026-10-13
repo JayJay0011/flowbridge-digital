@@ -2,9 +2,28 @@ import Link from "next/link";
 import { supabasePublic } from "../lib/supabasePublic";
 
 export const metadata = {
-  title: "Blog",
+  title: "Automation, CRM and Operations Blog",
   description:
-    "Insights on automation, CRM systems, and growth infrastructure from Flowbridge Digital.",
+    "Practical articles about workflow automation, CRM systems, lead management, email marketing, and scalable business operations.",
+  keywords: [
+    "business automation blog",
+    "CRM automation guides",
+    "workflow automation tips",
+    "lead management systems",
+    "email marketing automation",
+    "business operations strategy",
+  ],
+  alternates: { canonical: "/blog" },
+  openGraph: {
+    title: "Automation, CRM and Operations Blog | Flowbridge Digital",
+    description:
+      "Practical guidance for building clearer automation, CRM, marketing, and operational systems.",
+    url: "/blog",
+    type: "website",
+    images: [
+      "/api/og?title=Automation%2C+CRM+and+operations+insights&subtitle=Practical+guidance+for+building+systems+that+scale",
+    ],
+  },
 };
 
 export const revalidate = 0;

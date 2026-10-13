@@ -5,9 +5,27 @@ import { supabasePublic } from "../lib/supabasePublic";
 export const revalidate = 0;
 
 export const metadata = {
-  title: "Services",
+  title: "Automation, CRM and Digital Operations Services",
   description:
-    "Automation, CRM, growth infrastructure, platform development, and operational support services.",
+    "Explore business automation, CRM implementation, growth systems, platform development, email marketing, and operational support services.",
+  keywords: [
+    "business automation services",
+    "CRM implementation services",
+    "workflow automation consultant",
+    "email marketing automation",
+    "custom dashboard development",
+    "operational support systems",
+  ],
+  alternates: { canonical: "/services" },
+  openGraph: {
+    title: "Automation, CRM and Digital Operations Services | Flowbridge Digital",
+    description:
+      "Structured automation, CRM, growth, platform, email, and operational systems for modern businesses.",
+    url: "/services",
+    images: [
+      "/api/og?title=Automation%2C+CRM+and+digital+operations&subtitle=Six+structured+service+lanes+for+modern+businesses",
+    ],
+  },
 };
 
 const fallbackServices = [

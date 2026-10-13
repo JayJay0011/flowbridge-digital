@@ -95,9 +95,28 @@ export async function generateMetadata({ params }: Params) {
     return { title: "Portfolio Item" };
   }
 
+  const canonical = `/portfolio/${item.slug}`;
+  const socialImage =
+    item.cover_url ||
+    `/api/og?title=${encodeURIComponent(item.title)}&subtitle=${encodeURIComponent(item.summary || "Flowbridge Digital portfolio project")}`;
+
   return {
     title: item.title,
     description: item.summary,
+    alternates: { canonical },
+    openGraph: {
+      title: `${item.title} | Flowbridge Digital`,
+      description: item.summary || undefined,
+      url: canonical,
+      type: "website",
+      images: [{ url: socialImage, alt: item.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: item.title,
+      description: item.summary || undefined,
+      images: [socialImage],
+    },
   };
 }
 

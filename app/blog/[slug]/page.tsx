@@ -128,9 +128,30 @@ export async function generateMetadata({ params }: Params) {
     return { title: "Article Not Found" };
   }
 
+  const canonical = `/blog/${post.slug}`;
+  const socialImage =
+    post.cover_url ||
+    `/api/og?title=${encodeURIComponent(post.title)}&subtitle=${encodeURIComponent(post.excerpt || "Flowbridge Digital insights")}`;
+
   return {
     title: post.title,
     description: post.excerpt,
+    alternates: { canonical },
+    openGraph: {
+      title: post.title,
+      description: post.excerpt || undefined,
+      url: canonical,
+      type: "article",
+      publishedTime: post.published_at || undefined,
+      authors: ["Oyeleke Jubril"],
+      images: [{ url: socialImage, alt: post.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt || undefined,
+      images: [socialImage],
+    },
   };
 }
 
@@ -138,6 +159,9 @@ export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
   const { post, error } = await getPublishedPost(slug);
   const articleBlocks = getArticleBlocks(post?.body);
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://flowbridgedigital.org";
 
   if (error) {
     console.error("Unable to load published blog post", error);
@@ -164,8 +188,31 @@ export default async function BlogPostPage({ params }: Params) {
     );
   }
 
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt || undefined,
+    datePublished: post.published_at || undefined,
+    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
+    image: post.cover_url || `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`,
+    author: {
+      "@type": "Person",
+      name: "Oyeleke Jubril",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Flowbridge Digital",
+      url: siteUrl,
+    },
+  };
+
   return (
     <main className="bg-white text-slate-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
       <section className="bg-slate-950 text-white">
         <div className="mx-auto max-w-4xl px-4 py-20 md:px-6 md:py-24">
           <Link

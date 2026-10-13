@@ -3,6 +3,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import ChatWidget from "./components/ChatWidget";
 import ReferralCapture from "./components/ReferralCapture";
+import LaunchOfferPopup from "./components/LaunchOfferPopup";
 import { Fraunces, Manrope } from "next/font/google";
 
 const fraunces = Fraunces({
@@ -48,6 +49,16 @@ export const metadata = {
     "growth infrastructure",
     "operations consulting",
     "workflow automation",
+    "CRM automation services",
+    "business process automation company",
+    "HubSpot CRM setup",
+    "GoHighLevel automation",
+    "Zapier automation consultant",
+    "Make automation expert",
+    "Airtable workflow automation",
+    "email marketing automation",
+    "custom client portal development",
+    "operational dashboard development",
   ],
   alternates: {
     canonical: siteUrl,
@@ -71,12 +82,23 @@ export const metadata = {
     siteName: "Flowbridge Digital",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/api/og?title=Automation%2C+CRM+and+growth+systems&subtitle=Structured+digital+infrastructure+for+modern+operators",
+        width: 1200,
+        height: 630,
+        alt: "Flowbridge Digital automation and CRM systems",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Flowbridge Digital | Automation & CRM Systems",
     description:
       "Automation systems, CRM pipelines, and growth infrastructure for serious operators.",
+    images: [
+      "/api/og?title=Automation%2C+CRM+and+growth+systems&subtitle=Structured+digital+infrastructure+for+modern+operators",
+    ],
   },
 };
 
@@ -160,6 +182,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <Header />
         <ReferralCapture />
+        <LaunchOfferPopup />
         {children}
         <ChatWidget />
         <Footer />
