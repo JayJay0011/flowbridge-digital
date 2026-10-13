@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "flowbridge-launch-offer-seen";
+const STORAGE_KEY = "flowbridge-launch-offer-seen-2026-10-19";
 
 export default function LaunchOfferPopup() {
   const pathname = usePathname();
@@ -30,8 +30,8 @@ export default function LaunchOfferPopup() {
         <h2 id="launch-offer-title" className="mt-4 max-w-md text-3xl font-semibold text-slate-950 md:text-4xl">Get 10% off your first order</h2>
         <p className="mt-4 leading-7 text-slate-600">Start with a structured Flowbridge service and receive 10% off your first completed checkout during our launch offer.</p>
         <div className="mt-6 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">
-          <p><strong>Launch date:</strong> Coming soon</p>
-          <p className="mt-1">Valid for one month from the official launch date. First orders only.</p>
+          <p><strong>Launch date:</strong> 19 October 2026</p>
+          <p className="mt-1">Valid through 19 November 2026. First orders only.</p>
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <Link href="/services" onClick={dismiss} className="inline-flex justify-center rounded-xl bg-slate-950 px-5 py-3 font-semibold text-white">Explore services</Link>

@@ -273,7 +273,7 @@ export default function DashboardOrdersPage() {
         : "Revision request sent to Flowbridge.");
     setActing(false);
     if (nextStatus === "complete") {
-      router.push(`/dashboard/reviews?order=${selectedOrder.id}`);
+      router.push(`/dashboard/orders/${selectedOrder.id}?completed=1`);
     }
   };
 

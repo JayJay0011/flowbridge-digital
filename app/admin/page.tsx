@@ -1,5 +1,6 @@
 import Link from "next/link";
 import UnreadMessageBadge from "./_components/UnreadMessageBadge";
+import AdminActivityBadge from "./_components/AdminActivityBadge";
 
 const cards = [
   {
@@ -87,6 +88,8 @@ export default function AdminHomePage() {
                 {card.title === "Messages" ? (
                   <UnreadMessageBadge className="h-6 min-w-6 text-xs" />
                 ) : null}
+                {card.title === "Orders" ? <AdminActivityBadge type="orders" className="h-6 min-w-6 text-xs" /> : null}
+                {card.title === "Reviews" ? <AdminActivityBadge type="reviews" className="h-6 min-w-6 text-xs" /> : null}
               </div>
               <p className="mt-3 text-slate-600">{card.desc}</p>
               {card.disabled ? (

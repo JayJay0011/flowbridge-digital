@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { supabase } from "../lib/supabaseClient";
 import Link from "next/link";
 import UnreadMessageBadge from "./_components/UnreadMessageBadge";
+import AdminActivityBadge from "./_components/AdminActivityBadge";
 
 const navItems = [
   { href: "/admin", label: "Overview" },
@@ -166,6 +167,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       {item.module === "messages" ? (
                         <UnreadMessageBadge />
                       ) : null}
+                      {item.module === "orders" || item.module === "reviews" ? <AdminActivityBadge type={item.module} /> : null}
                     </span>
                   </Link>
                 );
@@ -243,6 +245,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                           {item.module === "messages" ? (
                             <UnreadMessageBadge className="h-4 min-w-4 text-[10px]" />
                           ) : null}
+                          {item.module === "orders" || item.module === "reviews" ? <AdminActivityBadge type={item.module} className="h-4 min-w-4 text-[10px]" /> : null}
                         </span>
                       </Link>
                     );

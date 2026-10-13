@@ -19,6 +19,7 @@ type Order = {
   created_at: string;
   gigs: Related<{ title: string | null }>;
   profiles: Related<{ email: string | null }>;
+  tips: { amount_cents: number; currency: string; status: string }[] | null;
 };
 
 type OrderFilter = "all" | "in_progress" | "in_review" | "delivered" | "completed";
@@ -49,7 +50,7 @@ export default function AdminOrdersPage() {
     const load = async () => {
       const { data, error } = await supabase
         .from("orders")
-        .select("id,client_id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,gigs(title),profiles(email)")
+        .select("id,client_id,status,payment_status,amount_cents,currency,package_tier,revision_request,created_at,gigs(title),profiles(email),tips(amount_cents,currency,status)")
         .order("created_at", { ascending: false });
 
       if (isMounted) {
@@ -59,6 +60,11 @@ export default function AdminOrdersPage() {
     };
 
     load();
+
+    void supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      if (token) void fetch("/api/admin/activity?type=orders", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    });
 
     return () => {
       isMounted = false;
@@ -220,6 +226,7 @@ export default function AdminOrdersPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div>{order.amount_cents != null ? new Intl.NumberFormat(undefined, { style: "currency", currency: (order.currency || "usd").toUpperCase() }).format(order.amount_cents / 100) : "—"}</div>
                           <div className={`mt-1 text-xs font-semibold ${order.payment_status === "paid" ? "text-emerald-700" : "text-amber-700"}`}>{order.payment_status || "unpaid"}</div>
+                          {(order.tips ?? []).filter((tip) => tip.status === "paid").map((tip, index) => <div key={index} className="mt-2 inline-flex rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800">Tip: {new Intl.NumberFormat(undefined, { style: "currency", currency: tip.currency.toUpperCase() }).format(tip.amount_cents / 100)}</div>)}
                         </td>
                         <td className="px-6 py-4 capitalize">{order.package_tier === "custom_offer" ? "Custom offer" : order.package_tier || "—"}</td>
                         <td className="px-6 py-4">

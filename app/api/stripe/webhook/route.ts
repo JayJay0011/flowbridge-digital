@@ -119,6 +119,7 @@ export async function POST(request: Request) {
           { onConflict: "stripe_session_id" }
         );
         if (tipError) return NextResponse.json({ error: "Unable to record payment." }, { status: 500 });
+        await supabaseAdmin.from("orders").update({ admin_seen_at: null }).eq("id", orderId);
       }
 
       return NextResponse.json({ received: true });

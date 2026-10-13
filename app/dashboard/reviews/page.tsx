@@ -133,32 +133,13 @@ export default function DashboardReviewsPage() {
       return;
     }
 
-    const { error } = await supabase.from("reviews").insert({
-      client_id: userId,
-      order_id: selectedOrderId,
-      rating,
-      summary: summary.trim(),
-      body: body.trim(),
-      video_url: videoUrl.trim() || null,
-      improvement_feedback:
-        rating < 4 ? improvementFeedback.trim() : null,
-      status: "pending",
-    });
-
-    if (error) {
-      setMessage(error.message);
+    const response = await fetch("/api/reviews", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token || ""}` }, body: JSON.stringify({ orderId: selectedOrderId, rating, summary, body, videoUrl, improvementFeedback }) });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      setMessage(result.error || "Unable to submit your review.");
       setSaving(false);
       return;
     }
-
-    void fetch("/api/analytics/events", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${data.session?.access_token || ""}`,
-      },
-      body: JSON.stringify({ eventName: "review_submitted", resourceId: selectedOrderId, resourceType: "order" }),
-    });
 
     setOrders((current) =>
       current.filter((order) => order.id !== selectedOrderId)

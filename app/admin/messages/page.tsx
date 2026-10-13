@@ -144,7 +144,7 @@ export default function AdminMessagesPage() {
         : data;
 
       const clientIds = Array.from(
-        new Set((rows ?? []).map((item) => item.client_id))
+        new Set((rows ?? []).map((item) => item.client_id).filter((id): id is string => Boolean(id)))
       );
 
       let profileMap: Record<string, Profile> = {};

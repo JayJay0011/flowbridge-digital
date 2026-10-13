@@ -50,6 +50,10 @@ export default function AdminReviewsPage() {
     };
 
     load();
+    void supabase.auth.getSession().then(({ data }) => {
+      const token = data.session?.access_token;
+      if (token) void fetch("/api/admin/activity?type=reviews", { method: "POST", headers: { Authorization: `Bearer ${token}` } });
+    });
     return () => {
       isMounted = false;
     };
