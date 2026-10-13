@@ -1,4 +1,4 @@
-import { supabasePublic } from "../lib/supabasePublic";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 import { getStars, type ReviewItem } from "../lib/reviewContent";
 
 export const metadata = {
@@ -23,7 +23,10 @@ type Review = {
 };
 
 export default async function ReviewsPage() {
-  const { data } = await supabasePublic
+  // This is a server component. Use the server-only client so a published
+  // review can include the reviewer's public profile identity without making
+  // every profile row readable through the anonymous Data API.
+  const { data } = await supabaseAdmin
     .from("reviews")
     .select("id,rating,summary,body,video_url,seller_response,created_at,profiles(username,company_name,avatar_url)")
     .eq("status", "published")
