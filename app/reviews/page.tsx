@@ -19,22 +19,20 @@ type Review = {
   video_url: string | null;
   seller_response: string | null;
   created_at: string;
-  profiles: Related<{ username: string | null }>;
+  profiles: Related<{ username: string | null; company_name: string | null; avatar_url: string | null }>;
 };
 
 export default async function ReviewsPage() {
   const { data } = await supabasePublic
     .from("reviews")
-    .select("id,rating,summary,body,video_url,seller_response,created_at,profiles(username)")
+    .select("id,rating,summary,body,video_url,seller_response,created_at,profiles(username,company_name,avatar_url)")
     .eq("status", "published")
     .order("created_at", { ascending: false });
   const dbReviews = (data ?? []) as Review[];
   const reviews: ReviewItem[] = dbReviews.map((review) => ({
         id: review.id,
-        name:
-          (Array.isArray(review.profiles)
-            ? review.profiles[0]?.username
-            : review.profiles?.username) || "Flowbridge customer",
+        name: (Array.isArray(review.profiles) ? review.profiles[0]?.company_name || review.profiles[0]?.username : review.profiles?.company_name || review.profiles?.username) || "Verified client",
+        avatarUrl: (Array.isArray(review.profiles) ? review.profiles[0]?.avatar_url : review.profiles?.avatar_url) || null,
         company: "Verified review",
         rating: review.rating || 5,
         summary: review.summary || "Great experience",
@@ -80,7 +78,7 @@ export default async function ReviewsPage() {
                   </div>
                 ) : null}
                 <div className="flex items-start gap-4 border-b border-slate-200 pb-5">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">{review.name.slice(0, 1).toUpperCase()}</div>
+                  {review.avatarUrl ? <img src={review.avatarUrl} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" /> : <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-900 font-semibold text-white">{review.name.slice(0, 1).toUpperCase()}</div>}
                   <div><p className="font-semibold">{review.name}</p><p className="mt-1 text-xs text-slate-500">Verified Flowbridge client</p></div>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-3"><span className="font-semibold text-amber-500">{getStars(review.rating)} <span className="text-slate-900">{review.rating.toFixed(1)}</span></span>{review.date ? <><span className="text-slate-300">•</span><span className="text-sm text-slate-500">{new Date(review.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></> : null}</div>

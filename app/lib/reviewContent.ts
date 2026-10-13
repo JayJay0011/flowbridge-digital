@@ -8,6 +8,7 @@ export type ReviewItem = {
   videoUrl?: string | null;
   response?: string | null;
   date?: string;
+  avatarUrl?: string | null;
 };
 
 export const fallbackReviews: ReviewItem[] = [

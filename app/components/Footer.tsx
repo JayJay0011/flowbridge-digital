@@ -28,38 +28,23 @@ function hasChoices(item: SocialItem): item is Extract<SocialItem, { choices: So
 const socialItems: SocialItem[] = [
   {
     label: "Facebook",
-    choices: [
-      { label: "Founder Profile", href: "#" },
-      { label: "Business Page", href: "#" },
-    ],
+    href: "https://www.facebook.com/profile.php?id=61583417010941&mibextid=wwXIfr",
   },
   {
     label: "LinkedIn",
-    choices: [
-      {
-        label: "Founder Profile",
-        href: "https://www.linkedin.com/in/oyeleke-jubril-846a223a6",
-      },
-      { label: "Business Page", href: "#" },
-    ],
+    href: "https://www.linkedin.com/company/flowbridge-digital/",
   },
   {
     label: "YouTube",
-    href: "#",
+    href: "https://youtube.com/@flowbridgedigital",
   },
   {
     label: "Instagram",
-    choices: [
-      { label: "Founder Profile", href: "#" },
-      { label: "Business Page", href: "#" },
-    ],
+    href: "https://www.instagram.com/automatewithjibreel",
   },
   {
     label: "X (Twitter)",
-    choices: [
-      { label: "Founder Profile", href: "#" },
-      { label: "Business Page", href: "#" },
-    ],
+    href: "https://x.com/automatewithjib",
   },
   {
     label: "WhatsApp",
@@ -354,10 +339,7 @@ export default function Footer() {
               </div>
             ) : null}
 
-            <p className="mt-auto pt-8 text-xs leading-relaxed text-slate-500">
-              Placeholder links are active until the official Flowbridge Digital
-              social profiles are added.
-            </p>
+            <p className="mt-auto pt-8 text-xs leading-relaxed text-slate-500">Choose the support destination you want to open.</p>
           </div>
         </div>
       ) : null}
