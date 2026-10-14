@@ -5,7 +5,7 @@ import { supabasePublic } from "../lib/supabasePublic";
 export const metadata = {
   title: "Search",
   description:
-    "Search gigs, services, portfolio work, and case studies at Flowbridge Digital.",
+    "Search offers, services, portfolio work, and case studies at Flowbridge Digital.",
 };
 
 type PageProps = {
@@ -66,7 +66,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <div className="max-w-6xl mx-auto px-4 md:px-6">
           <h1 className="text-3xl md:text-4xl font-semibold">Search</h1>
           <p className="text-slate-600 mt-3">
-            Find gigs, services, portfolio work, and case studies.
+            Find offers, services, portfolio work, and case studies.
           </p>
 
           <form action="/search" method="get" className="mt-8 flex flex-col md:flex-row gap-4">
@@ -89,7 +89,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <section className="py-12">
         <div className="max-w-6xl mx-auto px-4 md:px-6 space-y-12">
-          <ResultSection title="Gigs">
+          <ResultSection title="Offers">
             {gigs?.length ? (
               gigs.map((gig) => (
                 <ResultCard
@@ -102,7 +102,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 />
               ))
             ) : (
-              <EmptyState label="No gigs found." />
+              <EmptyState label="No offers found." />
             )}
           </ResultSection>
 

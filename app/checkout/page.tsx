@@ -156,7 +156,7 @@ export default async function CheckoutRootPage({
 
             <div className="mt-10">
               {!offerId && gigId ? <OrderAction gigId={gigId} packageKey={packageKey} /> : null}
-              {!offerId && !gigId ? <p className="text-sm text-red-600">Missing gig reference. Please return to the gig page and try again.</p> : null}
+              {!offerId && !gigId ? <p className="text-sm text-red-600">Missing offer reference. Please return to the offers page and try again.</p> : null}
             </div>
           </div>
 
@@ -195,7 +195,7 @@ export default async function CheckoutRootPage({
               href={offerId ? "/dashboard/messages" : gig ? `/gigs/${gig.slug}?id=${gig.id}&package=${packageKey}` : "/gigs"}
               className="mt-6 inline-flex w-full items-center justify-center rounded-xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-900"
             >
-              {offerId ? "Back to inbox" : "Back to gig"}
+              {offerId ? "Back to inbox" : "Back to offer"}
             </Link>
           </div>
         </div>

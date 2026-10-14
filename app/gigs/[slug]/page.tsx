@@ -136,7 +136,7 @@ export async function generateMetadata({ params }: Params) {
 
   if (!gig) {
     return {
-      title: "Gig Not Found",
+      title: "Offer Not Found",
     };
   }
 
@@ -263,7 +263,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
       return (
         <main className="bg-white text-slate-900 py-24 min-h-[60vh]">
           <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
-            <h1 className="text-3xl font-semibold">We couldn&apos;t load this gig</h1>
+            <h1 className="text-3xl font-semibold">We couldn&apos;t load this offer</h1>
             <p className="mt-4 text-slate-600">
               Please try again shortly or browse the other available services.
             </p>
@@ -271,7 +271,7 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
               href="/gigs"
               className="mt-8 inline-block text-sm font-medium text-slate-900"
             >
-              View all gigs →
+              View all offers →
             </Link>
           </div>
         </main>
@@ -283,15 +283,15 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
     return (
       <main className="bg-white text-slate-900 py-24 min-h-[60vh]">
         <div className="max-w-4xl mx-auto px-4 md:px-6 text-center">
-          <h1 className="text-3xl font-semibold">Gig not found</h1>
+          <h1 className="text-3xl font-semibold">Offer not found</h1>
           <p className="mt-4 text-slate-600">
-            This gig is not available. Browse all gigs instead.
+            This offer is not available. Browse all offers instead.
           </p>
           <Link
             href="/gigs"
             className="mt-8 inline-block text-sm font-medium text-slate-900"
           >
-            View all gigs →
+            View all offers →
           </Link>
         </div>
       </main>
@@ -493,14 +493,14 @@ export default async function GigDetailPage({ params, searchParams }: Params) {
                   Recommended Next
                 </p>
                 <h2 className="mt-3 text-2xl md:text-3xl font-semibold">
-                  Services that pair well with this gig
+                  Services that pair well with this offer
                 </h2>
               </div>
               <Link
                 href="/gigs"
                 className="text-sm font-semibold text-slate-700 hover:text-slate-950"
               >
-                View all gigs →
+                View all offers →
               </Link>
             </div>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

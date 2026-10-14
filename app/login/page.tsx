@@ -78,11 +78,21 @@ function LoginPageInner() {
     return () => window.clearTimeout(timer);
   }, [resendCooldown]);
 
-  const sendVerificationCode = async () => {
-    return supabase.auth.signInWithOtp({
+  const createAccount = async () => {
+    return supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+  };
+
+  const resendVerificationCode = async () => {
+    return supabase.auth.resend({
+      type: "signup",
       email,
       options: {
-        shouldCreateUser: true,
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -93,7 +103,7 @@ function LoginPageInner() {
     setResending(true);
     setMessage(null);
 
-    const { error } = await sendVerificationCode();
+    const { error } = await resendVerificationCode();
 
     if (error) {
       setMessage(error.message);
@@ -127,10 +137,17 @@ function LoginPageInner() {
     }
 
     if (step === "details") {
-      const { error } = await sendVerificationCode();
+      const { data, error } = await createAccount();
 
       if (error) {
         setMessage(error.message);
+        setLoading(false);
+        return;
+      }
+
+      if (data.session) {
+        setStep("username");
+        setMessage(null);
         setLoading(false);
         return;
       }
@@ -154,7 +171,7 @@ function LoginPageInner() {
       const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: verificationCode,
-        type: "email",
+        type: "signup",
       });
 
       if (error) {
@@ -176,18 +193,6 @@ function LoginPageInner() {
           setMessage(`Your account was created, but the referral could not be recorded: ${referralError}`);
         } else {
           window.localStorage.removeItem("flowbridge-referral-code");
-        }
-      }
-
-      if (data.session) {
-        const { error: updateError } = await supabase.auth.updateUser({
-          password,
-        });
-
-        if (updateError) {
-          setMessage(updateError.message);
-          setLoading(false);
-          return;
         }
       }
 

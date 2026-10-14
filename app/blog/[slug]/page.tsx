@@ -10,7 +10,7 @@ export const revalidate = 0;
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
 
-const BLOG_DETAIL_COLUMNS = "title,excerpt,body,cover_url,published_at,slug";
+const BLOG_DETAIL_COLUMNS = "title,excerpt,body,cover_url,published_at,updated_at,slug";
 
 type BlogPost = {
   title: string;
@@ -18,6 +18,7 @@ type BlogPost = {
   body: string | null;
   cover_url: string | null;
   published_at: string | null;
+  updated_at: string | null;
   slug: string;
 };
 
@@ -46,36 +47,40 @@ function getArticleBlocks(body?: string | null) {
 }
 
 function isHeading(block: string) {
+  if (block.startsWith("## ")) return true;
   const hasEndingPunctuation = /[.!?]$/.test(block);
   const wordCount = block.split(/\s+/).length;
   return wordCount <= 12 && !hasEndingPunctuation;
 }
 
 function isListItem(block: string) {
+  if (block.startsWith("- ")) return true;
   const wordCount = block.split(/\s+/).length;
   return wordCount <= 9 && !/[.!?]$/.test(block) && !block.includes(":");
 }
 
 function renderArticleBlock(block: string, index: number) {
   if (isHeading(block)) {
+    const heading = block.replace(/^##\s+/, "");
     return (
       <h2
-        key={`${block}-${index}`}
+        key={`${heading}-${index}`}
         className="pt-8 text-2xl md:text-3xl font-semibold tracking-tight text-slate-950"
       >
-        {block}
+        {heading}
       </h2>
     );
   }
 
   if (isListItem(block)) {
+    const item = block.replace(/^-\s+/, "");
     return (
       <p
         key={`${block}-${index}`}
         className="flex gap-3 text-base md:text-lg leading-8 text-slate-700"
       >
         <span className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-900" />
-        <span>{block}</span>
+        <span>{item}</span>
       </p>
     );
   }
@@ -136,6 +141,7 @@ export async function generateMetadata({ params }: Params) {
   return {
     title: post.title,
     description: post.excerpt,
+    keywords: [post.title, "business automation", "CRM systems", "Flowbridge Digital"],
     alternates: { canonical },
     openGraph: {
       title: post.title,
@@ -159,6 +165,10 @@ export default async function BlogPostPage({ params }: Params) {
   const { slug } = await params;
   const { post, error } = await getPublishedPost(slug);
   const articleBlocks = getArticleBlocks(post?.body);
+  const readingMinutes = Math.max(
+    1,
+    Math.ceil((post?.body || "").split(/\s+/).filter(Boolean).length / 220)
+  );
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
     "https://flowbridgedigital.org";
@@ -194,6 +204,7 @@ export default async function BlogPostPage({ params }: Params) {
     headline: post.title,
     description: post.excerpt || undefined,
     datePublished: post.published_at || undefined,
+    dateModified: post.updated_at || post.published_at || undefined,
     mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
     image: post.cover_url || `${siteUrl}/api/og?title=${encodeURIComponent(post.title)}`,
     author: {
@@ -225,6 +236,8 @@ export default async function BlogPostPage({ params }: Params) {
             <span>Flowbridge Digital</span>
             <span className="h-1 w-1 rounded-full bg-slate-500" />
             <span>{formatDate(post.published_at)}</span>
+            <span className="h-1 w-1 rounded-full bg-slate-500" />
+            <span>{readingMinutes} min read</span>
           </div>
           <h1 className="mt-6 text-4xl font-semibold leading-tight md:text-6xl md:leading-[1.05]">
             {post.title}
@@ -261,6 +274,26 @@ export default async function BlogPostPage({ params }: Params) {
               </p>
             )}
           </div>
+
+          <aside className="mt-14 rounded-3xl bg-slate-950 px-6 py-8 text-white md:px-9">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">
+              Put this into practice
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Build a clearer system for your business.
+            </h2>
+            <p className="mt-3 leading-7 text-slate-300">
+              Flowbridge Digital designs practical CRM, automation, and operational systems around the way your team actually works.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/strategy-call" className="rounded-xl bg-white px-4 py-3 text-sm font-semibold text-slate-950">
+                Book a strategy call
+              </Link>
+              <Link href="/gigs" className="rounded-xl border border-slate-700 px-4 py-3 text-sm font-semibold text-white">
+                Browse offers
+              </Link>
+            </div>
+          </aside>
 
           <div className="mt-16 rounded-2xl border border-slate-200 bg-slate-50 p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-slate-950">

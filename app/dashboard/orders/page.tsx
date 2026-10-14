@@ -287,7 +287,7 @@ export default function DashboardOrdersPage() {
           </p>
         </div>
         <Link href="/gigs" className="text-sm font-semibold text-[var(--dash-strong)]">
-          Browse gigs →
+          Browse offers →
         </Link>
       </div>
 
@@ -318,7 +318,7 @@ export default function DashboardOrdersPage() {
                 <div className="rounded-2xl border border-dashed border-[var(--dash-border)] bg-[var(--dash-surface)] p-8 text-center">
                   <p className="font-medium">No {sectionCards.find((card) => card.id === activeSection)?.title.toLowerCase()} yet</p>
                   <p className="mt-1 text-sm text-[var(--dash-muted)]">Your orders will appear here as their status changes.</p>
-                  {orders.length === 0 ? <Link href="/gigs" className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Browse gigs</Link> : null}
+                  {orders.length === 0 ? <Link href="/gigs" className="mt-4 inline-flex rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Browse offers</Link> : null}
                 </div>
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">
@@ -466,9 +466,9 @@ export default function DashboardOrdersPage() {
                       {selectedOrder.id.slice(0, 8)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span>Gig</span>
-                    <span className="font-medium text-[var(--dash-strong)]">
+                  <div>
+                    <span className="block text-xs font-semibold uppercase tracking-[0.14em]">Offer</span>
+                    <span className="mt-1.5 block break-words font-medium leading-relaxed text-[var(--dash-strong)]">
                       {selectedGig?.title || "Custom project"}
                     </span>
                   </div>
@@ -514,6 +514,19 @@ export default function DashboardOrdersPage() {
                     Order completed
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-[var(--dash-surface)] border border-[var(--dash-border)] rounded-2xl p-6">
+                <h4 className="text-sm font-semibold">Having trouble with your order?</h4>
+                <p className="mt-2 text-sm leading-6 text-[var(--dash-muted)]">
+                  Message our support team and include any details that can help us assist you.
+                </p>
+                <Link
+                  href={`/dashboard/messages?order=${encodeURIComponent(selectedOrder.id)}`}
+                  className="mt-4 inline-flex w-full items-center justify-center rounded-xl border border-[var(--dash-border)] px-4 py-2 text-sm font-semibold text-[var(--dash-strong)] transition hover:bg-[var(--dash-surface-2)]"
+                >
+                  Message support
+                </Link>
               </div>
             </aside>
             </div> : null}

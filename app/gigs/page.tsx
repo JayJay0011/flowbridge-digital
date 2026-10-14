@@ -4,9 +4,9 @@ import { gigCategories, getGigCategoryLabel } from "../lib/gigCategories";
 
 export const revalidate = 0;
 export const metadata = {
-  title: "Service Gigs",
+  title: "Service Offers",
   description:
-    "Explore Flowbridge Digital service gigs for automation, CRM, growth infrastructure, and operations.",
+    "Explore Flowbridge Digital offers for automation, CRM, growth infrastructure, and operations.",
 };
 
 type PageProps = {
@@ -104,7 +104,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
       <section className="py-20 bg-slate-950 text-white">
         <div className="max-w-5xl mx-auto px-4 md:px-6">
           <p className="uppercase tracking-[0.3em] text-xs text-slate-300">
-            Service Gigs
+            Offers
           </p>
           <h1 className="text-4xl md:text-5xl font-semibold mt-6">
             Pick a structured engagement and move with clarity.
@@ -215,7 +215,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
                       />
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-slate-400 text-sm">
-                        Gig cover
+                        Offer cover
                       </div>
                     )}
                   </div>
@@ -232,7 +232,7 @@ export default async function GigsPage({ searchParams }: PageProps) {
             })
           ) : (
             <div className="border border-slate-200 rounded-2xl p-6 bg-white text-slate-600">
-              Gigs will appear here once published.
+              Offers will appear here once published.
             </div>
           )}
         </div>

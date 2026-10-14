@@ -63,7 +63,7 @@ export default function Header() {
             Services
           </Link>
           <Link href="/gigs" className="transition whitespace-nowrap">
-            Gigs
+            Offers
           </Link>
           <Link href="/portfolio" className="transition whitespace-nowrap">
             Portfolio
@@ -127,7 +127,7 @@ export default function Header() {
               Services
             </Link>
             <Link href="/gigs" onClick={() => setMobileOpen(false)}>
-              Gigs
+              Offers
             </Link>
             <Link href="/portfolio" onClick={() => setMobileOpen(false)}>
               Portfolio
