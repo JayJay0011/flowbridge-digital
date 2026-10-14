@@ -179,7 +179,7 @@ export async function POST(request: Request) {
       }
       if (orderError || !order) return NextResponse.json({ error: "Unable to record order." }, { status: 500 });
       if (!orderAlreadyExisted) {
-        await recordFunnelEvent({ eventName: "payment_completed", userId, resourceId: order.id, resourceType: "order", metadata: { stripe_session_id: session.id } });
+        await recordFunnelEvent({ eventName: "payment_completed", userId, resourceId: order.id, resourceType: "order", metadata: { stripe_session_id: session.id, country: session.customer_details?.address?.country || null } });
       }
 
       if (offerId) {

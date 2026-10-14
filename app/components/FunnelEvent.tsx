@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 export default function FunnelEvent({ eventName, resourceId, resourceType }: {
-  eventName: "gig_viewed" | "checkout_started";
+  eventName: "page_view" | "gig_viewed" | "checkout_started";
   resourceId?: string;
   resourceType?: string;
 }) {
+  const pathname = usePathname();
   useEffect(() => {
-    const key = `flowbridge-funnel-${eventName}-${resourceId || "page"}`;
+    const trackedResourceId = eventName === "page_view" ? pathname : resourceId;
+    const key = `flowbridge-funnel-${eventName}-${trackedResourceId || "page"}`;
     if (window.sessionStorage.getItem(key)) return;
     let visitorId = window.localStorage.getItem("flowbridge-visitor-id");
     if (!visitorId) {
@@ -19,9 +22,9 @@ export default function FunnelEvent({ eventName, resourceId, resourceType }: {
     void fetch("/api/analytics/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ eventName, visitorId, resourceId, resourceType }),
+      body: JSON.stringify({ eventName, visitorId, resourceId: trackedResourceId, resourceType }),
       keepalive: true,
     });
-  }, [eventName, resourceId, resourceType]);
+  }, [eventName, pathname, resourceId, resourceType]);
   return null;
 }

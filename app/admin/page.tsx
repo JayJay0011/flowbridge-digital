@@ -48,10 +48,10 @@ const cards = [
     disabled: false,
   },
   {
-    title: "Clients",
-    desc: "View client profiles and messages (coming next).",
-    href: "#",
-    disabled: true,
+    title: "Analytics",
+    desc: "Track funnel performance, visitor geography, and ordering countries.",
+    href: "/admin/analytics",
+    disabled: false,
   },
 ];
 

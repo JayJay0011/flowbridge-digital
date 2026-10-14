@@ -1,6 +1,7 @@
 import { supabaseAdmin } from "./supabaseAdmin";
 
 export type FunnelEventName =
+  | "page_view"
   | "gig_viewed"
   | "checkout_started"
   | "offer_accepted"

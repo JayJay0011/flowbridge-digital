@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { recordFunnelEvent } from "../../../lib/funnelAnalytics";
 import { createClient } from "@supabase/supabase-js";
 
-const publicEvents = new Set(["gig_viewed", "checkout_started"]);
+const publicEvents = new Set(["page_view", "gig_viewed", "checkout_started"]);
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as {
@@ -32,6 +32,10 @@ export async function POST(request: Request) {
     visitorId: body.visitorId,
     resourceId: body.resourceId,
     resourceType: body.resourceType,
+    metadata: {
+      country: request.headers.get("x-vercel-ip-country") || null,
+      region: request.headers.get("x-vercel-ip-country-region") || null,
+    },
   });
   return new NextResponse(null, { status: 204 });
 }

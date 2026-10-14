@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import ChatWidget from "./components/ChatWidget";
 import ReferralCapture from "./components/ReferralCapture";
 import LaunchOfferPopup from "./components/LaunchOfferPopup";
+import FunnelEvent from "./components/FunnelEvent";
 import { Fraunces, Manrope } from "next/font/google";
 
 const fraunces = Fraunces({
@@ -183,6 +184,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Header />
         <ReferralCapture />
         <LaunchOfferPopup />
+        <FunnelEvent eventName="page_view" resourceType="website" />
         {children}
         <ChatWidget />
         <Footer />
