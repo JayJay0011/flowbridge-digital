@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     if (!userId) return NextResponse.json({ error: "Authentication required." }, { status: 401 });
   }
   await recordFunnelEvent({
-    eventName: body.eventName as "gig_viewed" | "checkout_started" | "review_submitted",
+    eventName: body.eventName as "page_view" | "gig_viewed" | "checkout_started" | "review_submitted",
     userId,
     visitorId: body.visitorId,
     resourceId: body.resourceId,

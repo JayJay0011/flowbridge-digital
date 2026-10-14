@@ -18,13 +18,14 @@ export default function FunnelEvent({ eventName, resourceId, resourceType }: {
       visitorId = crypto.randomUUID();
       window.localStorage.setItem("flowbridge-visitor-id", visitorId);
     }
-    window.sessionStorage.setItem(key, "1");
     void fetch("/api/analytics/events", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ eventName, visitorId, resourceId: trackedResourceId, resourceType }),
       keepalive: true,
-    });
+    }).then((response) => {
+      if (response.ok) window.sessionStorage.setItem(key, "1");
+    }).catch(() => undefined);
   }, [eventName, pathname, resourceId, resourceType]);
   return null;
 }
