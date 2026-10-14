@@ -9,6 +9,7 @@ export type ReviewItem = {
   response?: string | null;
   date?: string;
   avatarUrl?: string | null;
+  isReturningClient?: boolean;
 };
 
 export const fallbackReviews: ReviewItem[] = [

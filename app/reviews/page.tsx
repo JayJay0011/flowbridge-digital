@@ -14,6 +14,7 @@ type Related<T> = T | T[] | null;
 
 type Review = {
   id: string;
+  client_id: string;
   rating: number | null;
   summary: string | null;
   body: string | null;
@@ -29,10 +30,18 @@ export default async function ReviewsPage() {
   // every profile row readable through the anonymous Data API.
   const { data } = await supabaseAdmin
     .from("reviews")
-    .select("id,rating,summary,body,video_url,seller_response,created_at,profiles(username,company_name,avatar_url)")
+    .select("id,client_id,rating,summary,body,video_url,seller_response,created_at,profiles(username,company_name,avatar_url)")
     .eq("status", "published")
     .order("created_at", { ascending: false });
   const dbReviews = (data ?? []) as Review[];
+  const clientIds = [...new Set(dbReviews.map((review) => review.client_id).filter(Boolean))];
+  const { data: paidOrders } = clientIds.length
+    ? await supabaseAdmin.from("orders").select("client_id").in("client_id", clientIds).eq("payment_status", "paid")
+    : { data: [] as { client_id: string | null }[] };
+  const paidOrderCounts = new Map<string, number>();
+  for (const order of paidOrders ?? []) {
+    if (order.client_id) paidOrderCounts.set(order.client_id, (paidOrderCounts.get(order.client_id) || 0) + 1);
+  }
   const reviews: ReviewItem[] = dbReviews.map((review) => ({
         id: review.id,
         name: (Array.isArray(review.profiles) ? review.profiles[0]?.company_name || review.profiles[0]?.username : review.profiles?.company_name || review.profiles?.username) || "Verified client",
@@ -44,6 +53,7 @@ export default async function ReviewsPage() {
         videoUrl: review.video_url,
         response: review.seller_response,
         date: review.created_at,
+        isReturningClient: (paidOrderCounts.get(review.client_id) || 0) >= 2,
       }));
 
   return (
