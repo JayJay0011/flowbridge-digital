@@ -13,7 +13,7 @@ const parsePriceToCents = (value?: string | null) => {
 };
 
 const launchDiscountPercent = 10;
-const launchDiscountStartsAt = new Date("2026-10-18T23:00:00.000Z");
+const launchDiscountStartsAt = new Date("2026-10-16T23:00:00.000Z");
 const launchDiscountEndsAt = new Date("2026-11-19T22:59:59.999Z");
 
 const applyLaunchDiscount = (amountCents: number, eligible: boolean) =>
