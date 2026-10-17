@@ -171,17 +171,39 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-wrap items-center gap-6 text-slate-300 text-sm">
-            <span className="uppercase tracking-[0.2em] text-xs">
-              Platforms we build with
-            </span>
-            <span className="text-slate-200 font-semibold">HubSpot</span>
-            <span className="text-slate-200 font-semibold">Zapier</span>
-            <span className="text-slate-200 font-semibold">Make</span>
-            <span className="text-slate-200 font-semibold">Supabase</span>
-            <span className="text-slate-200 font-semibold">Airtable</span>
-            <span className="text-slate-200 font-semibold">GoHighLevel</span>
-            <span className="text-slate-200 font-semibold">Bitrix24</span>
+          <div className="mt-12 border-y border-slate-800 py-6">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+              Platforms and technologies we build with
+            </p>
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-4 text-sm">
+              {[
+                "n8n",
+                "Pipedrive",
+                "Zoho CRM",
+                "HubSpot",
+                "Salesforce",
+                "GoHighLevel",
+                "Bitrix24",
+                "Odoo",
+                "Zapier",
+                "Make",
+                "Supabase",
+                "Airtable",
+                "Brevo",
+                "Klaviyo",
+                "ActiveCampaign",
+                "JavaScript",
+                "TypeScript",
+                "Python",
+                "React",
+                "Next.js",
+                "APIs & Webhooks",
+              ].map((platform) => (
+                <span key={platform} className="font-semibold text-slate-200">
+                  {platform}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-slate-800 bg-slate-800 sm:grid-cols-2 lg:grid-cols-4">

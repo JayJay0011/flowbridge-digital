@@ -12,6 +12,15 @@ const parsePriceToCents = (value?: string | null) => {
   return Math.round(amount * 100);
 };
 
+const launchDiscountPercent = 10;
+const launchDiscountStartsAt = new Date("2026-10-18T23:00:00.000Z");
+const launchDiscountEndsAt = new Date("2026-11-19T22:59:59.999Z");
+
+const applyLaunchDiscount = (amountCents: number, eligible: boolean) =>
+  eligible
+    ? Math.max(50, Math.round(amountCents * (1 - launchDiscountPercent / 100)))
+    : amountCents;
+
 export async function POST(request: Request) {
   try {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -66,6 +75,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unable to load your billing profile." }, { status: 500 });
     }
 
+    const { data: previousPaidOrders, error: previousPaidOrdersError } = await supabaseAdmin
+      .from("orders")
+      .select("id")
+      .eq("client_id", userId)
+      .eq("payment_status", "paid")
+      .limit(1);
+    if (previousPaidOrdersError) {
+      return NextResponse.json({ error: "Unable to verify launch-offer eligibility." }, { status: 500 });
+    }
+
+    const now = new Date();
+    const launchDiscountEligible =
+      previousPaidOrders.length === 0 &&
+      now >= launchDiscountStartsAt &&
+      now <= launchDiscountEndsAt;
+
     if (offerId) {
       const { data: offer, error: offerError } = await supabaseAdmin
         .from("offers")
@@ -79,20 +104,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Accepted offer not found." }, { status: 404 });
       }
 
+      const amountCents = parsePriceToCents(offer.price);
+      if (!amountCents) {
+        return NextResponse.json({ error: "This offer does not have a valid payment amount." }, { status: 400 });
+      }
+      const checkoutAmountCents = applyLaunchDiscount(amountCents, launchDiscountEligible);
+
       if (offer.stripe_session_id) {
         const existingSession = await stripe.checkout.sessions.retrieve(offer.stripe_session_id);
-        if (existingSession.status === "open" && existingSession.url) return NextResponse.json({ url: existingSession.url });
+        const existingAmountCents = Number(existingSession.metadata?.amount_cents || 0);
+        if (existingSession.status === "open" && existingSession.url && existingAmountCents === checkoutAmountCents) {
+          return NextResponse.json({ url: existingSession.url });
+        }
+        if (existingSession.status === "open") await stripe.checkout.sessions.expire(existingSession.id);
         const { error: clearSessionError } = await supabaseAdmin
           .from("offers")
           .update({ stripe_session_id: null })
           .eq("id", offer.id)
           .eq("stripe_session_id", offer.stripe_session_id);
         if (clearSessionError) return NextResponse.json({ error: "Unable to refresh offer checkout. Please try again." }, { status: 500 });
-      }
-
-      const amountCents = parsePriceToCents(offer.price);
-      if (!amountCents) {
-        return NextResponse.json({ error: "This offer does not have a valid payment amount." }, { status: 400 });
       }
 
       const { data: priorOrder, error: priorOrderError } = await supabaseAdmin
@@ -114,7 +144,7 @@ export async function POST(request: Request) {
         line_items: [{
           price_data: {
             currency: "usd",
-            unit_amount: amountCents,
+            unit_amount: checkoutAmountCents,
             product_data: {
               name: offer.title || "Flowbridge custom offer",
               description: [offer.description, offer.deliverables].filter(Boolean).join(" — ").slice(0, 500) || undefined,
@@ -130,7 +160,9 @@ export async function POST(request: Request) {
           offer_id: offer.id,
           gig_id: offer.gig_id || "",
           user_id: userId,
-          amount_cents: String(amountCents),
+          amount_cents: String(checkoutAmountCents),
+          original_amount_cents: String(amountCents),
+          launch_discount_percent: launchDiscountEligible ? String(launchDiscountPercent) : "0",
         },
       });
 
@@ -183,6 +215,7 @@ export async function POST(request: Request) {
 
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL || "https://flowbridgedigital.org";
+    const checkoutAmountCents = applyLaunchDiscount(amountCents, launchDiscountEligible);
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -193,7 +226,7 @@ export async function POST(request: Request) {
         {
           price_data: {
             currency: "usd",
-            unit_amount: amountCents,
+            unit_amount: checkoutAmountCents,
             product_data: {
               name: gig.title,
               description: selectedPackage?.description?.slice(0, 500) || `${packageKey[0].toUpperCase()}${packageKey.slice(1)} package`,
@@ -209,7 +242,9 @@ export async function POST(request: Request) {
         gig_id: gig.id,
         user_id: userId,
         package_tier: packageKey,
-        amount_cents: String(amountCents),
+        amount_cents: String(checkoutAmountCents),
+        original_amount_cents: String(amountCents),
+        launch_discount_percent: launchDiscountEligible ? String(launchDiscountPercent) : "0",
       },
     });
 
