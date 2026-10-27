@@ -33,46 +33,52 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/strategy-call",
   ];
 
-  const now = new Date();
   const [gigsResult, postsResult, portfolioResult, casesResult] =
     await Promise.all([
-      supabasePublic.from("gigs").select("slug").eq("status", "published"),
+      supabasePublic
+        .from("gigs")
+        .select("slug,created_at")
+        .eq("status", "published"),
       supabasePublic
         .from("blog_posts")
-        .select("slug,published_at")
+        .select("slug,published_at,updated_at")
         .eq("status", "published"),
       supabasePublic
         .from("portfolio")
-        .select("slug")
+        .select("slug,created_at")
         .eq("status", "published"),
       supabasePublic
         .from("case_studies")
-        .select("slug")
+        .select("slug,created_at")
         .eq("status", "published"),
     ]);
 
   const dynamicEntries: MetadataRoute.Sitemap = [
     ...(gigsResult.data ?? []).map((item) => ({
       url: `${siteUrl}/gigs/${item.slug}`,
-      lastModified: now,
+      lastModified: item.created_at ? new Date(item.created_at) : undefined,
       changeFrequency: "weekly" as const,
       priority: 0.8,
     })),
     ...(postsResult.data ?? []).map((item) => ({
       url: `${siteUrl}/blog/${item.slug}`,
-      lastModified: item.published_at ? new Date(item.published_at) : now,
+      lastModified: item.updated_at
+        ? new Date(item.updated_at)
+        : item.published_at
+          ? new Date(item.published_at)
+          : undefined,
       changeFrequency: "monthly" as const,
       priority: 0.75,
     })),
     ...(portfolioResult.data ?? []).map((item) => ({
       url: `${siteUrl}/portfolio/${item.slug}`,
-      lastModified: now,
+      lastModified: item.created_at ? new Date(item.created_at) : undefined,
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
     ...(casesResult.data ?? []).map((item) => ({
       url: `${siteUrl}/case-studies/${item.slug}`,
-      lastModified: now,
+      lastModified: item.created_at ? new Date(item.created_at) : undefined,
       changeFrequency: "monthly" as const,
       priority: 0.75,
     })),
@@ -80,7 +86,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${siteUrl}${route}`,
-    lastModified: now,
     changeFrequency: "weekly",
     priority: route === "/" ? 1 : 0.7,
   }));

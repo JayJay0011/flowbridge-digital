@@ -2,28 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-
-type SocialChoice = {
+type SocialItem = {
   label: string;
   href: string;
 };
-
-type SocialItem =
-  | {
-      label: string;
-      href: string;
-      choices?: never;
-    }
-  | {
-      label: string;
-      href?: never;
-      choices: SocialChoice[];
-    };
-
-function hasChoices(item: SocialItem): item is Extract<SocialItem, { choices: SocialChoice[] }> {
-  return "choices" in item && Array.isArray(item.choices);
-}
 
 const socialItems: SocialItem[] = [
   {
@@ -48,17 +30,12 @@ const socialItems: SocialItem[] = [
   },
   {
     label: "WhatsApp",
-    choices: [
-      { label: "UK Support", href: "https://wa.link/sqgra4" },
-      { label: "US Support", href: "#" },
-      { label: "Nigeria Support", href: "https://wa.link/pz72hl" },
-    ],
+    href: "https://wa.me/13527621127",
   },
 ];
 
 export default function Footer() {
   const pathname = usePathname();
-  const [activeSocial, setActiveSocial] = useState<SocialItem | null>(null);
 
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
     return null;
@@ -258,24 +235,14 @@ export default function Footer() {
           <ul className="space-y-3 text-sm">
             {socialItems.map((item) => (
               <li key={item.label}>
-                {hasChoices(item) ? (
-                  <button
-                    type="button"
-                    onClick={() => setActiveSocial(item)}
-                    className="text-left hover:text-white transition-colors duration-300"
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-white transition-colors duration-300"
-                  >
-                    {item.label}
-                  </a>
-                )}
+                <a
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-white transition-colors duration-300"
+                >
+                  {item.label}
+                </a>
               </li>
             ))}
           </ul>
@@ -292,57 +259,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {activeSocial ? (
-        <div
-          className="fixed inset-0 z-50 bg-slate-950/50 px-4 py-6"
-          role="presentation"
-          onClick={() => setActiveSocial(null)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`${activeSocial.label} links`}
-            className="ml-auto flex h-full w-full max-w-sm flex-col rounded-2xl border border-slate-700 bg-slate-950 p-6 text-slate-200 shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">
-                  Socials
-                </p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
-                  {activeSocial.label}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveSocial(null)}
-                className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
-              >
-                Close
-              </button>
-            </div>
-
-            {hasChoices(activeSocial) ? (
-              <div className="mt-8 grid gap-3">
-                {activeSocial.choices.map((choice) => (
-                  <a
-                    key={choice.label}
-                    href={choice.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-4 font-semibold text-white transition hover:border-cyan-300 hover:bg-slate-800"
-                  >
-                    {choice.label}
-                  </a>
-                ))}
-              </div>
-            ) : null}
-
-            <p className="mt-auto pt-8 text-xs leading-relaxed text-slate-500">Choose the support destination you want to open.</p>
-          </div>
-        </div>
-      ) : null}
     </footer>
   )
 }
